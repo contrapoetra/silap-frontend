@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#eef3ec}
+  @keyframes silapPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes silapFade{from{opacity:0}to{opacity:1}}
+  @keyframes silapToast{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%)}}
+  ::selection{background:#bfe6cb}
+  .silap-scroll::-webkit-scrollbar{height:6px;width:6px}
+  .silap-scroll::-webkit-scrollbar-thumb{background:#cdddcf;border-radius:8px}
+</style>
+</helmet>
+
+<div class="silap-scroll" style="min-height:100vh;background:#eef3ec;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#1c2a21;-webkit-font-smoothing:antialiased;">
+
+  <!-- TOPBAR -->
+  <header style="position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid #e1eadf;">
+    <div style="max-width:1200px;margin:0 auto;padding:{{ rs.headerPad }};display:flex;align-items:center;gap:16px;">
+
+      <!-- Logo -->
+      <div onClick="{{ act.home }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0;">
+        <img
+  src="./Logo1.png"
+  alt="Logo Desa Bunutwetan"
+  style="
+    width:{{ rs.logoSize }};
+    height:{{ rs.logoSize }};
+    object-fit:contain;
+  "
+>
+
+        <!--Header (Nama Sistem)-->
+        <div style="line-height:1.05;">
+          <div style="font-size:{{ rs.logoFont }};font-weight:800;letter-spacing:-.02em;color:#16331f;">SILAP</div>
+          <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}"><div style="font-size:10.5px;font-weight:600;color:#6a8273;letter-spacing:.02em;">Sistem Informasi Layanan Program Desa</div></sc-if>
+        </div>
+      </div>
+
+      <!-- Desktop nav -->
+      <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+        <nav style="display:flex;align-items:center;gap:4px;margin-left:14px;">
+          <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+            <button onClick="{{ item.onClick }}" style="border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:10px;background:{{ item.bg }};color:{{ item.color }};transition:background .15s;">{{ item.label }}</button>
+          </sc-for>
+        </nav>
+      </sc-if>
+
+      <!-- Desktop user area -->
+      <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+          <sc-if value="{{ isPublic }}" hint-placeholder-val="{{ true }}">
+            <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#7d9385;background:#f0f6ee;padding:7px 12px;border-radius:99px;border:1px solid #e1eadf;"><span style="width:7px;height:7px;border-radius:50%;background:#8aa996;"></span>Mode Warga</span>
+            <button onClick="{{ act.openLogin }}" style="border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:10px 20px;border-radius:11px;background:#1f7e44;color:#fff;box-shadow:0 6px 16px -7px rgba(31,126,68,.8);">Masuk</button>
+          </sc-if>
+          <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #e1eadf;padding:4px 5px 4px 12px;border-radius:99px;">
+              <div style="text-align:right;line-height:1.15;"><div style="font-size:13px;font-weight:700;">{{ user.name }}</div><div style="font-size:10.5px;font-weight:600;color:{{ user.chipColor }};">{{ user.roleLabel }}</div></div>
+              <div onClick="{{ act.openAvatar }}" title="Edit foto profil" style="cursor:pointer;width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid {{ user.chipColor }};"><div style="{{ user.avatarStyleSm }}">{{ user.avatarInitialSm }}</div></div>
+              <button onClick="{{ act.logout }}" title="Keluar" style="border:none;cursor:pointer;background:#f0f6ee;color:#5b7264;width:32px;height:32px;border-radius:50%;font-size:15px;">⏻</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Mobile right: avatar/masuk + hamburger -->
+      <sc-if value="{{ isMob }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+          <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ act.openAvatar }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid {{ user.chipColor }};flex-shrink:0;"><div style="{{ user.avatarStyleSm }}">{{ user.avatarInitialSm }}</div></div>
+          </sc-if>
+          <sc-if value="{{ isPublic }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ act.openLogin }}" style="border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;background:#1f7e44;color:#fff;">Masuk</button>
+          </sc-if>
+          <button onClick="{{ act.toggleMenu }}" style="border:1px solid #e1eadf;background:#fff;cursor:pointer;width:38px;height:38px;border-radius:11px;font-size:18px;color:#5d7263;display:flex;align-items:center;justify-content:center;">{{ menuIcon }}</button>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- Mobile dropdown menu -->
+    <sc-if value="{{ flags.mobileMenu }}" hint-placeholder-val="{{ false }}">
+    <div style="border-top:1px solid #e8efe6;background:#fff;padding:10px 16px 16px;">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+        <button onClick="{{ item.onMobile }}" style="width:100%;text-align:left;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:600;padding:12px 14px;border-radius:11px;background:{{ item.bg }};color:{{ item.color }};display:block;margin-bottom:4px;">{{ item.label }}</button>
+      </sc-for>
+      <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:10px;background:#f4f9f3;border-radius:12px;padding:12px 14px;margin-top:6px;margin-bottom:8px;">
+          <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid {{ user.chipColor }};"><div style="{{ user.avatarStyleSm }}">{{ user.avatarInitialSm }}</div></div>
+          <div><div style="font-size:14px;font-weight:700;color:#1a3322;">{{ user.name }}</div><div style="font-size:12px;color:{{ user.chipColor }};font-weight:600;">{{ user.roleLabel }}</div></div>
+        </div>
+        <button onClick="{{ act.logout }}" style="width:100%;border:1px solid #e1eadf;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:11px;border-radius:11px;background:#fff;color:#c0436c;">Keluar</button>
+      </sc-if>
+    </div>
+    </sc-if>
+  </header>
+
+  <main style="max-width:1200px;margin:0 auto;padding:{{ rs.mainPad }};">
+
+    <!-- BERANDA -->
+    <sc-if value="{{ flags.beranda }}" hint-placeholder-val="{{ true }}">
+    <div style="animation:silapFade .3s ease;">
+      <section style="{{ rs.hero }}">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:#dff0e3;color:#1f7e44;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:99px;margin-bottom:{{ rs.heroTagMb }};"><span style="width:7px;height:7px;border-radius:50%;background:#2c9a55;"></span>Desa Bunutwetan · Tim Penggerak PKK</div>
+          <h1 style="{{ rs.h1 }}">Satu pintu untuk<br>layanan &amp; program desa</h1>
+          <p style="font-size:{{ rs.bodyFont }};line-height:1.6;color:#54695b;max-width:480px;margin-bottom:{{ rs.heroTagMb }};">SILAP — <strong style="color:#3a4f42;">Sistem Informasi Layanan Program Desa</strong>. <br>Pantau kegiatan, galeri, dan laporan dari 4 Pokja PKK.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onClick="{{ act.gotoPokja }}" style="border:none;cursor:pointer;font-family:inherit;font-size:{{ rs.btnFont }};font-weight:700;padding:{{ rs.btnPad }};border-radius:13px;background:#1f7e44;color:#fff;box-shadow:0 10px 24px -10px rgba(31,126,68,.9);">Jelajahi Layanan</button>
+            <button onClick="{{ act.gotoLaporan }}" style="border:1px solid #cfe0d2;cursor:pointer;font-family:inherit;font-size:{{ rs.btnFont }};font-weight:700;padding:{{ rs.btnPad }};border-radius:13px;background:#fff;color:#2a4031;">Kirim Laporan</button>
+          </div>
+        </div>
+        <div style="position:relative;border-radius:24px;overflow:hidden;background:repeating-linear-gradient(135deg,#e3eee4,#e3eee4 11px,#edf4ed 11px,#edf4ed 22px);border:1px solid #d8e5da;min-height:{{ rs.heroImgH }};display:flex;align-items:flex-end;">
+          <span style="position:absolute;top:16px;left:16px;z-index:3;font-size:10.5px;font-weight:700;color:#fff;background:{{ heroCurrent.accent }};padding:4px 11px;border-radius:99px;">{{ heroCurrent.pokjaName }}</span>
+          <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:#7e9384;letter-spacing:.04em;">[ {{ heroCurrent.tag }} ]</span>
+          <div style="position:relative;z-index:2;width:100%;padding:20px;background:linear-gradient(transparent,rgba(15,38,23,.62));">
+            <div style="font-size:10.5px;font-weight:700;color:#cfe8d6;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">Dokumentasi Terbaru</div>
+            <div style="font-size:{{ rs.heroCapFont }};font-weight:800;color:#fff;line-height:1.3;text-shadow:0 1px 8px rgba(0,0,0,.3);">{{ heroCurrent.caption }}</div>
+            <div style="display:flex;gap:6px;margin-top:12px;">
+              <sc-for list="{{ heroDots }}" as="d" hint-placeholder-count="3">
+                <div style="width:{{ d.w }};height:7px;border-radius:99px;background:{{ d.bg }};transition:width .4s,background .4s;"></div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style="margin-top:{{ rs.sectionGap }};">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;">
+          <h2 style="font-size:{{ rs.h2 }};font-weight:800;letter-spacing:-.02em;color:#16331f;">Fitur Layanan</h2>
+          <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;font-weight:600;color:#7d9385;">Pilih untuk membuka</span></sc-if>
+        </div>
+        <div style="{{ rs.featGrid }}">
+          <sc-for list="{{ features }}" as="f" hint-placeholder-count="6">
+            <button onClick="{{ f.onClick }}" style="text-align:left;border:1px solid #e3ebe1;cursor:pointer;font-family:inherit;background:#fff;border-radius:18px;padding:{{ rs.cardPad }};display:flex;flex-direction:column;gap:12px;transition:transform .15s,box-shadow .15s;width:100%;" style-hover="box-shadow:0 16px 30px -18px rgba(20,48,29,.35);transform:translateY(-3px)">
+              <div style="width:44px;height:44px;border-radius:13px;background:{{ f.tint }};color:{{ f.accent }};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;">{{ f.glyph }}</div>
+              <div><div style="font-size:15px;font-weight:700;color:#1a3322;margin-bottom:3px;">{{ f.title }}</div><div style="font-size:13px;line-height:1.5;color:#69806f;">{{ f.desc }}</div></div>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="{{ rs.profilSec }}">
+        <div>
+          <div style="font-size:12.5px;font-weight:700;color:#2c9a55;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Profil Desa</div>
+          <h2 style="font-size:{{ rs.profilH2 }};font-weight:800;letter-spacing:-.02em;color:#14301d;margin-bottom:12px;">Desa Bunutwetan</h2>
+          <p style="font-size:14px;line-height:1.65;color:#54695b;margin-bottom:18px;">Desa Bunutwetan merupakan salah satu desa yang berada di Kecamatan Pakis, Kabupaten Malang, Provinsi Jawa Timur. Desa ini memiliki letak yang strategis dan berada pada wilayah dataran tinggi dengan sebagian besar masyarakatnya bermata pencaharian di sektor pertanian dan pekerjaan informal lainnya. Secara administratif, Desa Bunutwetan berbatasan dengan Kecamatan Jabung di sebelah utara, Desa Pakisjajar dan Pakiskembar di sebelah timur, Desa Ampeldento di sebelah selatan, serta Desa Asrikaton di sebelah barat. Desa ini terdiri atas beberapa dusun dengan jumlah 9 RW dan 70 RT, serta memiliki berbagai potensi di bidang pertanian, pemberdayaan masyarakat, dan pengembangan keluarga melalui program Kampung KB di Dusun Boro Bunut. Dengan dukungan sumber daya manusia dan potensi wilayah yang dimiliki, Desa Bunutwetan terus berupaya meningkatkan kualitas pelayanan dan kesejahteraan masyarakat guna mewujudkan pembangunan desa yang berkelanjutan.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:#f4f9f3;border-radius:13px;padding:14px 16px;"><div style="font-size:11.5px;font-weight:600;color:#7d9385;margin-bottom:3px;">Kepala Desa</div><div style="font-size:14.5px;font-weight:700;color:#22382b;">H. Bambang Sutejo</div></div>
+            <div style="background:#f4f9f3;border-radius:13px;padding:14px 16px;"><div style="font-size:11.5px;font-weight:600;color:#7d9385;margin-bottom:3px;">Ketua TP PKK</div><div style="font-size:14.5px;font-weight:700;color:#22382b;">Ny. Endang Sutejo</div></div>
+          </div>
+        </div>
+        <div style="position:relative;border-radius:18px;overflow:hidden;background:repeating-linear-gradient(135deg,#e3eee4,#e3eee4 11px,#edf4ed 11px,#edf4ed 22px);border:1px solid #d8e5da;min-height:220px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:ui-monospace,monospace;font-size:11.5px;color:#7e9384;letter-spacing:.04em;">[ peta / foto wilayah desa ]</span>
+        </div>
+      </section>
+
+      <section style="margin-top:{{ rs.sectionGap }};">
+        <h2 style="font-size:{{ rs.h2 }};font-weight:800;letter-spacing:-.02em;color:#16331f;margin-bottom:16px;">Kelompok Kerja</h2>
+        <div style="{{ rs.pokja4Grid }}">
+          <sc-for list="{{ pokjas }}" as="p" hint-placeholder-count="4">
+            <button onClick="{{ p.onOpen }}" style="text-align:left;cursor:pointer;font-family:inherit;border:1px solid #e3ebe1;background:#fff;border-radius:18px;padding:{{ rs.cardPad }};display:flex;flex-direction:column;gap:12px;transition:transform .15s,box-shadow .15s;width:100%;" style-hover="box-shadow:0 16px 30px -18px rgba(20,48,29,.35);transform:translateY(-3px)">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="width:42px;height:42px;border-radius:12px;background:{{ p.accent }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">{{ p.rom }}</div>
+                <div style="font-size:11.5px;font-weight:700;color:{{ p.accent }};background:{{ p.tint }};padding:5px 10px;border-radius:99px;">{{ p.count }} kegiatan</div>
+              </div>
+              <div><div style="font-size:10.5px;font-weight:700;color:#9aa99e;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">{{ p.name }}</div><div style="font-size:14px;font-weight:700;line-height:1.3;color:#1a3322;">{{ p.title }}</div></div>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+    </sc-if>
+
+    <!-- POKJA OVERVIEW -->
+    <sc-if value="{{ flags.pokja }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:silapFade .3s ease;padding-top:28px;">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:{{ rs.pageH1 }};font-weight:800;letter-spacing:-.025em;color:#14301d;margin-bottom:7px;">Kelompok Kerja PKK</h1>
+        <p style="font-size:14.5px;color:#5d7263;">Pilih kelompok kerja untuk mengatur galeri, kalender, dan berkas</p>
+      </div>
+      <div style="{{ rs.pokjaOverview }}">
+        <sc-for list="{{ pokjas }}" as="p" hint-placeholder-count="4">
+          <button onClick="{{ p.onOpen }}" style="text-align:left;cursor:pointer;font-family:inherit;border:1px solid #e3ebe1;background:#fff;border-radius:20px;padding:{{ rs.cardPad }};display:flex;gap:16px;align-items:flex-start;transition:transform .15s,box-shadow .15s;width:100%;" style-hover="box-shadow:0 18px 34px -20px rgba(20,48,29,.4);transform:translateY(-3px)">
+            <div style="width:54px;height:54px;flex-shrink:0;border-radius:16px;background:{{ p.accent }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;">{{ p.rom }}</div>
+            <div style="flex:1;">
+              <div style="font-size:11px;font-weight:700;color:#9aa99e;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;">{{ p.name }}</div>
+              <div style="font-size:{{ rs.pokjaCardH }};font-weight:800;line-height:1.25;color:#1a3322;margin-bottom:5px;">{{ p.title }}</div>
+              <div style="font-size:12.5px;color:#69806f;margin-bottom:12px;">{{ p.sub }}</div>
+              <div style="display:flex;gap:14px;flex-wrap:wrap;">
+                <div style="font-size:12px;color:#5d7263;"><strong style="color:{{ p.accent }};font-size:14px;">{{ p.count }}</strong> kegiatan</div>
+                <div style="font-size:12px;color:#5d7263;"><strong style="color:{{ p.accent }};font-size:14px;">{{ p.photoCount }}</strong> foto</div>
+                <div style="font-size:12px;color:#5d7263;"><strong style="color:{{ p.accent }};font-size:14px;">{{ p.fileCount }}</strong> berkas</div>
+              </div>
+            </div>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- POKJA DETAIL -->
+    <sc-if value="{{ flags.detail }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:silapFade .3s ease;padding-top:22px;">
+      <button onClick="{{ act.gotoPokja }}" style="border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:#6a8273;margin-bottom:14px;display:flex;align-items:center;gap:6px;">← Semua Pokja</button>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+        <div style="width:54px;height:54px;border-radius:16px;background:{{ active.accent }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">{{ active.rom }}</div>
+        <div><div style="font-size:11px;font-weight:700;color:#9aa99e;letter-spacing:.05em;text-transform:uppercase;">{{ active.name }}</div><h1 style="font-size:{{ rs.detailH1 }};font-weight:800;letter-spacing:-.02em;color:#14301d;line-height:1.15;">{{ active.title }}</h1></div>
+      </div>
+      <div style="margin:18px 0 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:4px;background:#e6efe4;padding:4px;border-radius:12px;">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.onClick }}" style="border:none;cursor:pointer;font-family:inherit;font-size:{{ rs.tabFont }};font-weight:700;padding:{{ rs.tabPad }};border-radius:9px;background:{{ t.bg }};color:{{ t.color }};box-shadow:{{ t.shadow }};">{{ t.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-left:auto;">
+          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:700;color:#1f7e44;background:#dff0e3;padding:6px 12px;border-radius:99px;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#2c9a55;"></span>{{ rs.editLabel }}</span></sc-if>
+          <sc-if value="{{ readOnly }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;font-weight:600;color:#86766a;background:#f3ede5;padding:6px 12px;border-radius:99px;">🔒 {{ rs.readLabel }}</span></sc-if>
+        </div>
+      </div>
+
+      <!-- KALENDER -->
+      <sc-if value="{{ tabFlags.kalender }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:{{ rs.calPad }};">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button onClick="{{ act.prevMonth }}" style="border:1px solid #e1eadf;background:#fff;cursor:pointer;width:34px;height:34px;border-radius:9px;font-size:16px;color:#5b7264;">‹</button>
+            <div style="font-size:{{ rs.calMonthFont }};font-weight:800;color:#16331f;min-width:130px;text-align:center;">{{ cal.monthLabel }}</div>
+            <button onClick="{{ act.nextMonth }}" style="border:1px solid #e1eadf;background:#fff;cursor:pointer;width:34px;height:34px;border-radius:9px;font-size:16px;color:#5b7264;">›</button>
+          </div>
+          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#7d9385;font-weight:600;">Klik tanggal untuk tambah</span></sc-if>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:{{ rs.calGap }};">
+          <sc-for list="{{ cal.weekdays }}" as="w" hint-placeholder-count="7">
+            <div style="text-align:center;font-size:11px;font-weight:700;color:#9aa99e;padding-bottom:4px;text-transform:uppercase;letter-spacing:.03em;">{{ w }}</div>
+          </sc-for>
+          <sc-for list="{{ cal.cells }}" as="c" hint-placeholder-count="35">
+            <div onClick="{{ c.onClick }}" style="min-height:{{ c.minH }};border-radius:10px;border:1px solid {{ c.border }};background:{{ c.bg }};padding:{{ rs.calCellPad }};cursor:{{ c.cursor }};display:flex;flex-direction:column;gap:3px;">
+              <div style="font-size:{{ rs.calNumFont }};font-weight:700;color:{{ c.numColor }};">{{ c.day }}</div>
+              <sc-for list="{{ c.events }}" as="e" hint-placeholder-count="0">
+                <div style="background:{{ e.tint }};border-left:3px solid {{ e.accent }};border-radius:4px;padding:2px 5px;display:flex;align-items:center;gap:3px;">
+                  <div style="flex:1;min-width:0;"><div style="font-size:{{ rs.calEvFont }};font-weight:700;color:#2a3d31;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.title }}</div><div style="font-size:9px;color:#7d9385;font-weight:600;">{{ e.time }}</div></div>
+                  <sc-if value="{{ e.canDelete }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ e.onDelete }}" style="border:none;background:none;cursor:pointer;color:#b08a7a;font-size:12px;line-height:1;padding:0;flex-shrink:0;">×</button>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- GALERI TAB -->
+      <sc-if value="{{ tabFlags.galeri }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ act.openGalModal }}" style="border:1px dashed #b8d2bd;background:#f4f9f3;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1f7e44;padding:12px 18px;border-radius:13px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">＋ Unggah Foto ke {{ active.name }}</button>
+        </sc-if>
+        <div style="{{ rs.galPokjaGrid }}">
+          <sc-for list="{{ pokjaPhotos }}" as="g" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #e3ebe1;border-radius:16px;overflow:hidden;">
+              <div style="position:relative;min-height:130px;background:repeating-linear-gradient(135deg,#e6efe6,#e6efe6 10px,#eef5ee 10px,#eef5ee 20px);display:flex;align-items:center;justify-content:center;">
+                <span style="font-family:ui-monospace,monospace;font-size:10.5px;color:#88a08e;">[ {{ g.tag }} ]</span>
+                <sc-if value="{{ g.canDelete }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ g.onDelete }}" style="position:absolute;top:8px;right:8px;border:none;cursor:pointer;background:rgba(255,255,255,.9);width:24px;height:24px;border-radius:7px;font-size:14px;color:#a8705f;">×</button>
+                </sc-if>
+              </div>
+              <div style="padding:11px 13px;"><div style="font-size:13px;font-weight:700;color:#22382b;line-height:1.3;">{{ g.caption }}</div><div style="font-size:11px;color:#88a08e;margin-top:3px;">{{ g.date }}</div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- BERKAS TAB -->
+      <sc-if value="{{ tabFlags.berkas }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:8px;">
+        <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ act.openFileModal }}" style="border:1px dashed #b8d2bd;background:#f4f9f3;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#1f7e44;padding:14px;border-radius:13px;margin:8px 8px 6px;width:calc(100% - 16px);display:flex;align-items:center;justify-content:center;gap:8px;">⬆ Unggah Berkas Baru</button>
+        </sc-if>
+        <sc-for list="{{ pokjaFiles }}" as="fl" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f4ef;">
+            <div style="width:40px;height:40px;border-radius:10px;background:{{ fl.tint }};color:{{ fl.accent }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">{{ fl.ext }}</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:700;color:#22382b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ fl.name }}</div><div style="font-size:11.5px;color:#88a08e;">{{ fl.meta }}</div></div>
+            <button onClick="{{ fl.onDownload }}" style="border:1px solid #cfe0d2;background:#fff;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#1f7e44;padding:7px 13px;border-radius:9px;flex-shrink:0;">⬇ Unduh</button>
+            <sc-if value="{{ fl.canDelete }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ fl.onDelete }}" style="border:none;background:none;cursor:pointer;color:#bfa093;font-size:18px;padding:4px 6px;">×</button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- GALERI GABUNGAN -->
+    <sc-if value="{{ flags.galeri }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:silapFade .3s ease;padding-top:28px;">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:{{ rs.pageH1 }};font-weight:800;letter-spacing:-.025em;color:#14301d;margin-bottom:7px;">Galeri Kegiatan</h1>
+        <p style="font-size:14.5px;color:#5d7263;">Dokumentasi seluruh pokja dalam satu halaman.</p>
+      </div>
+      <div class="silap-scroll" style="display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px;">
+        <sc-for list="{{ galFilters }}" as="gf" hint-placeholder-count="5">
+          <button onClick="{{ gf.onClick }}" style="border:1px solid {{ gf.border }};cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;padding:8px 16px;border-radius:99px;background:{{ gf.bg }};color:{{ gf.color }};white-space:nowrap;flex-shrink:0;">{{ gf.label }}</button>
+        </sc-for>
+      </div>
+      <div style="{{ rs.galGrid }}">
+        <sc-for list="{{ allPhotos }}" as="g" hint-placeholder-count="8">
+          <div style="background:#fff;border:1px solid #e3ebe1;border-radius:16px;overflow:hidden;">
+            <div style="position:relative;min-height:130px;background:repeating-linear-gradient(135deg,#e6efe6,#e6efe6 10px,#eef5ee 10px,#eef5ee 20px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,monospace;font-size:10px;color:#88a08e;">[ {{ g.tag }} ]</span>
+              <span style="position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;color:#fff;background:{{ g.accent }};padding:3px 8px;border-radius:99px;">{{ g.pokjaName }}</span>
+            </div>
+            <div style="padding:10px 12px;"><div style="font-size:12.5px;font-weight:700;color:#22382b;line-height:1.3;">{{ g.caption }}</div><div style="font-size:11px;color:#88a08e;margin-top:3px;">{{ g.date }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- LAPORAN -->
+    <sc-if value="{{ flags.laporan }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:silapFade .3s ease;padding-top:28px;">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:{{ rs.pageH1 }};font-weight:800;letter-spacing:-.025em;color:#14301d;margin-bottom:7px;">Laporan Warga</h1>
+        <p style="font-size:14.5px;color:#5d7263;">Sampaikan laporan atau usulan. Pengurus dapat mengekspor ke Excel.</p>
+      </div>
+      <div style="{{ rs.laporanGrid }}">
+        <div style="background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:20px;">
+          <div style="font-size:15px;font-weight:800;color:#16331f;margin-bottom:14px;">Form Laporan</div>
+          <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Nama Pelapor</label>
+          <input value="{{ rf.name }}" onChange="{{ act.rfName }}" placeholder="Nama lengkap" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;" />
+          <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Kontak (WA/Telepon)</label>
+          <input value="{{ rf.contact }}" onChange="{{ act.rfContact }}" placeholder="08xx" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;" />
+          <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Ditujukan ke Pokja</label>
+          <select value="{{ rf.category }}" onChange="{{ act.rfCategory }}" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;">
+            <option>Pokja I — Pancasila &amp; Gotong Royong</option>
+            <option>Pokja II — Pendidikan &amp; Keterampilan</option>
+            <option>Pokja III — Pangan, Sandang &amp; Rumah</option>
+            <option>Pokja IV — Kesehatan &amp; Lingkungan</option>
+          </select>
+          <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Uraian Laporan</label>
+          <textarea value="{{ rf.desc }}" onChange="{{ act.rfDesc }}" placeholder="Tuliskan laporan Anda…" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:14px;background:#fafdf9;color:#1c2a21;min-height:80px;resize:vertical;"></textarea>
+          <button onClick="{{ act.submitReport }}" style="width:100%;border:none;cursor:pointer;font-family:inherit;font-size:14.5px;font-weight:700;padding:13px;border-radius:12px;background:#1f7e44;color:#fff;">Kirim Laporan</button>
+        </div>
+        <div style="background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:18px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <div><div style="font-size:15px;font-weight:800;color:#16331f;">Rekap Laporan Masuk</div><div style="font-size:12.5px;color:#7d9385;">{{ reportCount }} laporan</div></div>
+            <button onClick="{{ act.exportExcel }}" style="border:1px solid #1f7e44;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;color:#1f7e44;background:#eaf6ed;padding:9px 16px;border-radius:10px;display:flex;align-items:center;gap:7px;white-space:nowrap;"><span>▦</span> Export Excel</button>
+          </div>
+          <div class="silap-scroll" style="overflow-x:auto;border:1px solid #e8efe6;border-radius:11px;">
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:580px;">
+              <thead><tr style="background:#1f7e44;color:#fff;text-align:left;"><th style="padding:9px 11px;font-weight:700;">No</th><th style="padding:9px 11px;font-weight:700;">Tanggal</th><th style="padding:9px 11px;font-weight:700;">Pelapor</th><th style="padding:9px 11px;font-weight:700;">Pokja</th><th style="padding:9px 11px;font-weight:700;">Uraian</th><th style="padding:9px 11px;font-weight:700;">Status</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ reportRows }}" as="r" hint-placeholder-count="4">
+                  <tr style="border-bottom:1px solid #eef3ec;background:{{ r.rowBg }};">
+                    <td style="padding:9px 11px;color:#7d9385;font-weight:600;">{{ r.no }}</td>
+                    <td style="padding:9px 11px;color:#3a4f42;white-space:nowrap;">{{ r.date }}</td>
+                    <td style="padding:9px 11px;color:#22382b;font-weight:700;">{{ r.name }}</td>
+                    <td style="padding:9px 11px;color:#5d7263;white-space:nowrap;">{{ r.pokja }}</td>
+                    <td style="padding:9px 11px;color:#3a4f42;max-width:200px;">{{ r.desc }}</td>
+                    <td style="padding:9px 11px;"><button onClick="{{ r.onStatus }}" style="border:none;cursor:{{ r.statusCursor }};font-family:inherit;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:{{ r.statusBg }};color:{{ r.statusColor }};white-space:nowrap;">{{ r.status }}</button></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- DASHBOARD -->
+    <sc-if value="{{ flags.dashboard }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:silapFade .3s ease;padding-top:28px;">
+      <div style="background:linear-gradient(135deg,#1f7e44,#15622f);border-radius:20px;padding:{{ rs.dashHeroPad }};color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+        <div onClick="{{ act.openAvatar }}" title="Edit foto profil" style="cursor:pointer;width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;position:relative;border:3px solid rgba(255,255,255,.35);">
+          <div style="{{ user.avatarStyleLg }}">{{ user.avatarInitialLg }}</div>
+          <div style="position:absolute;bottom:1px;right:1px;width:18px;height:18px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1f7e44;font-weight:800;">✎</div>
+        </div>
+        <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;opacity:.85;">Selamat datang kembali,</div><div style="font-size:{{ rs.dashWelcome }};font-weight:800;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ user.name }}</div><div style="font-size:13px;opacity:.9;margin-top:2px;">{{ user.roleLabel }} · {{ user.scope }}</div></div>
+      </div>
+      <div style="{{ rs.dashStats }}">
+        <sc-for list="{{ dashStats }}" as="s" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid #e3ebe1;border-radius:16px;padding:18px;">
+            <div style="font-size:28px;font-weight:800;color:{{ s.accent }};line-height:1;">{{ s.value }}</div>
+            <div style="font-size:13px;color:#69806f;margin-top:6px;font-weight:600;">{{ s.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:20px;">
+        <div style="font-size:15px;font-weight:800;color:#16331f;margin-bottom:5px;">Hak Akses Anda</div>
+        <div style="font-size:13px;color:#5d7263;margin-bottom:16px;">{{ user.accessNote }}</div>
+        <div style="{{ rs.dashQA }}">
+          <sc-for list="{{ quickActions }}" as="q" hint-placeholder-count="4">
+            <button onClick="{{ q.onClick }}" style="text-align:left;cursor:pointer;font-family:inherit;border:1px solid #e8efe6;background:#f7fbf6;border-radius:13px;padding:14px;display:flex;align-items:center;gap:12px;width:100%;">
+              <div style="width:38px;height:38px;border-radius:11px;background:{{ q.tint }};color:{{ q.accent }};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0;">{{ q.glyph }}</div>
+              <div><div style="font-size:13.5px;font-weight:700;color:#1a3322;">{{ q.title }}</div><div style="font-size:11.5px;color:#7d9385;">{{ q.desc }}</div></div>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ADMIN: MANAJEMEN AKUN -->
+      <sc-if value="{{ user.isAdmin }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:18px;background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div><div style="font-size:15px;font-weight:800;color:#16331f;">Manajemen Akun</div><div style="font-size:12.5px;color:#7d9385;">{{ allUsersCount }} akun terdaftar</div></div>
+          <button onClick="{{ act.openUserModal }}" style="border:none;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 18px;border-radius:11px;background:#1f7e44;color:#fff;white-space:nowrap;">＋ Tambah Akun</button>
+        </div>
+        <div class="silap-scroll" style="overflow-x:auto;border:1px solid #e8efe6;border-radius:11px;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:520px;">
+            <thead><tr style="background:#1f7e44;color:#fff;text-align:left;"><th style="padding:9px 12px;font-weight:700;">Nama</th><th style="padding:9px 12px;font-weight:700;">NIK</th><th style="padding:9px 12px;font-weight:700;">Peran</th><th style="padding:9px 12px;font-weight:700;">Pokja</th><th style="padding:9px 12px;font-weight:700;">Aksi</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ allUsers }}" as="au" hint-placeholder-count="4">
+                <tr style="border-bottom:1px solid #eef3ec;background:{{ au.rowBg }};">
+                  <td style="padding:9px 12px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <div style="{{ au.avatarStyle }}">{{ au.avatarInitial }}</div>
+                      <span style="font-weight:700;color:#22382b;">{{ au.name }}</span>
+                    </div>
+                  </td>
+                  <td style="padding:9px 12px;font-family:ui-monospace,monospace;font-size:11px;color:#7d9385;letter-spacing:.04em;">{{ au.nikMasked }}</td>
+                  <td style="padding:9px 12px;"><span style="font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:{{ au.roleBg }};color:{{ au.roleColor }};">{{ au.roleLabel }}</span></td>
+                  <td style="padding:9px 12px;color:#5d7263;font-size:12.5px;">{{ au.pokjaName }}</td>
+                  <td style="padding:9px 12px;">
+                    <div style="display:flex;gap:6px;">
+                      <button onClick="{{ au.onEdit }}" style="border:1px solid #d8e5da;background:#f4f9f3;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;color:#1f7e44;padding:5px 11px;border-radius:8px;">Edit</button>
+                      <sc-if value="{{ au.canDelete }}" hint-placeholder-val="{{ false }}">
+                        <button onClick="{{ au.onDelete }}" style="border:1px solid #f0d8d0;background:#fdf4f2;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:700;color:#c0436c;padding:5px 11px;border-radius:8px;">Hapus</button>
+                      </sc-if>
+                    </div>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- KETUA: ANGGOTA POKJA -->
+      <sc-if value="{{ user.isKetua }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:18px;background:#fff;border:1px solid #e3ebe1;border-radius:18px;padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div><div style="font-size:15px;font-weight:800;color:#16331f;">Anggota {{ user.scope }}</div><div style="font-size:12.5px;color:#7d9385;">{{ pokjaMemberCount }} anggota</div></div>
+          <button onClick="{{ act.openUserModal }}" style="border:none;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;padding:9px 18px;border-radius:11px;background:#1f7e44;color:#fff;white-space:nowrap;">＋ Tambah Anggota</button>
+        </div>
+        <sc-if value="{{ pokjaHasMembers }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid #e8efe6;border-radius:11px;overflow:hidden;">
+            <sc-for list="{{ pokjaMemberList }}" as="m" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #f0f4ef;">
+                <div style="{{ m.avatarStyle }}">{{ m.avatarInitial }}</div>
+                <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:#22382b;">{{ m.name }}</div><div style="font-size:11.5px;font-family:ui-monospace,monospace;color:#88a08e;">{{ m.nikMasked }}</div></div>
+                <span style="font-size:11px;font-weight:700;color:#3d7fd6;background:#e6effb;padding:4px 9px;border-radius:99px;white-space:nowrap;">Anggota</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ pokjaNoMembers }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:24px;color:#9aa99e;font-size:13.5px;">Belum ada anggota. Klik <strong>＋ Tambah Anggota</strong>.</div>
+        </sc-if>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </main>
+
+  <footer style="border-top:1px solid #e1eadf;background:#fff;">
+  <div style="
+    max-width:1200px;
+    margin:0 auto;
+    padding:22px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  ">
+
+    <!-- Logo dan Nama -->
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img
+        src="./Logo1.png"
+        alt="Logo Desa Bunutwetan"
+        style="
+          width:36px;
+          height:36px;
+          object-fit:contain;
+        "
+      >
+
+      <div style="font-size:12.5px;color:#69806f;">
+        <strong style="color:#2a4031;">Desa Bunutwetan</strong><br>
+        Kecamatan Pakis · Kabupaten Malang
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div style="font-size:12px;color:#9aa99e;">
+      © 2026 Pemerintah Desa Bunutwetan. All Rights Reserved.
+    </div>
+
+  </div>
+</footer>
+
+  <!-- LOGIN MODAL -->
+  <sc-if value="{{ flags.showLogin }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.closeLogin }}" style="position:fixed;inset:0;z-index:60;background:rgba(18,40,26,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:22px;max-width:430px;width:100%;animation:silapPop .25s ease;box-shadow:0 30px 70px -20px rgba(10,30,16,.5);overflow:hidden;max-height:90vh;overflow-y:auto;">
+      <div style="background:linear-gradient(135deg,#1f7e44,#16622f);padding:24px 24px 18px;color:#fff;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:3px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><div style="width:14px;height:14px;border-radius:50% 50% 50% 0;background:#fff;transform:rotate(45deg);"></div></div>
+          <div style="font-size:18px;font-weight:800;letter-spacing:-.02em;">Masuk ke SILAP</div>
+          <button onClick="{{ act.closeLogin }}" style="margin-left:auto;border:none;background:rgba(255,255,255,.2);cursor:pointer;width:28px;height:28px;border-radius:8px;font-size:15px;color:#fff;flex-shrink:0;">×</button>
+        </div>
+        <div style="font-size:12px;opacity:.85;padding-left:46px;">Gunakan NIK dan password untuk masuk</div>
+      </div>
+      <div style="padding:20px 22px;">
+        <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">NIK (16 digit)</label>
+        <input value="{{ lf.nik }}" onChange="{{ act.lfNik }}" onKeyDown="{{ act.loginKey }}" placeholder="Masukkan 16 digit NIK" maxlength="16" style="width:100%;font-family:ui-monospace,monospace;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;letter-spacing:.05em;" />
+        <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Password</label>
+        <input type="password" value="{{ lf.password }}" onChange="{{ act.lfPwd }}" onKeyDown="{{ act.loginKey }}" placeholder="Masukkan password" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:6px;background:#fafdf9;color:#1c2a21;" />
+        <sc-if value="{{ lf.hasError }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fbe7ee;border-radius:9px;padding:9px 12px;margin-bottom:8px;font-size:13px;font-weight:600;color:#c0436c;display:flex;align-items:center;gap:7px;"><span>⚠</span>{{ lf.error }}</div>
+        </sc-if>
+        <button onClick="{{ act.doLogin }}" style="width:100%;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;padding:13px;border-radius:12px;background:#1f7e44;color:#fff;margin-top:8px;box-shadow:0 8px 20px -8px rgba(31,126,68,.8);">Masuk</button>
+        <button onClick="{{ act.closeLogin }}" style="width:100%;border:none;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;padding:9px;border-radius:12px;background:none;color:#7d9385;margin-top:5px;">Lihat sebagai warga (tanpa login)</button>
+        <button onClick="{{ act.toggleDemo }}" style="width:100%;border:none;background:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;color:#9aa99e;padding:7px 0 3px;margin-top:5px;border-top:1px solid #f0f4ef;">{{ lf.demoLabel }} ▾</button>
+        <sc-if value="{{ lf.showDemo }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#f7fbf6;border:1px solid #e3ebe1;border-radius:11px;padding:11px 12px;margin-top:7px;">
+            <div style="font-size:10.5px;font-weight:700;color:#9aa99e;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px;">Akun Demo SILAP</div>
+            <sc-for list="{{ demoAccounts }}" as="da" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eef3ec;">
+                <div style="width:24px;height:24px;border-radius:7px;background:{{ da.accent }};color:#fff;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ da.initial }}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:12px;font-weight:700;color:#22382b;">{{ da.name }} <span style="font-size:10.5px;font-weight:600;color:#9aa99e;">— {{ da.roleLabel }}</span></div>
+                  <div style="font-family:ui-monospace,monospace;font-size:10px;color:#7d9385;letter-spacing:.03em;">{{ da.nik }} · pwd: <strong style="color:#1f7e44;">{{ da.password }}</strong></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- EVENT MODAL -->
+  <sc-if value="{{ flags.eventModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.closeEventModal }}" style="position:fixed;inset:0;z-index:60;background:rgba(18,40,26,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:20px;max-width:390px;width:100%;padding:24px;animation:silapPop .25s ease;">
+      <div style="font-size:17px;font-weight:800;color:#16331f;margin-bottom:4px;">Tambah Kegiatan</div>
+      <div style="font-size:13px;color:#7d9385;margin-bottom:16px;">{{ eventModal.dateLabel }} · {{ active.name }}</div>
+      <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Nama Kegiatan</label>
+      <input value="{{ eventModal.title }}" onChange="{{ act.evTitle }}" placeholder="cth: Posyandu balita" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;" />
+      <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Waktu</label>
+      <input value="{{ eventModal.time }}" onChange="{{ act.evTime }}" placeholder="cth: 09:00" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:16px;background:#fafdf9;color:#1c2a21;" />
+      <div style="display:flex;gap:10px;">
+        <button onClick="{{ act.closeEventModal }}" style="flex:1;border:1px solid #dde7df;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#fff;color:#5d7263;">Batal</button>
+        <button onClick="{{ act.saveEvent }}" style="flex:1.4;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#1f7e44;color:#fff;">Simpan</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- GALLERY MODAL -->
+  <sc-if value="{{ flags.galModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.closeGalModal }}" style="position:fixed;inset:0;z-index:60;background:rgba(18,40,26,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:20px;max-width:390px;width:100%;padding:24px;animation:silapPop .25s ease;">
+      <div style="font-size:17px;font-weight:800;color:#16331f;margin-bottom:16px;">Unggah Foto · {{ active.name }}</div>
+      <div style="border:1px dashed #c3d8c7;border-radius:12px;background:#f4f9f3;padding:22px;text-align:center;margin-bottom:14px;"><div style="font-size:24px;margin-bottom:6px;">🖼</div><div style="font-size:13px;color:#7d9385;font-weight:600;">Seret foto ke sini (placeholder demo)</div></div>
+      <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Keterangan Foto</label>
+      <input value="{{ galModal.caption }}" onChange="{{ act.galCaption }}" placeholder="cth: Kegiatan posyandu Juni" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:16px;background:#fafdf9;color:#1c2a21;" />
+      <div style="display:flex;gap:10px;">
+        <button onClick="{{ act.closeGalModal }}" style="flex:1;border:1px solid #dde7df;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#fff;color:#5d7263;">Batal</button>
+        <button onClick="{{ act.saveGal }}" style="flex:1.4;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#1f7e44;color:#fff;">Unggah</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- FILE MODAL -->
+  <sc-if value="{{ flags.fileModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.closeFileModal }}" style="position:fixed;inset:0;z-index:60;background:rgba(18,40,26,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:20px;max-width:390px;width:100%;padding:24px;animation:silapPop .25s ease;">
+      <div style="font-size:17px;font-weight:800;color:#16331f;margin-bottom:3px;">Unggah Berkas · {{ active.name }}</div>
+      <div style="font-size:12.5px;color:#7d9385;margin-bottom:14px;">Mendukung PDF, Excel (.xlsx) &amp; Word (.docx).</div>
+      <label style="display:block;border:1px dashed #c3d8c7;border-radius:13px;background:#f4f9f3;padding:22px;text-align:center;margin-bottom:11px;cursor:pointer;" style-hover="border-color:#1f7e44;background:#eef7ef">
+        <input type="file" accept=".pdf,.xls,.xlsx,.doc,.docx" onChange="{{ act.flPick }}" style="display:none;" />
+        <div style="font-size:24px;margin-bottom:5px;color:#1f7e44;">⬆</div>
+        <div style="font-size:13.5px;color:#1f7e44;font-weight:700;">Klik untuk memilih berkas</div>
+        <div style="display:flex;gap:7px;justify-content:center;margin-top:10px;">
+          <span style="font-size:10px;font-weight:800;color:#c0436c;background:#fbe7ee;padding:3px 9px;border-radius:6px;">PDF</span>
+          <span style="font-size:10px;font-weight:800;color:#1f7e44;background:#e3f3e8;padding:3px 9px;border-radius:6px;">EXCEL</span>
+          <span style="font-size:10px;font-weight:800;color:#3d7fd6;background:#e6effb;padding:3px 9px;border-radius:6px;">WORD</span>
+        </div>
+      </label>
+      <sc-if value="{{ fileModal.name }}" hint-placeholder-val="">
+        <div style="display:flex;align-items:center;gap:10px;background:#eef6ef;border:1px solid #d9eadc;border-radius:10px;padding:10px 12px;margin-bottom:16px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:{{ fileModal.tint }};color:{{ fileModal.accent }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;">{{ fileModal.ext }}</div>
+          <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:#22382b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ fileModal.name }}</div><div style="font-size:11px;color:#88a08e;">{{ fileModal.size }} · siap diunggah</div></div>
+          <span style="color:#1f7e44;font-size:15px;">✓</span>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:10px;">
+        <button onClick="{{ act.closeFileModal }}" style="flex:1;border:1px solid #dde7df;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#fff;color:#5d7263;">Batal</button>
+        <button onClick="{{ act.saveFile }}" style="flex:1.4;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#1f7e44;color:#fff;">Unggah</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- AVATAR MODAL -->
+  <sc-if value="{{ flags.avatarModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.closeAvatar }}" style="position:fixed;inset:0;z-index:60;background:rgba(18,40,26,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:20px;max-width:360px;width:100%;padding:26px;animation:silapPop .25s ease;text-align:center;">
+      <div style="font-size:17px;font-weight:800;color:#16331f;margin-bottom:3px;">Foto Profil</div>
+      <div style="font-size:13px;color:#7d9385;margin-bottom:20px;">Unggah foto untuk akun Anda</div>
+      <div style="margin:0 auto 18px;width:100px;height:100px;border-radius:50%;border:3px solid #e3ebe1;overflow:hidden;">
+        <div style="{{ avM.displayStyle }}">{{ avM.displayInitial }}</div>
+      </div>
+      <label style="display:inline-flex;align-items:center;gap:8px;border:1px dashed #c3d8c7;border-radius:12px;padding:12px 20px;cursor:pointer;background:#f4f9f3;font-size:14px;font-weight:700;color:#1f7e44;margin-bottom:18px;" style-hover="border-color:#1f7e44;background:#eef7ef">
+        <input type="file" accept="image/*" onChange="{{ act.pickAvatarFile }}" style="display:none;" />
+        ⬆ Pilih foto
+      </label>
+      <sc-if value="{{ avM.hasPreview }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12.5px;color:#7d9385;margin-bottom:14px;">Pratinjau siap — klik Simpan</div>
+      </sc-if>
+      <div style="display:flex;gap:10px;">
+        <button onClick="{{ act.closeAvatar }}" style="flex:1;border:1px solid #dde7df;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#fff;color:#5d7263;">Batal</button>
+        <button onClick="{{ act.saveAvatar }}" style="flex:1.4;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#1f7e44;color:#fff;">Simpan</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- USER MODAL -->
+  <sc-if value="{{ flags.userModal }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.closeUserModal }}" style="position:fixed;inset:0;z-index:60;background:rgba(18,40,26,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:20px;max-width:410px;width:100%;padding:26px;animation:silapPop .25s ease;max-height:90vh;overflow-y:auto;">
+      <div style="font-size:17px;font-weight:800;color:#16331f;margin-bottom:16px;">{{ umV.title }}</div>
+      <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Nama Lengkap</label>
+      <input value="{{ umV.name }}" onChange="{{ act.umName }}" placeholder="Nama anggota" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;" />
+      <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">NIK (16 digit)</label>
+      <input value="{{ umV.nik }}" onChange="{{ act.umNik }}" placeholder="16 digit NIK" maxlength="16" style="width:100%;font-family:ui-monospace,monospace;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;letter-spacing:.05em;" />
+      <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Password</label>
+      <input type="password" value="{{ umV.password }}" onChange="{{ act.umPwd }}" placeholder="{{ umV.pwdHint }}" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;" />
+      <sc-if value="{{ umV.showRoleSelect }}" hint-placeholder-val="{{ false }}">
+        <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Peran</label>
+        <select value="{{ umV.role }}" onChange="{{ act.umRole }}" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;">
+          <option value="admin">Admin Desa</option>
+          <option value="ketua">Ketua Pokja</option>
+          <option value="anggota">Anggota Pokja</option>
+        </select>
+      </sc-if>
+      <sc-if value="{{ umV.showPokjaSelect }}" hint-placeholder-val="{{ false }}">
+        <label style="display:block;font-size:12.5px;font-weight:700;color:#5d7263;margin-bottom:5px;">Pokja</label>
+        <select value="{{ umV.pokja }}" onChange="{{ act.umPokjaField }}" style="width:100%;font-family:inherit;font-size:14px;padding:11px 13px;border:1px solid #dde7df;border-radius:11px;margin-bottom:12px;background:#fafdf9;color:#1c2a21;">
+          <option value="1">Pokja I — Pancasila &amp; Gotong Royong</option>
+          <option value="2">Pokja II — Pendidikan &amp; Keterampilan</option>
+          <option value="3">Pokja III — Pangan, Sandang &amp; Rumah</option>
+          <option value="4">Pokja IV — Kesehatan &amp; Lingkungan</option>
+        </select>
+      </sc-if>
+      <sc-if value="{{ umV.hasError }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fbe7ee;border-radius:9px;padding:9px 12px;margin-bottom:12px;font-size:13px;font-weight:600;color:#c0436c;display:flex;align-items:center;gap:7px;"><span>⚠</span>{{ umV.error }}</div>
+      </sc-if>
+      <div style="display:flex;gap:10px;">
+        <button onClick="{{ act.closeUserModal }}" style="flex:1;border:1px solid #dde7df;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#fff;color:#5d7263;">Batal</button>
+        <button onClick="{{ act.saveUser }}" style="flex:1.4;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#1f7e44;color:#fff;">{{ umV.saveLabel }}</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- CONFIRM DELETE -->
+  <sc-if value="{{ flags.confirmDelete }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ act.cancelDelete }}" style="position:fixed;inset:0;z-index:70;background:rgba(18,40,26,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;animation:silapFade .2s ease;">
+    <div onClick="{{ act.stop }}" style="background:#fff;border-radius:20px;max-width:340px;width:100%;padding:26px;animation:silapPop .25s ease;text-align:center;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#fbe7ee;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px;">⚠</div>
+      <div style="font-size:17px;font-weight:800;color:#16331f;margin-bottom:5px;">Hapus akun ini?</div>
+      <div style="font-size:14.5px;font-weight:700;color:#c0436c;margin-bottom:7px;">{{ cdUser.name }}</div>
+      <div style="font-size:13.5px;color:#7d9385;margin-bottom:22px;line-height:1.5;">Tindakan ini tidak dapat dibatalkan.</div>
+      <div style="display:flex;gap:10px;">
+        <button onClick="{{ act.cancelDelete }}" style="flex:1;border:1px solid #dde7df;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#fff;color:#5d7263;">Batal</button>
+        <button onClick="{{ act.doDelete }}" style="flex:1.4;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;padding:12px;border-radius:11px;background:#c0436c;color:#fff;">Hapus Akun</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ flags.toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:80;background:#16331f;color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;border-radius:13px;box-shadow:0 16px 40px -12px rgba(10,30,16,.6);animation:silapToast .25s ease;display:flex;align-items:center;gap:9px;white-space:nowrap;">
+    <span style="color:#7fdca0;">✓</span>{{ toast }}
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  POKJA = [
+    { id:1, rom:'I',   name:'Pokja I',   title:'Penghayatan & Pengamalan Pancasila', sub:'Gotong Royong & ketahanan keluarga', accent:'#2c9a55', tint:'#e3f3e8' },
+    { id:2, rom:'II',  name:'Pokja II',  title:'Pendidikan & Keterampilan',          sub:'Pengembangan kehidupan berkoperasi', accent:'#3d7fd6', tint:'#e6effb' },
+    { id:3, rom:'III', name:'Pokja III', title:'Pangan, Sandang & Perumahan',        sub:'Tata laksana rumah tangga',          accent:'#d9952f', tint:'#fbf1de' },
+    { id:4, rom:'IV',  name:'Pokja IV',  title:'Kesehatan & Lingkungan',             sub:'Perencanaan sehat keluarga',         accent:'#d05c84', tint:'#fbe7ee' },
+  ];
+  MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  STATUS = { 'Baru':{bg:'#fbe7ee',color:'#c0436c'}, 'Diproses':{bg:'#fbf1de',color:'#b87d1c'}, 'Selesai':{bg:'#e3f3e8',color:'#1f7e44'} };
+  STATUS_NEXT = { 'Baru':'Diproses','Diproses':'Selesai','Selesai':'Baru' };
+
+  state = {
+    currentUserId: null, w: 1200, menuOpen: false,
+    users: [
+      { id:'u1', nik:'3271010101010001', password:'admin123', role:'admin',   name:'Sutrisno',       pokja:null, avatar:null },
+      { id:'u2', nik:'3271010101010002', password:'ketua1',   role:'ketua',   name:'Sri Wahyuni',    pokja:1,    avatar:null },
+      { id:'u3', nik:'3271010101010003', password:'ketua2',   role:'ketua',   name:'Endang Pratiwi', pokja:2,    avatar:null },
+      { id:'u4', nik:'3271010101010004', password:'ketua3',   role:'ketua',   name:'Rohani Dewi',    pokja:3,    avatar:null },
+      { id:'u5', nik:'3271010101010005', password:'ketua4',   role:'ketua',   name:'Ratna Sari',     pokja:4,    avatar:null },
+      { id:'u6', nik:'3271010101010006', password:'anggota2', role:'anggota', name:'Rina Hayati',    pokja:2,    avatar:null },
+      { id:'u7', nik:'3271010101010007', password:'anggota4', role:'anggota', name:'Dewi Lestari',   pokja:4,    avatar:null },
+    ],
+    route: 'beranda', activePokja: 1, tab: 'kalender', heroIdx: 0,
+    calY: 2026, calM: 5,
+    showLogin: false,
+    loginForm: { nik:'', password:'', error:'', showDemo:false },
+    eventModal: null, galModal: null, fileModal: null,
+    avatarModal: false, avatarPreview: null,
+    userModal: null, confirmDelete: null,
+    galFilter: 'all',
+    rf: { name:'', contact:'', category:'Pokja IV — Kesehatan & Lingkungan', desc:'' },
+    toast: null, nextId: 5000,
+    events: [
+      { id:1, pokja:1, y:2026, m:5, d:5,  title:'Pengajian rutin RT 03', time:'19:30' },
+      { id:2, pokja:1, y:2026, m:5, d:17, title:'Kerja bakti lingkungan', time:'07:00' },
+      { id:3, pokja:2, y:2026, m:5, d:8,  title:'Pelatihan menjahit', time:'09:00' },
+      { id:4, pokja:2, y:2026, m:5, d:21, title:'Kelas tambahan PAUD', time:'08:00' },
+      { id:5, pokja:3, y:2026, m:5, d:12, title:'Demo masak B2SA', time:'10:00' },
+      { id:6, pokja:3, y:2026, m:5, d:24, title:'Pasar tani desa', time:'06:30' },
+      { id:7, pokja:4, y:2026, m:5, d:3,  title:'Posyandu balita', time:'08:00' },
+      { id:8, pokja:4, y:2026, m:5, d:18, title:'Senam lansia', time:'06:00' },
+      { id:9, pokja:4, y:2026, m:5, d:28, title:'Donor darah', time:'09:00' },
+    ],
+    gallery: [
+      { id:1, pokja:1, caption:'Gotong royong perbaikan jalan', date:'2 Jun 2026', tag:'foto kerja bakti' },
+      { id:2, pokja:1, caption:'Peringatan hari kesatuan', date:'28 Mei 2026', tag:'foto upacara' },
+      { id:3, pokja:2, caption:'Pelatihan menjahit ibu-ibu', date:'8 Jun 2026', tag:'foto pelatihan' },
+      { id:4, pokja:2, caption:'Lomba membaca anak PAUD', date:'15 Mei 2026', tag:'foto lomba' },
+      { id:5, pokja:3, caption:'Panen sayur kebun warga', date:'10 Jun 2026', tag:'foto panen' },
+      { id:6, pokja:3, caption:'Demo masak menu sehat', date:'12 Jun 2026', tag:'foto demo masak' },
+      { id:7, pokja:4, caption:'Posyandu balita bulanan', date:'3 Jun 2026', tag:'foto posyandu' },
+      { id:8, pokja:4, caption:'Senam lansia ceria', date:'18 Jun 2026', tag:'foto senam' },
+    ],
+    files: [
+      { id:1, pokja:1, name:'Notulen Rapat Pokja I.pdf',       ext:'PDF', size:'420 KB', by:'Sri Wahyuni',    date:'1 Jun 2026' },
+      { id:2, pokja:2, name:'Materi Pelatihan Menjahit.docx', ext:'DOC', size:'1.2 MB', by:'Endang Pratiwi', date:'6 Jun 2026' },
+      { id:3, pokja:2, name:'Daftar Hadir PAUD.xlsx',          ext:'XLS', size:'88 KB',  by:'Rina Hayati',    date:'9 Jun 2026' },
+      { id:4, pokja:3, name:'Resep Menu B2SA.pdf',             ext:'PDF', size:'640 KB', by:'Rohani Dewi',    date:'11 Jun 2026' },
+      { id:5, pokja:4, name:'Rekap Posyandu Juni.xlsx',        ext:'XLS', size:'112 KB', by:'Dewi Lestari',   date:'3 Jun 2026' },
+    ],
+    reports: [
+      { id:1, date:'2 Jun 2026', name:'Pak Joko',   contact:'0812-3300-1', pokja:'Pokja IV',  desc:'Mohon jadwal fogging DBD di RT 05.', status:'Baru' },
+      { id:2, date:'4 Jun 2026', name:'Bu Sari',    contact:'0813-7711-2', pokja:'Pokja III', desc:'Usul pelatihan hidroponik untuk ibu rumah tangga.', status:'Diproses' },
+      { id:3, date:'7 Jun 2026', name:'Pak Hendra', contact:'0857-2200-3', pokja:'Pokja II',  desc:'Permintaan kelas mengaji anak tambahan.', status:'Selesai' },
+      { id:4, date:'9 Jun 2026', name:'Bu Wati',    contact:'0856-9988-4', pokja:'Pokja I',   desc:'Usul kerja bakti rutin tiap akhir bulan.', status:'Baru' },
+    ],
+  };
+
+  _onResize = () => this.setState({ w: window.innerWidth });
+  componentDidMount() {
+    this._onResize();
+    window.addEventListener('resize', this._onResize);
+    this._hero = setInterval(() => {
+      this.setState(s => { const n=Math.min(3,s.gallery.length); return {heroIdx:n?(s.heroIdx+1)%n:0}; });
+    }, 3800);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+    clearInterval(this._hero); clearTimeout(this._t);
+  }
+
+  user() { return this.state.users.find(u=>u.id===this.state.currentUserId)||null; }
+  pokja(id) { return this.POKJA.find(p=>p.id===id); }
+  rlabel(u) {
+    if(!u) return ''; if(u.role==='admin') return 'Admin Desa';
+    const p=this.pokja(u.pokja); const pn=p?p.name:'';
+    return (u.role==='ketua'?'Ketua ':'Anggota ')+pn;
+  }
+  raccent(u) { if(!u||u.role==='admin') return '#16331f'; const p=this.pokja(u.pokja); return p?p.accent:'#2c9a55'; }
+  rinit(u) { return u&&u.name?u.name[0].toUpperCase():'?'; }
+  canEdit(pokjaId) {
+    const u=this.user(); if(!u) return false; if(u.role==='admin') return true;
+    return u.pokja===pokjaId&&(u.role==='ketua'||u.role==='anggota');
+  }
+  toast(msg) { this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:null}),2800); }
+  go(route) { this.setState({route,showLogin:false,menuOpen:false}); window.scrollTo(0,0); }
+  openPokja(id) { this.setState({route:'detail',activePokja:id,tab:'kalender',menuOpen:false}); window.scrollTo(0,0); }
+  doLogin() {
+    const {nik,password}=this.state.loginForm;
+    const u=this.state.users.find(x=>x.nik===nik.trim()&&x.password===password.trim());
+    if(!u){this.setState(s=>({loginForm:{...s.loginForm,error:'NIK atau password salah. Coba lagi.'}}));return;}
+    this.setState({currentUserId:u.id,showLogin:false,route:'dashboard',loginForm:{nik:'',password:'',error:'',showDemo:false}});
+    this.toast('Selamat datang, '+u.name+'!'); window.scrollTo(0,0);
+  }
+  logout() { this.toast('Anda telah keluar'); this.setState({currentUserId:null,route:'beranda',menuOpen:false}); window.scrollTo(0,0); }
+  saveUser() {
+    const{form,mode,editId}=this.state.userModal;
+    if(!form.nik.trim()||!form.name.trim()||(mode==='add'&&!form.password.trim())){
+      this.setState(s=>({userModal:{...s.userModal,error:'Lengkapi nama, NIK, dan password'}}));return;
+    }
+    if(this.state.users.some(u=>u.nik===form.nik.trim()&&u.id!==editId)){
+      this.setState(s=>({userModal:{...s.userModal,error:'NIK sudah digunakan akun lain'}}));return;
+    }
+    if(mode==='add'){
+      const role=form.role||'anggota'; const pokja=role==='admin'?null:(parseInt(form.pokja)||1);
+      this.setState(s=>({users:[...s.users,{id:'u'+s.nextId,nik:form.nik.trim(),password:form.password.trim(),role,name:form.name.trim(),pokja,avatar:null}],nextId:s.nextId+1,userModal:null}));
+      this.toast('Akun '+form.name.trim()+' berhasil dibuat');
+    } else {
+      this.setState(s=>({users:s.users.map(u=>u.id!==editId?u:{...u,nik:form.nik.trim(),name:form.name.trim(),password:form.password.trim()||u.password,role:form.role||u.role,pokja:(form.role||u.role)==='admin'?null:(parseInt(form.pokja)||u.pokja)}),userModal:null}));
+      this.toast('Akun diperbarui');
+    }
+  }
+  deleteUser(userId) {
+    if(userId===this.state.currentUserId){this.toast('Tidak dapat menghapus akun sendiri');return;}
+    const u=this.state.users.find(x=>x.id===userId);
+    this.setState(s=>({users:s.users.filter(x=>x.id!==userId),confirmDelete:null}));
+    this.toast('Akun '+(u?u.name:'')+' dihapus');
+  }
+  saveAvatar() {
+    const p=this.state.avatarPreview; if(!p){this.toast('Pilih foto terlebih dahulu');return;}
+    this.setState(s=>({users:s.users.map(u=>u.id===s.currentUserId?{...u,avatar:p}:u),avatarModal:false,avatarPreview:null}));
+    this.toast('Foto profil berhasil disimpan');
+  }
+
+  renderVals() {
+    const st=this.state; const u=this.user(); const active=this.pokja(st.activePokja); const canEditActive=this.canEdit(st.activePokja);
+    const isMob=st.w<768; const isDesktop=!isMob;
+
+    // ---- responsive styles ----
+    const rs = {
+      headerPad:  isMob?'10px 16px':'12px 24px',
+      logoSize:   isMob?'36px':'42px', leafSize: isMob?'14px':'18px', logoFont: isMob?'17px':'19px',
+      mainPad:    isMob?'0 16px 56px':'0 24px 80px',
+      hero:       isMob ? {display:'flex',flexDirection:'column-reverse',gap:'20px',padding:'24px 0 16px'} : {display:'grid',gridTemplateColumns:'1.05fr .95fr',gap:'40px',alignItems:'center',padding:'54px 0 40px'},
+      heroImgH:   isMob?'220px':'330px',
+      heroTagMb:  isMob?'14px':'22px',
+      heroCapFont:isMob?'15px':'18px',
+      h1:         isMob ? {fontSize:'32px',lineHeight:'1.08',letterSpacing:'-.025em',fontWeight:'800',color:'#14301d',marginBottom:'14px'} : {fontSize:'50px',lineHeight:'1.04',letterSpacing:'-.03em',fontWeight:'800',color:'#14301d',marginBottom:'18px'},
+      bodyFont:   isMob?'15px':'17px',
+      btnFont:    isMob?'14px':'15px',
+      btnPad:     isMob?'12px 20px':'14px 26px',
+      featGrid:   {display:'grid',gridTemplateColumns:isMob?'1fr 1fr':'repeat(3,1fr)',gap:isMob?'12px':'16px'},
+      cardPad:    isMob?'16px':'20px',
+      sectionGap: isMob?'28px':'46px',
+      profilSec:  {marginTop:isMob?'28px':'46px',display:'grid',gridTemplateColumns:isMob?'1fr':'1fr 1fr',gap:isMob?'16px':'24px',background:'#fff',border:'1px solid #e3ebe1',borderRadius:'22px',padding:isMob?'20px':'30px'},
+      profilH2:   isMob?'22px':'26px',
+      pokja4Grid: {display:'grid',gridTemplateColumns:isMob?'1fr 1fr':'repeat(4,1fr)',gap:isMob?'12px':'16px'},
+      pokjaOverview:{display:'grid',gridTemplateColumns:isMob?'1fr':'1fr 1fr',gap:'16px'},
+      pokjaCardH: isMob?'15px':'18px',
+      h2:         isMob?'18px':'21px',
+      pageH1:     isMob?'26px':'32px',
+      detailH1:   isMob?'20px':'27px',
+      tabFont:    isMob?'13px':'14px',
+      tabPad:     isMob?'8px 14px':'9px 18px',
+      editLabel:  isMob?'Dapat edit':'Anda dapat mengedit',
+      readLabel:  isMob?'Lihat saja':'Hanya lihat',
+      calPad:     isMob?'14px':'22px',
+      calGap:     isMob?'3px':'7px',
+      calCellPad: isMob?'4px':'8px',
+      calMonthFont:isMob?'16px':'19px',
+      calNumFont: isMob?'11px':'13px',
+      calEvFont:  isMob?'9.5px':'10.5px',
+      galPokjaGrid:{display:'grid',gridTemplateColumns:isMob?'1fr 1fr':'repeat(3,1fr)',gap:isMob?'12px':'16px'},
+      galGrid:    {display:'grid',gridTemplateColumns:isMob?'1fr 1fr':'repeat(4,1fr)',gap:isMob?'12px':'16px'},
+      laporanGrid:isMob ? {display:'flex',flexDirection:'column',gap:'16px'} : {display:'grid',gridTemplateColumns:'320px 1fr',gap:'22px',alignItems:'start'},
+      dashHeroPad:isMob?'20px 18px':'26px 28px',
+      dashWelcome:isMob?'20px':'24px',
+      dashStats:  {display:'grid',gridTemplateColumns:isMob?'1fr 1fr':'repeat(3,1fr)',gap:isMob?'12px':'16px',marginBottom:isMob?'16px':'20px'},
+      dashQA:     {display:'grid',gridTemplateColumns:isMob?'1fr':'1fr 1fr',gap:'10px'},
+    };
+
+    // ---- hero ----
+    const heroPhotos=st.gallery.slice(0,3).map(g=>{const p=this.pokja(g.pokja);return{caption:g.caption,tag:g.tag,pokjaName:p.name,accent:p.accent};});
+    const hIdx=heroPhotos.length?st.heroIdx%heroPhotos.length:0;
+    const heroCurrent=heroPhotos[hIdx]||{caption:'Dokumentasi kegiatan PKK',tag:'foto kegiatan',pokjaName:'PKK',accent:'#2c9a55'};
+    const heroDots=heroPhotos.map((_,i)=>({w:i===hIdx?'22px':'7px',bg:i===hIdx?'#fff':'rgba(255,255,255,.5)'}));
+
+    // ---- avatar helpers ----
+    const raccent=(usr)=>{if(!usr||usr.role==='admin')return'#16331f';const p=this.pokja(usr.pokja);return p?p.accent:'#2c9a55';};
+    const mkAv=(avatar,accent,sz,fz)=>avatar?{width:sz,height:sz,borderRadius:'50%',backgroundImage:"url('"+avatar+"')",backgroundSize:'cover',backgroundPosition:'center',flexShrink:0}:{width:sz,height:sz,borderRadius:'50%',background:accent,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:fz,fontWeight:'800',flexShrink:0};
+
+    // ---- user chip ----
+    const userVals = u ? {
+      name:u.name, initial:this.rinit(u), roleLabel:this.rlabel(u), chipColor:raccent(u),
+      hasAvatar:!!u.avatar, noAvatar:!u.avatar,
+      avatarStyleSm: mkAv(u.avatar,raccent(u),'30px','12px'), avatarInitialSm: u.avatar?'':this.rinit(u),
+      avatarStyleLg: u.avatar?{width:'62px',height:'62px',borderRadius:'50%',backgroundImage:"url('"+u.avatar+"')",backgroundSize:'cover',backgroundPosition:'center'}:{width:'62px',height:'62px',borderRadius:'50%',background:'rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',fontWeight:'800',color:'#fff'},
+      avatarInitialLg: u.avatar?'':this.rinit(u),
+      scope:u.role==='admin'?'Seluruh Pokja':this.rlabel(u), isAdmin:u.role==='admin', isKetua:u.role==='ketua',
+      accessNote:u.role==='admin'?'Sebagai Admin Desa Anda dapat mengelola semua akun, kalender, galeri, berkas, dan status laporan.':'Anda dapat mengedit kalender, galeri, dan berkas untuk '+this.rlabel(u).replace('Ketua ','').replace('Anggota ','')+'. Pokja lain hanya dapat dilihat.',
+    } : {name:'',initial:'',roleLabel:'',chipColor:'#16331f',hasAvatar:false,noAvatar:true,avatarStyleSm:mkAv(null,'#16331f','30px','12px'),avatarInitialSm:'',avatarStyleLg:{width:'62px',height:'62px',borderRadius:'50%',background:'rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'24px',fontWeight:'800',color:'#fff'},avatarInitialLg:'',scope:'',isAdmin:false,isKetua:false,accessNote:''};
+
+    // ---- nav ----
+    const navDef=[{key:'beranda',label:'Beranda',route:'beranda'},{key:'pokja',label:'Pokja',route:'pokja'},{key:'galeri',label:'Galeri',route:'galeri'},{key:'laporan',label:'Laporan',route:'laporan'}];
+    if(u) navDef.push({key:'dashboard',label:'Dashboard',route:'dashboard'});
+    const activeRoute=st.route==='detail'?'pokja':st.route;
+    const nav=navDef.map(n=>({label:n.label,onClick:()=>this.go(n.route),onMobile:()=>{this.go(n.route);this.setState({menuOpen:false});},bg:activeRoute===n.route?'#dff0e3':'transparent',color:activeRoute===n.route?'#1f7e44':'#5d7263'}));
+
+    // ---- pokjas ----
+    const pokjas=this.POKJA.map(p=>({...p,count:st.events.filter(e=>e.pokja===p.id).length,photoCount:st.gallery.filter(g=>g.pokja===p.id).length,fileCount:st.files.filter(f=>f.pokja===p.id).length,onOpen:()=>this.openPokja(p.id)}));
+    const features=[
+      {glyph:'▤',title:'Profil Desa',desc:'Data desa & pengurus TP PKK.',accent:'#2c9a55',tint:'#e3f3e8',onClick:()=>this.go('beranda')},
+      {glyph:'◷',title:'Kalender Kegiatan',desc:'Agenda tiap pokja per bulan.',accent:'#3d7fd6',tint:'#e6effb',onClick:()=>this.openPokja(1)},
+      {glyph:'▦',title:'Galeri',desc:'Dokumentasi seluruh pokja.',accent:'#d9952f',tint:'#fbf1de',onClick:()=>this.go('galeri')},
+      {glyph:'✎',title:'Laporan Warga',desc:'Kirim laporan, rekap ke Excel.',accent:'#d05c84',tint:'#fbe7ee',onClick:()=>this.go('laporan')},
+      {glyph:'⬓',title:'Berkas Pokja',desc:'Unggah & unduh dokumen.',accent:'#2c9a55',tint:'#e3f3e8',onClick:()=>this.openPokja(1)},
+      {glyph:'⬚',title:'4 Kelompok Kerja',desc:'Pokja I–IV PKK desa.',accent:'#3d7fd6',tint:'#e6effb',onClick:()=>this.go('pokja')},
+    ];
+    const tabs=[{key:'kalender',label:'Kalender'},{key:'galeri',label:'Galeri'},{key:'berkas',label:'Berkas'}].map(t=>({label:t.label,onClick:()=>this.setState({tab:t.key}),bg:st.tab===t.key?'#fff':'transparent',color:st.tab===t.key?'#16331f':'#6a8273',shadow:st.tab===t.key?'0 2px 6px -2px rgba(0,0,0,.18)':'none'}));
+
+    // ---- calendar ----
+    const first=new Date(st.calY,st.calM,1); const startDow=(first.getDay()+6)%7; const daysInMonth=new Date(st.calY,st.calM+1,0).getDate(); const today=new Date();
+    const cells=[]; for(let i=0;i<startDow;i++)cells.push({dim:true}); for(let d=1;d<=daysInMonth;d++)cells.push({day:d}); while(cells.length%7!==0)cells.push({dim:true});
+    const calCells=cells.map(c=>{
+      if(c.dim)return{day:'',bg:'#fafcf9',border:'#f0f4ef',numColor:'#ccc',cursor:'default',onClick:()=>{},events:[],minH:isMob?'48px':'96px'};
+      const isToday=today.getFullYear()===st.calY&&today.getMonth()===st.calM&&today.getDate()===c.day;
+      const dayEvents=st.events.filter(e=>e.pokja===st.activePokja&&e.y===st.calY&&e.m===st.calM&&e.d===c.day).map(e=>({title:e.title,time:e.time,accent:active.accent,tint:active.tint,canDelete:canEditActive,onDelete:(ev)=>{ev.stopPropagation();this.setState(s=>({events:s.events.filter(x=>x.id!==e.id)}));this.toast('Kegiatan dihapus');}}));
+      return{day:c.day,bg:isToday?'#eaf6ed':'#fff',border:isToday?active.accent:'#eef3ec',numColor:isToday?active.accent:'#3a4f42',cursor:canEditActive?'pointer':'default',onClick:canEditActive?()=>this.setState({eventModal:{day:c.day,title:'',time:''}}):()=>{},events:dayEvents,minH:isMob?'48px':'96px'};
+    });
+    const cal={monthLabel:this.MONTHS[st.calM]+' '+st.calY,weekdays:['Sen','Sel','Rab','Kam','Jum','Sab','Min'],cells:calCells};
+
+    // ---- pokja content ----
+    const extTint={PDF:{tint:'#fbe7ee',accent:'#c0436c'},DOC:{tint:'#e6effb',accent:'#3d7fd6'},XLS:{tint:'#e3f3e8',accent:'#1f7e44'}};
+    const pokjaPhotos=st.gallery.filter(g=>g.pokja===st.activePokja).map(g=>({caption:g.caption,date:g.date,tag:g.tag,canDelete:canEditActive,onDelete:()=>{this.setState(s=>({gallery:s.gallery.filter(x=>x.id!==g.id)}));this.toast('Foto dihapus');}}));
+    const pokjaFiles=st.files.filter(f=>f.pokja===st.activePokja).map(f=>({name:f.name,ext:f.ext,meta:f.size+' · '+f.by+' · '+f.date,tint:(extTint[f.ext]||extTint.PDF).tint,accent:(extTint[f.ext]||extTint.PDF).accent,canDelete:canEditActive,onDownload:()=>this.toast('Mengunduh '+f.name),onDelete:()=>{this.setState(s=>({files:s.files.filter(x=>x.id!==f.id)}));this.toast('Berkas dihapus');}}));
+
+    // ---- galeri gabungan ----
+    const galFilterDef=[{id:'all',label:'Semua'},...this.POKJA.map(p=>({id:p.id,label:p.name}))];
+    const galFilters=galFilterDef.map(g=>{const on=st.galFilter===g.id;const acc=g.id==='all'?'#1f7e44':this.pokja(g.id).accent;return{label:g.label,onClick:()=>this.setState({galFilter:g.id}),bg:on?acc:'#fff',color:on?'#fff':'#5d7263',border:on?acc:'#dde7df'};});
+    const allPhotos=st.gallery.filter(g=>st.galFilter==='all'||g.pokja===st.galFilter).map(g=>{const p=this.pokja(g.pokja);return{caption:g.caption,date:g.date,tag:g.tag,pokjaName:p.name,accent:p.accent};});
+
+    // ---- reports ----
+    const reportRows=st.reports.map((r,i)=>{const s=this.STATUS[r.status]||this.STATUS['Baru'];const canMod=u&&(u.role==='admin'||u.role==='ketua');return{no:i+1,date:r.date,name:r.name,contact:r.contact,pokja:r.pokja,desc:r.desc,status:r.status,rowBg:i%2?'#fafcf9':'#fff',statusBg:s.bg,statusColor:s.color,statusCursor:canMod?'pointer':'default',onStatus:canMod?()=>this.setState(st2=>({reports:st2.reports.map(x=>x.id===r.id?{...x,status:this.STATUS_NEXT[x.status]}:x)})):()=>{}};});
+
+    // ---- dashboard ----
+    const isAdmin=u&&u.role==='admin'; const scopeIds=isAdmin?[1,2,3,4]:(u&&u.pokja?[u.pokja]:[]);
+    const dashStats=[{value:st.events.filter(e=>scopeIds.includes(e.pokja)).length,label:isAdmin?'Total kegiatan':'Kegiatan pokja Anda',accent:'#2c9a55'},{value:st.files.filter(f=>scopeIds.includes(f.pokja)).length,label:isAdmin?'Total berkas':'Berkas pokja Anda',accent:'#3d7fd6'},{value:st.reports.filter(r=>r.status==='Baru').length,label:'Laporan baru',accent:'#d05c84'}];
+    const quickActions=[{glyph:'◷',title:'Kelola Kalender',desc:'Tambah/hapus kegiatan',accent:'#2c9a55',tint:'#e3f3e8',onClick:()=>this.openPokja(scopeIds[0]||1)},{glyph:'▦',title:'Kelola Galeri',desc:'Unggah dokumentasi',accent:'#3d7fd6',tint:'#e6effb',onClick:()=>{this.openPokja(scopeIds[0]||1);setTimeout(()=>this.setState({tab:'galeri'}),0);}},{glyph:'⬓',title:'Kelola Berkas',desc:'Unggah & unduh dokumen',accent:'#d9952f',tint:'#fbf1de',onClick:()=>{this.openPokja(scopeIds[0]||1);setTimeout(()=>this.setState({tab:'berkas'}),0);}},{glyph:'✎',title:'Tindak Lanjut Laporan',desc:'Ubah status & export',accent:'#d05c84',tint:'#fbe7ee',onClick:()=>this.go('laporan')}];
+
+    // ---- account management ----
+    const roleBgMap={admin:'#e3f3e8',ketua:'#e6effb',anggota:'#fbf1de'};
+    const roleColorMap={admin:'#1f7e44',ketua:'#3d7fd6',anggota:'#d9952f'};
+    const allUsers=st.users.map((usr,i)=>({id:usr.id,name:usr.name,nikMasked:usr.nik.slice(0,4)+'·····'+usr.nik.slice(-3),roleLabel:this.rlabel(usr),pokjaName:usr.pokja?this.pokja(usr.pokja).name:'—',initial:this.rinit(usr),accent:raccent(usr),avatarStyle:mkAv(usr.avatar,raccent(usr),'28px','10px'),avatarInitial:usr.avatar?'':this.rinit(usr),roleBg:roleBgMap[usr.role]||'#f0f4ef',roleColor:roleColorMap[usr.role]||'#5d7263',rowBg:i%2?'#fafcf9':'#fff',canDelete:usr.id!==st.currentUserId,onEdit:()=>this.setState({userModal:{mode:'edit',editId:usr.id,form:{nik:usr.nik,name:usr.name,password:'',role:usr.role,pokja:String(usr.pokja||'1')},error:''}}),onDelete:()=>this.setState({confirmDelete:{userId:usr.id}})}));
+    const pokjaMemberList=u&&u.role==='ketua'?st.users.filter(usr=>usr.pokja===u.pokja&&usr.role==='anggota').map(usr=>({id:usr.id,name:usr.name,nikMasked:usr.nik.slice(0,4)+'·····'+usr.nik.slice(-3),initial:this.rinit(usr),accent:raccent(usr),avatarStyle:mkAv(usr.avatar,raccent(usr),'36px','14px'),avatarInitial:usr.avatar?'':this.rinit(usr)})):[];
+
+    // ---- userModal ----
+    const um=st.userModal; const umIsKetua=u&&u.role==='ketua';
+    const umV=um?{title:um.mode==='add'?(umIsKetua?'Tambah Anggota Pokja':'Tambah Akun Baru'):'Edit Akun',saveLabel:um.mode==='add'?'Buat Akun':'Simpan Perubahan',nik:um.form.nik,name:um.form.name,password:um.form.password,role:um.form.role,pokja:um.form.pokja,isEdit:um.mode==='edit',pwdHint:um.mode==='edit'?'(kosongkan jika tidak diubah)':'Buat password',showRoleSelect:!!(u&&u.role==='admin'),showPokjaSelect:!!(u&&u.role==='admin'&&(um.form.role==='ketua'||um.form.role==='anggota')),error:um.error||'',hasError:!!(um.error)}:{title:'',saveLabel:'Simpan',nik:'',name:'',password:'',role:'anggota',pokja:'1',isEdit:false,pwdHint:'',showRoleSelect:false,showPokjaSelect:false,error:'',hasError:false};
+
+    // ---- avatar modal ----
+    let avDisplayStyle,avDisplayInitial='';
+    if(st.avatarPreview){avDisplayStyle={width:'100px',height:'100px',borderRadius:'50%',backgroundImage:"url('"+st.avatarPreview+"')",backgroundSize:'cover',backgroundPosition:'center'};}
+    else if(u&&u.avatar){avDisplayStyle={width:'100px',height:'100px',borderRadius:'50%',backgroundImage:"url('"+u.avatar+"')",backgroundSize:'cover',backgroundPosition:'center'};}
+    else{const avAcc=u?raccent(u):'#2c9a55';avDisplayStyle={width:'100px',height:'100px',borderRadius:'50%',background:avAcc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',fontWeight:'800',color:'#fff'};avDisplayInitial=u?this.rinit(u):'?';}
+    const avM={hasPreview:!!st.avatarPreview,displayStyle:avDisplayStyle,displayInitial:avDisplayInitial};
+
+    // ---- confirm delete / login / demo ----
+    const cdU=st.confirmDelete?st.users.find(x=>x.id===st.confirmDelete.userId):null;
+    const cdUser={name:cdU?cdU.name:''};
+    const lf={...st.loginForm,hasError:!!(st.loginForm.error),demoLabel:st.loginForm.showDemo?'Sembunyikan akun demo':'Lihat akun demo'};
+    const demoAccounts=st.users.map(usr=>({name:usr.name,nik:usr.nik,password:usr.password,roleLabel:this.rlabel(usr),initial:this.rinit(usr),accent:raccent(usr)}));
+
+    // ---- fileModal ----
+    const fmRaw=st.fileModal; const fmExt=fmRaw&&fmRaw.name?(/\.xlsx?$/i.test(fmRaw.name)?'XLS':/\.docx?$/i.test(fmRaw.name)?'DOC':'PDF'):'PDF';
+    const extTintMap={PDF:{tint:'#fbe7ee',accent:'#c0436c'},DOC:{tint:'#e6effb',accent:'#3d7fd6'},XLS:{tint:'#e3f3e8',accent:'#1f7e44'}};
+    const fileModalV={name:fmRaw?(fmRaw.name||''):'',size:fmRaw?(fmRaw.size||''):'',ext:fmExt,tint:extTintMap[fmExt].tint,accent:extTintMap[fmExt].accent};
+    const eventModal=st.eventModal?{title:st.eventModal.title,time:st.eventModal.time,dateLabel:st.eventModal.day+' '+this.MONTHS[st.calM]+' '+st.calY}:{title:'',time:'',dateLabel:''};
+
+    return {
+      isPublic:!u, isLoggedIn:!!u, isMob, isDesktop,
+      user:userVals, nav, pokjas, features, tabs, cal, active,
+      heroCurrent, heroDots, rs, canEdit:canEditActive, readOnly:!canEditActive,
+      pokjaPhotos, pokjaFiles, galFilters, allPhotos,
+      rf:st.rf, reportRows, reportCount:st.reports.length,
+      dashStats, quickActions,
+      allUsers, allUsersCount:st.users.length, pokjaMemberList,
+      pokjaMemberCount:pokjaMemberList.length, pokjaHasMembers:pokjaMemberList.length>0, pokjaNoMembers:pokjaMemberList.length===0,
+      umV, avM, cdUser, lf, demoAccounts,
+      eventModal, galModal:st.galModal||{caption:''}, fileModal:fileModalV,
+      toast:st.toast, menuIcon:st.menuOpen?'✕':'☰',
+      tabFlags:{kalender:st.tab==='kalender',galeri:st.tab==='galeri',berkas:st.tab==='berkas'},
+      flags:{beranda:st.route==='beranda',pokja:st.route==='pokja',detail:st.route==='detail',galeri:st.route==='galeri',laporan:st.route==='laporan',dashboard:st.route==='dashboard',showLogin:st.showLogin,eventModal:!!st.eventModal,galModal:!!st.galModal,fileModal:!!st.fileModal,avatarModal:st.avatarModal,userModal:!!st.userModal,confirmDelete:!!st.confirmDelete,toast:!!st.toast,mobileMenu:st.menuOpen},
+      act:{
+        home:()=>this.go('beranda'), gotoPokja:()=>this.go('pokja'), gotoLaporan:()=>this.go('laporan'),
+        openLogin:()=>this.setState({showLogin:true}), closeLogin:()=>this.setState({showLogin:false}),
+        logout:()=>this.logout(), stop:(e)=>e.stopPropagation(),
+        toggleMenu:()=>this.setState(s=>({menuOpen:!s.menuOpen})),
+        lfNik:(e)=>this.setState(s=>({loginForm:{...s.loginForm,nik:e.target.value,error:''}})),
+        lfPwd:(e)=>this.setState(s=>({loginForm:{...s.loginForm,password:e.target.value,error:''}})),
+        loginKey:(e)=>{if(e.key==='Enter')this.doLogin();},
+        doLogin:()=>this.doLogin(),
+        toggleDemo:()=>this.setState(s=>({loginForm:{...s.loginForm,showDemo:!s.loginForm.showDemo}})),
+        openAvatar:()=>this.setState({avatarModal:true,avatarPreview:null}),
+        closeAvatar:()=>this.setState({avatarModal:false,avatarPreview:null}),
+        pickAvatarFile:(e)=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>this.setState({avatarPreview:ev.target.result});r.readAsDataURL(f);},
+        saveAvatar:()=>this.saveAvatar(),
+        openUserModal:()=>{const cu=this.user();const role='anggota';const pokja=cu&&cu.pokja?String(cu.pokja):'1';this.setState({userModal:{mode:'add',editId:null,form:{nik:'',name:'',password:'',role,pokja},error:''}});},
+        closeUserModal:()=>this.setState({userModal:null}),
+        umNik:(e)=>this.setState(s=>({userModal:{...s.userModal,form:{...s.userModal.form,nik:e.target.value},error:''}})),
+        umName:(e)=>this.setState(s=>({userModal:{...s.userModal,form:{...s.userModal.form,name:e.target.value},error:''}})),
+        umPwd:(e)=>this.setState(s=>({userModal:{...s.userModal,form:{...s.userModal.form,password:e.target.value},error:''}})),
+        umRole:(e)=>this.setState(s=>({userModal:{...s.userModal,form:{...s.userModal.form,role:e.target.value},error:''}})),
+        umPokjaField:(e)=>this.setState(s=>({userModal:{...s.userModal,form:{...s.userModal.form,pokja:e.target.value},error:''}})),
+        saveUser:()=>this.saveUser(),
+        cancelDelete:()=>this.setState({confirmDelete:null}),
+        doDelete:()=>{const id=this.state.confirmDelete&&this.state.confirmDelete.userId;if(id)this.deleteUser(id);},
+        prevMonth:()=>this.setState(s=>{let m=s.calM-1,y=s.calY;if(m<0){m=11;y--;}return{calM:m,calY:y};}),
+        nextMonth:()=>this.setState(s=>{let m=s.calM+1,y=s.calY;if(m>11){m=0;y++;}return{calM:m,calY:y};}),
+        closeEventModal:()=>this.setState({eventModal:null}),
+        evTitle:(e)=>this.setState(s=>({eventModal:{...s.eventModal,title:e.target.value}})),
+        evTime:(e)=>this.setState(s=>({eventModal:{...s.eventModal,time:e.target.value}})),
+        saveEvent:()=>{const em=this.state.eventModal;if(!em||!em.title.trim()){this.toast('Isi nama kegiatan dulu');return;}this.setState(s=>({events:[...s.events,{id:s.nextId,pokja:s.activePokja,y:s.calY,m:s.calM,d:em.day,title:em.title.trim(),time:em.time.trim()||'—'}],nextId:s.nextId+1,eventModal:null}));this.toast('Kegiatan ditambahkan');},
+        openGalModal:()=>this.setState({galModal:{caption:''}}),
+        closeGalModal:()=>this.setState({galModal:null}),
+        galCaption:(e)=>this.setState(s=>({galModal:{caption:e.target.value}})),
+        saveGal:()=>{const gm=this.state.galModal;if(!gm||!gm.caption.trim()){this.toast('Isi keterangan foto dulu');return;}this.setState(s=>({gallery:[{id:s.nextId,pokja:s.activePokja,caption:gm.caption.trim(),date:'12 Jun 2026',tag:'foto baru'},...s.gallery],nextId:s.nextId+1,galModal:null}));this.toast('Foto diunggah');},
+        openFileModal:()=>this.setState({fileModal:{name:'',size:''}}),
+        closeFileModal:()=>this.setState({fileModal:null}),
+        flPick:(e)=>{const f=e.target.files&&e.target.files[0];if(!f)return;const kb=Math.max(1,Math.round(f.size/1024));this.setState({fileModal:{name:f.name,size:kb>=1024?(kb/1024).toFixed(1)+' MB':kb+' KB'}});},
+        saveFile:()=>{const fm=this.state.fileModal;if(!fm||!fm.name.trim()){this.toast('Pilih berkas dulu');return;}const nm=fm.name.trim();const ext=/\.xlsx?$/i.test(nm)?'XLS':/\.docx?$/i.test(nm)?'DOC':'PDF';const cu=this.user();this.setState(s=>({files:[{id:s.nextId,pokja:s.activePokja,name:nm,ext,size:fm.size||'— KB',by:cu?cu.name:'—',date:'12 Jun 2026'},...s.files],nextId:s.nextId+1,fileModal:null}));this.toast('Berkas diunggah');},
+        rfName:(e)=>{const v=e.target.value;this.setState(s=>({rf:{...s.rf,name:v}}));},
+        rfContact:(e)=>{const v=e.target.value;this.setState(s=>({rf:{...s.rf,contact:v}}));},
+        rfCategory:(e)=>{const v=e.target.value;this.setState(s=>({rf:{...s.rf,category:v}}));},
+        rfDesc:(e)=>{const v=e.target.value;this.setState(s=>({rf:{...s.rf,desc:v}}));},
+        submitReport:()=>{const rf=this.state.rf;if(!rf.name.trim()||!rf.desc.trim()){this.toast('Lengkapi nama & uraian laporan');return;}const pk=rf.category.split(' — ')[0];this.setState(s=>({reports:[{id:s.nextId,date:'12 Jun 2026',name:rf.name.trim(),contact:rf.contact.trim()||'—',pokja:pk,desc:rf.desc.trim(),status:'Baru'},...s.reports],nextId:s.nextId+1,rf:{name:'',contact:'',category:rf.category,desc:''}}));this.toast('Laporan terkirim, terima kasih!');},
+        exportExcel:()=>{const rows=this.state.reports;const head=['No','Tanggal','Pelapor','Kontak','Pokja','Uraian','Status'];let html='<table border="1"><tr>'+head.map(h=>'<th style="background:#1f7e44;color:#fff;padding:6px">'+h+'</th>').join('')+'</tr>';rows.forEach((r,i)=>{html+='<tr>'+[i+1,r.date,r.name,r.contact,r.pokja,r.desc,r.status].map(c=>'<td style="padding:6px">'+String(c).replace(/</g,'&lt;')+'</td>').join('')+'</tr>';});html+='</table>';const blob=new Blob(['<html><head><meta charset="utf-8"></head><body>'+html+'</body></html>'],{type:'application/vnd.ms-excel'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Laporan-Warga-SILAP.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);this.toast('File Excel berhasil diunduh');},
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>
