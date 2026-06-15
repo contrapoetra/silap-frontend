@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#eef3ec}
+@keyframes silapPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes silapFade{from{opacity:0}to{opacity:1}}
+@keyframes silapToast{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%)}}
+::selection{background:#bfe6cb}
+.silap-scroll::-webkit-scrollbar{height:6px;width:6px}
+.silap-scroll::-webkit-scrollbar-thumb{background:#cdddcf;border-radius:8px}
