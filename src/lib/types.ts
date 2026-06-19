@@ -34,6 +34,7 @@ export interface GalleryItem {
   caption: string;
   date: string;
   tag: string;
+  image?: string | null;
 }
 
 export interface FileItem {
@@ -70,7 +71,7 @@ export interface AppState {
   calM: number;
   showLogin: boolean;
   loginForm: { nik: string; password: string; error: string; showDemo: boolean };
-  eventModal: { day: number; title: string; time: string } | null;
+  eventModal: { day: number; title: string; time: string; id?: string | number } | null;
   galModal: { caption: string } | null;
   fileModal: { name: string; size: string } | null;
   avatarModal: boolean;
@@ -108,6 +109,7 @@ export type AppAction =
   | { type: 'LOGOUT' }
   | { type: 'SET_EVENT_MODAL'; payload: AppState['eventModal'] }
   | { type: 'ADD_EVENT'; payload: CalendarEvent }
+  | { type: 'UPDATE_EVENT'; payload: CalendarEvent }
   | { type: 'DELETE_EVENT'; payload: string | number }
   | { type: 'SET_GAL_MODAL'; payload: AppState['galModal'] }
   | { type: 'ADD_GALLERY'; payload: GalleryItem }

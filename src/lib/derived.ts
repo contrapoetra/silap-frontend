@@ -167,7 +167,8 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     const dayNum = c.day!;
     const isToday = today.getFullYear() === st.calY && today.getMonth() === st.calM && today.getDate() === dayNum;
     const dayEvents = st.events.filter(e => e.pokja === st.activePokja && e.y === st.calY && e.m === st.calM && e.d === dayNum).map(e => ({
-      title: e.title, time: e.time, accent: active.accent, tint: active.tint, canDelete: canEditActive,
+      id: e.id, title: e.title, time: e.time, accent: active.accent, tint: active.tint, canEdit: canEditActive,
+      onClick: (ev: React.MouseEvent) => { ev.stopPropagation(); if (canEditActive) dispatch({ type: 'SET_EVENT_MODAL', payload: { day: dayNum, title: e.title, time: e.time, id: e.id } }); },
       onDelete: (ev: React.MouseEvent) => { ev.stopPropagation(); dispatch({ type: 'DELETE_EVENT', payload: e.id }); },
     }));
     return {
@@ -180,7 +181,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const cal = { monthLabel: MONTHS[st.calM] + ' ' + st.calY, weekdays: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], cells: calCells };
 
   const pokjaPhotos = st.gallery.filter(g => g.pokja === st.activePokja).map(g => ({
-    caption: g.caption, date: g.date, tag: g.tag, canDelete: canEditActive,
+    caption: g.caption, date: g.date, tag: g.tag, image: g.image, canDelete: canEditActive,
     onDelete: () => dispatch({ type: 'DELETE_GALLERY', payload: g.id }),
   }));
 
@@ -201,7 +202,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
 
   const allPhotos = st.gallery.filter(g => st.galFilter === 'all' || g.pokja === st.galFilter).map(g => {
     const p = POKJA.find(x => x.id === g.pokja)!;
-    return { caption: g.caption, date: g.date, tag: g.tag, pokjaName: p.name, accent: p.accent };
+    return { caption: g.caption, date: g.date, tag: g.tag, image: g.image, pokjaName: p.name, accent: p.accent };
   });
 
   const reportRows = st.reports.map((r, i) => {

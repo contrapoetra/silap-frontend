@@ -2,7 +2,7 @@
 
 import { DerivedData } from '@/lib/derived';
 import { AppState, AppAction } from '@/lib/state';
-import { Dispatch } from 'react';
+import { Dispatch, useState, useRef, useEffect } from 'react';
 
 interface Props {
   st: AppState;
@@ -63,22 +63,322 @@ export function LoginModal({ st, d, dispatch, showToast }: Props) {
   );
 }
 
+export function AnalogTimePicker({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+  const [mode, setMode] = useState<'hour' | 'minute'>('hour');
+  const [hour, setHour] = useState(12);
+  const [minute, setMinute] = useState(0);
+  const [isPm, setIsPm] = useState(false);
+  const dialRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let initialHour = 12;
+    let initialMinute = 0;
+    let initialIsPm = false;
+    if (value && value !== '—') {
+      const parts = value.split(':');
+      if (parts.length === 2) {
+        let h = parseInt(parts[0], 10);
+        let m = parseInt(parts[1], 10);
+        if (!isNaN(h) && !isNaN(m)) {
+          initialMinute = m;
+          if (h >= 12) {
+            initialIsPm = true;
+            initialHour = h === 12 ? 12 : h - 12;
+          } else {
+            initialIsPm = false;
+            initialHour = h === 0 ? 12 : h;
+          }
+        }
+      }
+    }
+    setHour(initialHour);
+    setMinute(initialMinute);
+    setIsPm(initialIsPm);
+  }, [value]);
+
+  const handleUpdate = (h: number, m: number, pm: boolean) => {
+    let finalHour = h;
+    if (pm) {
+      finalHour = h === 12 ? 12 : h + 12;
+    } else {
+      finalHour = h === 12 ? 0 : h;
+    }
+    const pad = (num: number) => String(num).padStart(2, '0');
+    onChange(`${pad(finalHour)}:${pad(m)}`);
+  };
+
+  const handleDialPointer = (clientX: number, clientY: number) => {
+    if (!dialRef.current) return;
+    const rect = dialRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    let angleRad = Math.atan2(dy, dx);
+    let angleDeg = (angleRad * 180) / Math.PI;
+    let shifted = (angleDeg + 90 + 360) % 360;
+
+    if (mode === 'hour') {
+      let h = Math.round(shifted / 30);
+      if (h === 0) h = 12;
+      setHour(h);
+      handleUpdate(h, minute, isPm);
+    } else {
+      let m = Math.round(shifted / 6);
+      if (m === 60) m = 0;
+      setMinute(m);
+      handleUpdate(hour, m, isPm);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handleDialPointer(e.clientX, e.clientY);
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      handleDialPointer(moveEvent.clientX, moveEvent.clientY);
+    };
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      if (mode === 'hour') {
+        setMode('minute');
+      }
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    handleDialPointer(touch.clientX, touch.clientY);
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      const moveTouch = moveEvent.touches[0];
+      handleDialPointer(moveTouch.clientX, moveTouch.clientY);
+    };
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      if (mode === 'hour') {
+        setMode('minute');
+      }
+    };
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const getNumberPos = (idx: number) => {
+    const angle = (idx * 30 - 90) * (Math.PI / 180);
+    const r = 72;
+    const x = 100 + r * Math.cos(angle);
+    const y = 100 + r * Math.sin(angle);
+    return { left: `${x}px`, top: `${y}px` };
+  };
+
+  const numbers = mode === 'hour' 
+    ? [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    : ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 18 }}>
+      {/* Digital time header indicator */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 14, background: '#fafdf9', padding: '10px 14px', borderRadius: 12, border: '1px solid #dde7df', width: '100%', maxWidth: '200px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', fontSize: '30px', fontWeight: 800, fontFamily: 'ui-monospace, monospace', color: '#16331f' }}>
+          <span 
+            onClick={() => setMode('hour')} 
+            style={{ 
+              cursor: 'pointer', 
+              padding: '2px 8px', 
+              borderRadius: 8, 
+              background: mode === 'hour' ? '#1f7e44' : 'transparent', 
+              color: mode === 'hour' ? '#fff' : '#7d9385',
+              transition: 'all 0.2s'
+            }}
+          >
+            {String(hour).padStart(2, '0')}
+          </span>
+          <span style={{ margin: '0 2px', color: '#dde7df' }}>:</span>
+          <span 
+            onClick={() => setMode('minute')} 
+            style={{ 
+              cursor: 'pointer', 
+              padding: '2px 8px', 
+              borderRadius: 8, 
+              background: mode === 'minute' ? '#1f7e44' : 'transparent', 
+              color: mode === 'minute' ? '#fff' : '#7d9385',
+              transition: 'all 0.2s'
+            }}
+          >
+            {String(minute).padStart(2, '0')}
+          </span>
+        </div>
+        
+        {/* AM/PM */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginLeft: 10, borderLeft: '1px solid #eef3ec', paddingLeft: 10 }}>
+          <button 
+            type="button"
+            onClick={() => { setIsPm(false); handleUpdate(hour, minute, false); }} 
+            style={{ 
+              border: 'none', 
+              background: !isPm ? '#e1eadf' : 'transparent', 
+              color: !isPm ? '#1f7e44' : '#7d9385', 
+              fontSize: '10px', 
+              fontWeight: 800, 
+              padding: '2px 6px', 
+              borderRadius: 5, 
+              cursor: 'pointer' 
+            }}
+          >
+            AM
+          </button>
+          <button 
+            type="button"
+            onClick={() => { setIsPm(true); handleUpdate(hour, minute, true); }} 
+            style={{ 
+              border: 'none', 
+              background: isPm ? '#e1eadf' : 'transparent', 
+              color: isPm ? '#1f7e44' : '#7d9385', 
+              fontSize: '10px', 
+              fontWeight: 800, 
+              padding: '2px 6px', 
+              borderRadius: 5, 
+              cursor: 'pointer' 
+            }}
+          >
+            PM
+          </button>
+        </div>
+      </div>
+
+      {/* Analog clock face */}
+      <div 
+        ref={dialRef}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        style={{ 
+          position: 'relative', 
+          width: '200px', 
+          height: '200px', 
+          borderRadius: '50%', 
+          background: '#fafdf9', 
+          border: '1px solid #dde7df', 
+          cursor: 'pointer', 
+          userSelect: 'none',
+          touchAction: 'none',
+          boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.02)'
+        }}
+      >
+        {/* Center dot */}
+        <div style={{ position: 'absolute', left: '100px', top: '100px', transform: 'translate(-50%, -50%)', width: '6px', height: '6px', borderRadius: '50%', background: '#1f7e44', zIndex: 10 }} />
+        
+        {/* The pointer hand */}
+        <div style={{
+          position: 'absolute',
+          left: '100px',
+          top: '100px',
+          width: '2px',
+          height: '72px',
+          background: '#1f7e44',
+          transformOrigin: 'bottom center',
+          transform: `translate(-50%, -100%) rotate(${mode === 'hour' ? hour * 30 : minute * 6}deg)`,
+          pointerEvents: 'none',
+          transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}>
+          {/* Hand tip indicator */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            background: '#1f7e44',
+            zIndex: 5
+          }} />
+        </div>
+
+        {/* Dial Face Numbers */}
+        {numbers.map((num, i) => {
+          const isSelected = mode === 'hour' 
+            ? (num === hour) 
+            : (parseInt(String(num), 10) === minute);
+            
+          const pos = getNumberPos(i);
+          
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                ...pos,
+                transform: 'translate(-50%, -50%)',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: isSelected ? '800' : '500',
+                color: isSelected ? '#fff' : '#5d7263',
+                zIndex: 8,
+                pointerEvents: 'none',
+                transition: 'color 0.1s'
+              }}
+            >
+              {num}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function EventModal({ st, d, dispatch, showToast }: Props) {
+  const isEdit = !!st.eventModal?.id;
+
   return (
     <div onClick={() => dispatch({ type: 'SET_EVENT_MODAL', payload: null })} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(18,40,26,.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'silapFade .2s ease' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 390, width: '100%', padding: 24, animation: 'silapPop .25s ease' }}>
-        <div style={{ fontSize: 17, fontWeight: 800, color: '#16331f', marginBottom: 4 }}>Tambah Kegiatan</div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: '#16331f', marginBottom: 4 }}>
+          {isEdit ? 'Edit Kegiatan' : 'Tambah Kegiatan'}
+        </div>
         <div style={{ fontSize: 13, color: '#7d9385', marginBottom: 16 }}>{d.eventModal.dateLabel} · {d.active.name}</div>
+        
         <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#5d7263', marginBottom: 5 }}>Nama Kegiatan</label>
         <input value={st.eventModal!.title} onChange={e => dispatch({ type: 'SET_EVENT_MODAL', payload: { ...st.eventModal!, title: e.target.value } })} placeholder="cth: Posyandu balita" style={{ width: '100%', fontFamily: 'inherit', fontSize: 14, padding: '11px 13px', border: '1px solid #dde7df', borderRadius: 11, marginBottom: 12, background: '#fafdf9', color: '#1c2a21' }} />
-        <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#5d7263', marginBottom: 5 }}>Waktu</label>
-        <input value={st.eventModal!.time} onChange={e => dispatch({ type: 'SET_EVENT_MODAL', payload: { ...st.eventModal!, time: e.target.value } })} placeholder="cth: 09:00" style={{ width: '100%', fontFamily: 'inherit', fontSize: 14, padding: '11px 13px', border: '1px solid #dde7df', borderRadius: 11, marginBottom: 16, background: '#fafdf9', color: '#1c2a21' }} />
+        
+        <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#5d7263', marginBottom: 6 }}>Waktu Kegiatan</label>
+        <AnalogTimePicker value={st.eventModal!.time} onChange={newTime => dispatch({ type: 'SET_EVENT_MODAL', payload: { ...st.eventModal!, time: newTime } })} />
+        
         <div style={{ display: 'flex', gap: 10 }}>
+          {isEdit && (
+            <button onClick={() => {
+              dispatch({ type: 'DELETE_EVENT', payload: st.eventModal!.id! });
+              dispatch({ type: 'SET_EVENT_MODAL', payload: null });
+            }} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: '#fbe7ee', color: '#c0436c', flex: 1 }}>Hapus</button>
+          )}
           <button onClick={() => dispatch({ type: 'SET_EVENT_MODAL', payload: null })} style={{ flex: 1, border: '1px solid #dde7df', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: '#fff', color: '#5d7263' }}>Batal</button>
           <button onClick={() => {
             if (!st.eventModal!.title.trim()) { showToast('Isi nama kegiatan dulu'); return; }
-            dispatch({ type: 'ADD_EVENT', payload: { id: st.nextId, pokja: st.activePokja, y: st.calY, m: st.calM, d: st.eventModal!.day, title: st.eventModal!.title.trim(), time: st.eventModal!.time.trim() || '—' } });
-            showToast('Kegiatan ditambahkan');
+            if (isEdit) {
+              dispatch({
+                type: 'UPDATE_EVENT',
+                payload: {
+                  id: st.eventModal!.id!,
+                  pokja: st.activePokja,
+                  y: st.calY,
+                  m: st.calM,
+                  d: st.eventModal!.day,
+                  title: st.eventModal!.title.trim(),
+                  time: st.eventModal!.time.trim() || '—'
+                }
+              } as any);
+              showToast('Kegiatan diperbarui');
+            } else {
+              dispatch({ type: 'ADD_EVENT', payload: { id: st.nextId, pokja: st.activePokja, y: st.calY, m: st.calM, d: st.eventModal!.day, title: st.eventModal!.title.trim(), time: st.eventModal!.time.trim() || '—' } });
+              showToast('Kegiatan ditambahkan');
+            }
           }} style={{ flex: 1.4, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: '#1f7e44', color: '#fff' }}>Simpan</button>
         </div>
       </div>
@@ -87,18 +387,100 @@ export function EventModal({ st, d, dispatch, showToast }: Props) {
 }
 
 export function GalModal({ st, d, dispatch, showToast }: Props) {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showToast('Hanya berkas gambar yang didukung');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div onClick={() => dispatch({ type: 'SET_GAL_MODAL', payload: null })} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(18,40,26,.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'silapFade .2s ease' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 390, width: '100%', padding: 24, animation: 'silapPop .25s ease' }}>
         <div style={{ fontSize: 17, fontWeight: 800, color: '#16331f', marginBottom: 16 }}>Unggah Foto · {d.active.name}</div>
-        <div style={{ border: '1px dashed #c3d8c7', borderRadius: 12, background: '#f4f9f3', padding: 22, textAlign: 'center', marginBottom: 14 }}><div style={{ fontSize: 24, marginBottom: 6 }}>🖼</div><div style={{ fontSize: 13, color: '#7d9385', fontWeight: 600 }}>Seret foto ke sini (placeholder demo)</div></div>
+        
+        <label
+          onDragOver={e => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={e => {
+            e.preventDefault();
+            setIsDragOver(false);
+            const file = e.dataTransfer.files?.[0];
+            if (file) handleFile(file);
+          }}
+          style={{
+            display: 'block',
+            border: isDragOver ? '2px dashed #1f7e44' : '1px dashed #c3d8c7',
+            borderRadius: 12,
+            background: isDragOver ? '#eef7ef' : '#f4f9f3',
+            padding: 22,
+            textAlign: 'center',
+            marginBottom: 14,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          <input
+            type="file"
+            accept="image/*"
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(file);
+            }}
+            style={{ display: 'none' }}
+          />
+          {imagePreview ? (
+            <div style={{ position: 'relative', width: '100%', height: 120, borderRadius: 8, overflow: 'hidden' }}>
+              <img src={imagePreview} alt="Pratinjau" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600 }}>
+                Seret foto baru atau klik untuk mengganti
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>🖼</div>
+              <div style={{ fontSize: '13px', color: '#1f7e44', fontWeight: 700 }}>
+                Seret foto ke sini atau klik untuk memilih
+              </div>
+              <div style={{ fontSize: 11, color: '#7d9385', marginTop: 4 }}>
+                Mendukung JPG, PNG, WEBP, GIF
+              </div>
+            </>
+          )}
+        </label>
+
         <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#5d7263', marginBottom: 5 }}>Keterangan Foto</label>
         <input value={st.galModal!.caption} onChange={e => dispatch({ type: 'SET_GAL_MODAL', payload: { caption: e.target.value } })} placeholder="cth: Kegiatan posyandu Juni" style={{ width: '100%', fontFamily: 'inherit', fontSize: 14, padding: '11px 13px', border: '1px solid #dde7df', borderRadius: 11, marginBottom: 16, background: '#fafdf9', color: '#1c2a21' }} />
+        
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => dispatch({ type: 'SET_GAL_MODAL', payload: null })} style={{ flex: 1, border: '1px solid #dde7df', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: '#fff', color: '#5d7263' }}>Batal</button>
           <button onClick={() => {
+            if (!imagePreview) { showToast('Pilih atau seret foto dulu'); return; }
             if (!st.galModal!.caption.trim()) { showToast('Isi keterangan foto dulu'); return; }
-            dispatch({ type: 'ADD_GALLERY', payload: { id: st.nextId, pokja: st.activePokja, caption: st.galModal!.caption.trim(), date: '12 Jun 2026', tag: 'foto baru' } });
+            
+            const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            dispatch({
+              type: 'ADD_GALLERY',
+              payload: {
+                id: st.nextId,
+                pokja: st.activePokja,
+                caption: st.galModal!.caption.trim(),
+                date: todayStr,
+                tag: 'foto baru',
+                image: imagePreview
+              } as any
+            });
             showToast('Foto diunggah');
           }} style={{ flex: 1.4, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: '#1f7e44', color: '#fff' }}>Unggah</button>
         </div>

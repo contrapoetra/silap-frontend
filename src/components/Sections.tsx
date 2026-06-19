@@ -157,9 +157,9 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
               <div key={i} onClick={c.onClick} style={{ minHeight: c.minH, borderRadius: 10, border: `1px solid ${c.border}`, background: c.bg, padding: d.rs.calCellPad, cursor: c.cursor, display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <div style={{ fontSize: d.rs.calNumFont, fontWeight: 700, color: c.numColor }}>{c.day}</div>
                 {c.events.map((e: any, j: number) => (
-                  <div key={j} style={{ background: e.tint, borderLeft: `3px solid ${e.accent}`, borderRadius: 4, padding: '2px 5px', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <div key={j} onClick={e.onClick} style={{ background: e.tint, borderLeft: `3px solid ${e.accent}`, borderRadius: 4, padding: '2px 5px', display: 'flex', alignItems: 'center', gap: 3, cursor: e.canEdit ? 'pointer' : 'default' }}>
                     <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: d.rs.calEvFont, fontWeight: 700, color: '#2a3d31', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.title}</div><div style={{ fontSize: 9, color: '#7d9385', fontWeight: 600 }}>{e.time}</div></div>
-                    {e.canDelete && <button onClick={e.onDelete} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#b08a7a', fontSize: 12, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>}
+                    {e.canEdit && <button onClick={e.onDelete} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#b08a7a', fontSize: 12, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>}
                   </div>
                 ))}
               </div>
@@ -173,9 +173,15 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
           <div style={d.rs.galPokjaGrid}>
             {d.pokjaPhotos.map((g, i) => (
               <div key={i} style={{ background: '#fff', border: '1px solid #e3ebe1', borderRadius: 16, overflow: 'hidden' }}>
-                <div style={{ position: 'relative', minHeight: 130, background: 'repeating-linear-gradient(135deg,#e6efe6,#e6efe6 10px,#eef5ee 10px,#eef5ee 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '10.5px', color: '#88a08e' }}>[ {g.tag} ]</span>
-                  {g.canDelete && <button onClick={g.onDelete} style={{ position: 'absolute', top: 8, right: 8, border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,.9)', width: 24, height: 24, borderRadius: 7, fontSize: 14, color: '#a8705f' }}>×</button>}
+                <div style={{ position: 'relative', minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {g.image ? (
+                    <img src={g.image} alt={g.caption} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(135deg,#e6efe6,#e6efe6 10px,#eef5ee 10px,#eef5ee 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '10.5px', color: '#88a08e' }}>[ {g.tag} ]</span>
+                    </div>
+                  )}
+                  {g.canDelete && <button onClick={g.onDelete} style={{ position: 'absolute', top: 8, right: 8, border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,.9)', width: 24, height: 24, borderRadius: 7, fontSize: 14, color: '#a8705f', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>×</button>}
                 </div>
                 <div style={{ padding: '11px 13px' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#22382b', lineHeight: 1.3 }}>{g.caption}</div><div style={{ fontSize: 11, color: '#88a08e', marginTop: 3 }}>{g.date}</div></div>
               </div>
@@ -215,9 +221,15 @@ export function GaleriSection({ d }: { d: DerivedData }) {
       <div style={d.rs.galGrid}>
         {d.allPhotos.map((g, i) => (
           <div key={i} style={{ background: '#fff', border: '1px solid #e3ebe1', borderRadius: 16, overflow: 'hidden' }}>
-            <div style={{ position: 'relative', minHeight: 130, background: 'repeating-linear-gradient(135deg,#e6efe6,#e6efe6 10px,#eef5ee 10px,#eef5ee 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 10, color: '#88a08e' }}>[ {g.tag} ]</span>
-              <span style={{ position: 'absolute', top: 8, left: 8, fontSize: 10, fontWeight: 700, color: '#fff', background: g.accent, padding: '3px 8px', borderRadius: 99 }}>{g.pokjaName}</span>
+            <div style={{ position: 'relative', minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {g.image ? (
+                <img src={g.image} alt={g.caption} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
+              ) : (
+                <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(135deg,#e6efe6,#e6efe6 10px,#eef5ee 10px,#eef5ee 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: 10, color: '#88a08e' }}>[ {g.tag} ]</span>
+                </div>
+              )}
+              <span style={{ position: 'absolute', top: 8, left: 8, fontSize: 10, fontWeight: 700, color: '#fff', background: g.accent, padding: '3px 8px', borderRadius: 99, zIndex: 10 }}>{g.pokjaName}</span>
             </div>
             <div style={{ padding: '10px 12px' }}><div style={{ fontSize: '12.5px', fontWeight: 700, color: '#22382b', lineHeight: 1.3 }}>{g.caption}</div><div style={{ fontSize: 11, color: '#88a08e', marginTop: 3 }}>{g.date}</div></div>
           </div>

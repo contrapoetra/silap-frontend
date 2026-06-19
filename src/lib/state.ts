@@ -63,7 +63,7 @@ export interface AppState {
   calM: number;
   showLogin: boolean;
   loginForm: { nik: string; password: string; error: string; showDemo: boolean };
-  eventModal: { day: number; title: string; time: string } | null;
+  eventModal: { day: number; title: string; time: string; id?: string | number } | null;
   galModal: { caption: string } | null;
   fileModal: { name: string; size: string } | null;
   avatarModal: boolean;
@@ -109,6 +109,7 @@ export type AppAction =
   | { type: 'LOGOUT' }
   | { type: 'SET_EVENT_MODAL'; payload: AppState['eventModal'] }
   | { type: 'ADD_EVENT'; payload: CalendarEvent }
+  | { type: 'UPDATE_EVENT'; payload: CalendarEvent }
   | { type: 'DELETE_EVENT'; payload: string | number }
   | { type: 'SET_GAL_MODAL'; payload: AppState['galModal'] }
   | { type: 'ADD_GALLERY'; payload: GalleryItem }
@@ -149,6 +150,7 @@ export function reducer(state: AppState, action: AppAction): AppState {
     case 'LOGOUT': return { ...state, currentUserId: null, route: 'beranda', menuOpen: false };
     case 'SET_EVENT_MODAL': return { ...state, eventModal: action.payload };
     case 'ADD_EVENT': return { ...state, events: [...state.events, action.payload], nextId: state.nextId + 1, eventModal: null };
+    case 'UPDATE_EVENT': return { ...state, events: state.events.map(e => e.id === action.payload.id ? action.payload : e), eventModal: null };
     case 'DELETE_EVENT': return { ...state, events: state.events.filter(e => e.id !== action.payload) };
     case 'SET_GAL_MODAL': return { ...state, galModal: action.payload };
     case 'ADD_GALLERY': return { ...state, gallery: [action.payload, ...state.gallery], nextId: state.nextId + 1, galModal: null };

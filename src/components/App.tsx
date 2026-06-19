@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { reducer, initialState, AppState, AppAction } from '@/lib/state';
 import { computeDerived } from '@/lib/derived';
 import { BerandaSection, PokjaOverviewSection, PokjaDetailSection, GaleriSection, LaporanSection, DashboardSection } from './Sections';
@@ -9,6 +9,13 @@ import { supabase } from '@/lib/supabase';
 
 export default function App() {
   const [st, dispatch] = useReducer<AppState, [AppAction]>(reducer, initialState);
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    description: string;
+    confirmLabel: string;
+    isDanger?: boolean;
+    onConfirm: () => void;
+  } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const showToast = useCallback((msg: string) => {
@@ -27,9 +34,9 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Fetch initial data from Supabase
+  // Load initial data and restore session on mount (once)
   useEffect(() => {
-    async function loadData() {
+    async function initApp() {
       try {
         const [
           { data: users, error: errUsers },
@@ -71,6 +78,16 @@ export default function App() {
             reports: reports || [],
           },
         });
+
+        // Restore saved session
+        try {
+          const savedUserId = localStorage.getItem('silap_user_id');
+          if (savedUserId && users?.some((u: any) => u.id === savedUserId)) {
+            dispatch({ type: 'DO_LOGIN', payload: savedUserId });
+          }
+        } catch (err) {
+          console.warn('Failed to restore saved user session:', err);
+        }
       } catch (err) {
         console.error('Failed to load data:', err);
         showToast('Terjadi kesalahan saat menghubungkan ke database');
@@ -78,8 +95,72 @@ export default function App() {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     }
-    loadData();
+    
+    initApp();
   }, [dispatch, showToast]);
+
+  // Keep data in sync when returning to the tab
+  useEffect(() => {
+    async function refreshData() {
+      try {
+        const [
+          { data: users },
+          { data: events },
+          { data: gallery },
+          { data: files },
+          { data: reports },
+        ] = await Promise.all([
+          supabase.from('users').select('*'),
+          supabase.from('events').select('*'),
+          supabase.from('gallery').select('*'),
+          supabase.from('files').select('*'),
+          supabase.from('reports').select('*'),
+        ]);
+
+        const mappedEvents = (events || []).map((e: any) => ({
+          id: e.id,
+          pokja: e.pokja,
+          y: e.year,
+          m: e.month,
+          d: e.day,
+          title: e.title,
+          time: e.time,
+        }));
+
+        dispatch({
+          type: 'SET_INITIAL_DATA',
+          payload: {
+            users: users || [],
+            events: mappedEvents,
+            gallery: gallery || [],
+            files: files || [],
+            reports: reports || [],
+          },
+        });
+      } catch (err) {
+        console.warn('Failed to refresh data on window focus:', err);
+      }
+    }
+
+    window.addEventListener('focus', refreshData);
+    return () => {
+      window.removeEventListener('focus', refreshData);
+    };
+  }, [dispatch]);
+
+  // Synchronize currentUserId with localStorage
+  useEffect(() => {
+    if (st.loading) return;
+    try {
+      if (st.currentUserId) {
+        localStorage.setItem('silap_user_id', st.currentUserId);
+      } else {
+        localStorage.removeItem('silap_user_id');
+      }
+    } catch (err) {
+      console.warn('LocalStorage is not accessible:', err);
+    }
+  }, [st.currentUserId, st.loading]);
 
   const asyncDispatch = useCallback((action: AppAction) => {
     (async () => {
@@ -106,12 +187,41 @@ export default function App() {
           break;
         }
         case 'DELETE_EVENT': {
-          const { error } = await supabase.from('events').delete().eq('id', action.payload);
+          setConfirmModal({
+            title: 'Hapus Kegiatan?',
+            description: 'Apakah Anda yakin ingin menghapus kegiatan ini? Tindakan ini tidak dapat dibatalkan.',
+            confirmLabel: 'Hapus',
+            isDanger: true,
+            onConfirm: async () => {
+              const { error } = await supabase.from('events').delete().eq('id', action.payload);
+              if (error) {
+                showToast('Gagal menghapus kegiatan: ' + error.message);
+                return;
+              }
+              dispatch({ type: 'DELETE_EVENT', payload: action.payload });
+              setConfirmModal(null);
+            }
+          });
+          break;
+        }
+        case 'UPDATE_EVENT': {
+          const { error } = await supabase
+            .from('events')
+            .update({
+              pokja: action.payload.pokja,
+              year: action.payload.y,
+              month: action.payload.m,
+              day: action.payload.d,
+              title: action.payload.title,
+              time: action.payload.time,
+            })
+            .eq('id', action.payload.id);
+
           if (error) {
-            showToast('Gagal menghapus kegiatan: ' + error.message);
+            showToast('Gagal memperbarui kegiatan: ' + error.message);
             return;
           }
-          dispatch({ type: 'DELETE_EVENT', payload: action.payload });
+          dispatch({ type: 'UPDATE_EVENT', payload: action.payload });
           break;
         }
         case 'ADD_GALLERY': {
@@ -122,6 +232,7 @@ export default function App() {
               caption: action.payload.caption,
               date: action.payload.date,
               tag: action.payload.tag,
+              image: action.payload.image || null,
             })
             .select()
             .single();
@@ -134,12 +245,21 @@ export default function App() {
           break;
         }
         case 'DELETE_GALLERY': {
-          const { error } = await supabase.from('gallery').delete().eq('id', action.payload);
-          if (error) {
-            showToast('Gagal menghapus foto: ' + error.message);
-            return;
-          }
-          dispatch({ type: 'DELETE_GALLERY', payload: action.payload });
+          setConfirmModal({
+            title: 'Hapus Foto?',
+            description: 'Apakah Anda yakin ingin menghapus foto dari galeri ini? Tindakan ini tidak dapat dibatalkan.',
+            confirmLabel: 'Hapus',
+            isDanger: true,
+            onConfirm: async () => {
+              const { error } = await supabase.from('gallery').delete().eq('id', action.payload);
+              if (error) {
+                showToast('Gagal menghapus foto: ' + error.message);
+                return;
+              }
+              dispatch({ type: 'DELETE_GALLERY', payload: action.payload });
+              setConfirmModal(null);
+            }
+          });
           break;
         }
         case 'ADD_FILE': {
@@ -164,12 +284,21 @@ export default function App() {
           break;
         }
         case 'DELETE_FILE': {
-          const { error } = await supabase.from('files').delete().eq('id', action.payload);
-          if (error) {
-            showToast('Gagal menghapus berkas: ' + error.message);
-            return;
-          }
-          dispatch({ type: 'DELETE_FILE', payload: action.payload });
+          setConfirmModal({
+            title: 'Hapus Berkas?',
+            description: 'Apakah Anda yakin ingin menghapus berkas ini? Tindakan ini tidak dapat dibatalkan.',
+            confirmLabel: 'Hapus',
+            isDanger: true,
+            onConfirm: async () => {
+              const { error } = await supabase.from('files').delete().eq('id', action.payload);
+              if (error) {
+                showToast('Gagal menghapus berkas: ' + error.message);
+                return;
+              }
+              dispatch({ type: 'DELETE_FILE', payload: action.payload });
+              setConfirmModal(null);
+            }
+          });
           break;
         }
         case 'ADD_REPORT': {
@@ -301,9 +430,18 @@ export default function App() {
   const d = computeDerived(st, go, openPokja, asyncDispatch);
 
   const handleLogout = () => {
-    showToast('Anda telah keluar');
-    dispatch({ type: 'LOGOUT' });
-    window.scrollTo(0, 0);
+    setConfirmModal({
+      title: 'Keluar dari SILAP?',
+      description: 'Apakah Anda yakin ingin keluar dari akun Anda?',
+      confirmLabel: 'Keluar',
+      isDanger: false,
+      onConfirm: () => {
+        showToast('Anda telah keluar');
+        dispatch({ type: 'LOGOUT' });
+        setConfirmModal(null);
+        window.scrollTo(0, 0);
+      }
+    });
   };
 
   if (st.loading) {
@@ -422,6 +560,24 @@ export default function App() {
       {st.avatarModal && <AvatarModal st={st} d={d} dispatch={asyncDispatch} showToast={showToast} />}
       {st.userModal && <UserModal st={st} d={d} dispatch={asyncDispatch} showToast={showToast} />}
       {st.confirmDelete && <ConfirmDeleteModal st={st} d={d} dispatch={asyncDispatch} showToast={showToast} />}
+
+      {confirmModal && (
+        <div onClick={() => setConfirmModal(null)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(18,40,26,.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'silapFade .2s ease' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 350, width: '100%', padding: 26, animation: 'silapPop .25s ease', textAlign: 'center' }}>
+            <div style={{ width: 52, height: 52, borderRadius: '50%', background: confirmModal.isDanger ? '#fbe7ee' : '#eaf6ed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: confirmModal.isDanger ? '#c0436c' : '#1f7e44', margin: '0 auto 14px' }}>
+              {confirmModal.isDanger ? '⚠' : '⏻'}
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#16331f', marginBottom: 6 }}>{confirmModal.title}</div>
+            <div style={{ fontSize: '13.5px', color: '#7d9385', marginBottom: 22, lineHeight: 1.5 }}>{confirmModal.description}</div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmModal(null)} style={{ flex: 1, border: '1px solid #dde7df', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: '#fff', color: '#5d7263' }}>Batal</button>
+              <button onClick={confirmModal.onConfirm} style={{ flex: 1.4, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 12, borderRadius: 11, background: confirmModal.isDanger ? '#c0436c' : '#1f7e44', color: '#fff' }}>
+                {confirmModal.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TOAST */}
       {st.toast && (
