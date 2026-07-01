@@ -29,6 +29,12 @@ export const STATUS_NEXT: Record<string, string> = {
   'Selesai': 'Baru',
 };
 
+export const STATUS_LABEL: Record<string, string> = {
+  'Baru': 'Masuk',
+  'Diproses': 'Diproses',
+  'Selesai': 'Selesai',
+};
+
 export const EXT_TINT: Record<string, { tint: string; accent: string }> = {
   PDF: { tint: '#fef2f2', accent: '#ef4444' },
   DOC: { tint: '#eff6ff', accent: '#3b82f6' },

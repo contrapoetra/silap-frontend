@@ -604,6 +604,10 @@ export function UserModal({ st, d, dispatch, showToast }: Props) {
             } else {
               const existing = st.users.find(u => u.id === fm.editId)!;
               const role = (fm.form.role || existing.role) as 'admin' | 'ketua' | 'anggota';
+              if (fm.editId === st.currentUserId && existing.role === 'admin' && role !== 'admin') {
+                dispatch({ type: 'SET_USER_FORM', payload: { error: 'Anda tidak dapat menurunkan peran Anda sendiri' } as any });
+                return;
+              }
               const pokja = role === 'admin' ? null : (parseInt(fm.form.pokja) || existing.pokja || 1);
               dispatch({ type: 'UPDATE_USER', payload: { ...existing, nik: fm.form.nik.trim(), name: fm.form.name.trim(), password: fm.form.password.trim() || existing.password, role, pokja } });
               showToast('Akun diperbarui');

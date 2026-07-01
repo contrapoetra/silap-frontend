@@ -10,7 +10,7 @@ export interface DerivedData {
   isDesktop: boolean;
   rs: Record<string, any>;
   heroCurrent: { caption: string; tag: string; pokjaName: string; accent: string };
-  heroDots: { w: string; bg: string }[];
+  heroDots: { w: string; bg: string; onClick: () => void }[];
   userVals: Record<string, any>;
   nav: { label: string; onClick: () => void; onMobile: () => void; bg: string; color: string }[];
   pokjas: any[];
@@ -21,6 +21,8 @@ export interface DerivedData {
   pokjaFiles: any[];
   galFilters: { label: string; onClick: () => void; bg: string; color: string; border: string }[];
   allPhotos: any[];
+  berkasFilters: { label: string; onClick: () => void; bg: string; color: string; border: string }[];
+  allFiles: any[];
   reportGroups: any[];
   dashStats: { value: number; label: string; accent: string }[];
   quickActions: any[];
@@ -43,7 +45,7 @@ export interface DerivedData {
   eventModal: { title: string; time: string; dateLabel: string };
 }
 
-export function computeDerived(st: AppState, go: (r: string) => void, openPokja: (id: number) => void, dispatch: React.Dispatch<any>): DerivedData {
+export function computeDerived(st: AppState, go: (r: string) => void, openPokja: (p: { pokja: number; tab?: string }) => void, dispatch: React.Dispatch<any>): DerivedData {
   const u = st.currentUserId ? st.users.find(x => x.id === st.currentUserId) ?? null : null;
   const active = POKJA.find(p => p.id === st.activePokja)!;
   const canEditActive = canEditPokja(u, st.activePokja);
@@ -99,7 +101,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   });
   const hIdx = heroPhotos.length ? st.heroIdx % heroPhotos.length : 0;
   const heroCurrent = heroPhotos[hIdx] || { caption: 'Dokumentasi kegiatan PKK', tag: 'foto kegiatan', pokjaName: 'PKK', accent: '#2563eb' };
-  const heroDots = heroPhotos.map((_, i) => ({ w: i === hIdx ? '22px' : '7px', bg: i === hIdx ? '#fff' : 'rgba(255,255,255,.5)' }));
+  const heroDots = heroPhotos.map((_, i) => ({ w: i === hIdx ? '22px' : '7px', bg: i === hIdx ? '#fff' : 'rgba(255,255,255,.5)', onClick: () => dispatch({ type: 'SET_HERO_IDX', payload: i }) }));
 
   const userVals = u ? {
     name: u.name, initial: rinit(u), roleLabel: rlabel(u), chipColor: raccent(u),
@@ -122,12 +124,14 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     { key: 'galeri', label: 'Galeri', route: 'galeri' },
     { key: 'pengumuman', label: 'Pengumuman', route: 'pengumuman' },
     { key: 'inovasi', label: 'Inovasi', route: 'inovasi' },
+    { key: 'kalender', label: 'Kalender', route: 'kalender' },
     { key: 'laporan', label: 'Laporan', route: 'laporan' },
   ];
   if (u) navDef.push({ key: 'dashboard', label: 'Akun', route: 'dashboard' });
   if (u && u.role === 'admin') navDef.push({ key: 'anggota-pkk', label: 'Anggota PKK', route: 'anggota-pkk' });
   if (u && u.role === 'admin') navDef.push({ key: 'inventaris', label: 'Inventaris', route: 'inventaris' });
   if (u && u.role === 'admin') navDef.push({ key: 'surat', label: 'Surat', route: 'surat' });
+  if (u && u.role === 'admin') navDef.push({ key: 'berkas', label: 'Berkas', route: 'berkas' });
   const activeRoute = st.route === 'detail' ? 'pokja' : st.route;
   const nav = navDef.map(n => ({
     label: n.label,
@@ -142,15 +146,15 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     count: st.events.filter(e => e.pokja === p.id).length,
     photoCount: st.gallery.filter(g => g.pokja === p.id).length,
     fileCount: st.files.filter(f => f.pokja === p.id).length,
-    onOpen: () => openPokja(p.id),
+    onOpen: () => openPokja({ pokja: p.id }),
   }));
 
   const features = [
-    { glyph: '▤', title: 'Profil Desa', desc: 'Data desa & pengurus TP PKK.',     accent: '#2563eb', tint: '#eff6ff', onClick: () => go('beranda') },
-    { glyph: '◷', title: 'Kalender Kegiatan', desc: 'Agenda tiap pokja per bulan.', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => openPokja(1) },
+    { glyph: '▤', title: 'Profil Desa', desc: 'Data desa & pengurus TP PKK.',     accent: '#2563eb', tint: '#eff6ff', onClick: () => { go('beranda'); setTimeout(() => document.getElementById('profil-desa')?.scrollIntoView({ behavior: 'smooth' }), 100); } },
+    { glyph: '◷', title: 'Kalender Kegiatan', desc: 'Agenda tiap pokja per bulan.', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => openPokja({ pokja: 1, tab: 'kalender' }) },
     { glyph: '▦', title: 'Galeri', desc: 'Dokumentasi seluruh pokja.', accent: '#ea580c', tint: '#fff7ed', onClick: () => go('galeri') },
     { glyph: '✎', title: 'Laporan Warga', desc: 'Kirim laporan, rekap ke Excel.', accent: '#0891b2', tint: '#ecfeff', onClick: () => go('laporan') },
-    { glyph: '⬓', title: 'Berkas Pokja', desc: 'Unggah & unduh dokumen.', accent: '#2563eb', tint: '#eff6ff', onClick: () => openPokja(1) },
+    { glyph: '⬓', title: 'Berkas Pokja', desc: 'Unggah & unduh dokumen.', accent: '#2563eb', tint: '#eff6ff', onClick: () => openPokja({ pokja: 1, tab: 'berkas' }) },
     { glyph: '⬚', title: '4 Kelompok Kerja', desc: 'Pokja I–IV PKK desa.', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => go('pokja') },
   ];
 
@@ -217,7 +221,18 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const allPhotos = st.gallery.filter(g => st.galFilter === 'all' || g.pokja === st.galFilter).map(g => {
     const p = POKJA.find(x => x.id === g.pokja)!;
     return { id: g.id, caption: g.caption, date: g.date, tag: g.tag, image: g.image, pokjaName: p.name, accent: p.accent };
+  }).reverse();
+
+  const berkasFilterDef = [{ id: 'all' as const, label: 'Semua' }, ...POKJA.map(p => ({ id: p.id as number | 'all', label: p.name }))];
+  const berkasFilters = berkasFilterDef.map(g => {
+    const on = st.fileFilter === g.id;
+    const acc = g.id === 'all' ? '#1e3a5f' : POKJA.find(p => p.id === g.id)!.accent;
+    return { label: g.label, onClick: () => dispatch({ type: 'SET_FILE_FILTER', payload: g.id }), bg: on ? acc : '#fff', color: on ? '#fff' : '#475569', border: on ? acc : '#e2e8f0' };
   });
+  const allFiles = st.files.filter(f => st.fileFilter === 'all' || f.pokja === st.fileFilter).map(f => {
+    const p = POKJA.find(x => x.id === f.pokja)!;
+    return { ...f, pokjaName: p.name, accent: p.accent };
+  }).reverse();
 
   const userPokjaName = u && u.role !== 'admin' && u.pokja ? POKJA.find(p => p.id === u.pokja)!.name : null;
   const visibleReports = userPokjaName ? st.reports.filter(r => r.pokja === userPokjaName) : st.reports;
@@ -260,9 +275,9 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   ];
 
   const quickActions = [
-    { glyph: '◷', title: 'Kelola Kalender', desc: 'Tambah/hapus kegiatan', accent: '#2563eb', tint: '#eff6ff', onClick: () => { openPokja(scopeIds[0] || 1); } },
-    { glyph: '▦', title: 'Kelola Galeri', desc: 'Unggah dokumentasi', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => { if (isAdmin) { go('galeri'); } else { openPokja(scopeIds[0] || 1); setTimeout(() => dispatch({ type: 'SET_TAB', payload: 'galeri' }), 0); } } },
-    { glyph: '⬓', title: 'Kelola Berkas', desc: 'Unggah & unduh dokumen', accent: '#ea580c', tint: '#fff7ed', onClick: () => { openPokja(scopeIds[0] || 1); setTimeout(() => dispatch({ type: 'SET_TAB', payload: 'berkas' }), 0); } },
+    { glyph: '◷', title: 'Kelola Kalender', desc: 'Tambah/hapus kegiatan', accent: '#2563eb', tint: '#eff6ff', onClick: () => { openPokja({ pokja: scopeIds[0] || 1, tab: 'kalender' }); } },
+    { glyph: '▦', title: 'Kelola Galeri', desc: 'Unggah dokumentasi', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => { if (isAdmin) { go('galeri'); } else { openPokja({ pokja: scopeIds[0] || 1, tab: 'galeri' }); } } },
+    { glyph: '⬓', title: 'Kelola Berkas', desc: 'Unggah & unduh dokumen', accent: '#ea580c', tint: '#fff7ed', onClick: () => { openPokja({ pokja: scopeIds[0] || 1, tab: 'berkas' }); } },
     { glyph: '✎', title: 'Tindak Lanjut Laporan', desc: 'Ubah status & export', accent: '#0891b2', tint: '#ecfeff', onClick: () => go('laporan') },
     { glyph: '▤', title: 'Kelola Inventaris', desc: 'Data barang inventaris', accent: '#059669', tint: '#ecfdf5', onClick: () => go('inventaris') },
     { glyph: '✉', title: 'Kelola Surat', desc: 'Surat masuk & keluar', accent: '#d97706', tint: '#fffbeb', onClick: () => go('surat') },
@@ -350,8 +365,8 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     nik: um.form.nik, name: um.form.name, password: um.form.password,
     role: um.form.role, pokja: um.form.pokja, isEdit: um.mode === 'edit',
     pwdHint: um.mode === 'edit' ? '(kosongkan jika tidak diubah)' : 'Buat password',
-    showRoleSelect: !!(u && u.role === 'admin'),
-    showPokjaSelect: !!(u && u.role === 'admin' && (um.form.role === 'ketua' || um.form.role === 'anggota')),
+    showRoleSelect: !!(u && u.role === 'admin' && !(um.mode === 'edit' && um.editId === st.currentUserId)),
+    showPokjaSelect: !!(u && u.role === 'admin' && (um.form.role === 'ketua' || um.form.role === 'anggota') && !(um.mode === 'edit' && um.editId === st.currentUserId)),
     error: um.error || '', hasError: !!(um.error),
   } : { title: '', saveLabel: 'Simpan', nik: '', name: '', password: '', role: 'anggota', pokja: '1', isEdit: false, pwdHint: '', showRoleSelect: false, showPokjaSelect: false, error: '', hasError: false };
 
@@ -380,7 +395,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   return {
     u, active, canEditActive, isMob, isDesktop, rs,
     heroCurrent, heroDots, userVals, nav, pokjas, features, tabs, cal,
-    pokjaPhotos, pokjaFiles, galFilters, allPhotos, reportGroups,
+    pokjaPhotos, pokjaFiles, galFilters, allPhotos, berkasFilters, allFiles, reportGroups,
     dashStats, quickActions, allUsers, pokjaMemberList, pkkMembers, inventory, suratMasuk, suratKeluar, suratView: st.suratView, blogPosts: st.blogPosts, orgPositions: st.orgPositions, pengumuman: st.pengumuman, umV, avM, cdUser, lf, demoAccounts, fileModalV, eventModal,
   };
 }

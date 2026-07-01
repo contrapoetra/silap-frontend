@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { reducer, initialState, AppState, AppAction } from '@/lib/state';
 import { computeDerived } from '@/lib/derived';
 import { MilkdownProvider } from '@milkdown/react';
-import { BerandaSection, PokjaOverviewSection, PokjaDetailSection, GaleriSection, PengumumanSection, LaporanSection, DashboardSection, PKKMembersSection, InovasiSection, EditorSection, BlogPostSection, InventarisSection, SuratSection } from './Sections';
+import { BerandaSection, PokjaOverviewSection, PokjaDetailSection, GaleriSection, KalenderSection, BerkasSection, PengumumanSection, LaporanSection, DashboardSection, PKKMembersSection, InovasiSection, EditorSection, BlogPostSection, InventarisSection, SuratSection } from './Sections';
 import { LoginModal, EventModal, GalModal, FileUploadModal, AvatarModal, UserModal, ConfirmDeleteModal } from './Modals';
 import { supabase } from '@/lib/supabase';
 
@@ -30,8 +30,8 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  const openPokja = useCallback((id: number) => {
-    dispatch({ type: 'OPEN_POKJA', payload: id });
+  const openPokja = useCallback((p: { pokja: number; tab?: string }) => {
+    dispatch({ type: 'OPEN_POKJA', payload: p });
     window.scrollTo(0, 0);
   }, []);
 
@@ -767,6 +767,8 @@ export default function App() {
         {st.route === 'detail' && <PokjaDetailSection d={d} st={st} dispatch={asyncDispatch} go={go} openPokja={openPokja} showToast={showToast} />}
         {st.route === 'galeri' && <GaleriSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} go={go} openPokja={openPokja} />}
         {st.route === 'pengumuman' && <PengumumanSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} go={go} openPokja={openPokja} />}
+        {st.route === 'kalender' && <KalenderSection d={d} st={st} dispatch={asyncDispatch} />}
+        {st.route === 'berkas' && <BerkasSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} />}
         {st.route === 'inovasi' && <InovasiSection d={d} st={st} dispatch={asyncDispatch} go={go} />}
         {st.route === 'editor' && <MilkdownProvider><EditorSection d={d} st={st} dispatch={asyncDispatch} go={go} showToast={showToast} /></MilkdownProvider>}
         {st.route === 'post' && <BlogPostSection d={d} st={st} dispatch={asyncDispatch} go={go} />}

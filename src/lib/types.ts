@@ -177,7 +177,7 @@ export type AppAction =
   | { type: 'SET_MENU'; payload: boolean }
   | { type: 'TOGGLE_MENU' }
   | { type: 'SET_ROUTE'; payload: string }
-  | { type: 'OPEN_POKJA'; payload: number }
+  | { type: 'OPEN_POKJA'; payload: { pokja: number; tab?: string } }
   | { type: 'SET_TAB'; payload: string }
   | { type: 'SET_HERO_IDX'; payload: number }
   | { type: 'SET_CAL_MONTH'; payload: { m: number; y: number } }
@@ -207,6 +207,7 @@ export type AppAction =
   | { type: 'DELETE_USER'; payload: string }
   | { type: 'SET_CONFIRM_DELETE'; payload: AppState['confirmDelete'] }
   | { type: 'SET_GAL_FILTER'; payload: number | 'all' }
+  | { type: 'SET_FILE_FILTER'; payload: number | 'all' }
   | { type: 'SET_RF'; payload: Partial<AppState['rf']> }
   | { type: 'ADD_REPORT'; payload: ReportItem }
   | { type: 'UPDATE_REPORT_STATUS'; payload: string | number }

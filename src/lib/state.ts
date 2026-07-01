@@ -345,7 +345,14 @@ export const initialReports: ReportItem[] = [
   },
 ];
 
-export const initialPKKMembers: PKKMember[] = [];
+export const initialPKKMembers: PKKMember[] = [
+  { id: 1, name: 'Drs. H. Supriono', position: 'Pembina', gender: 'L', birth_place: 'Mojokerto', birth_date: '15 Agustus 1970', marital_status: 'Kawin', address: 'Dsn. Bunutwetan RT 01 RW 01', education: 'S1', occupation: 'Kepala Desa', membership_status: 'Aktif', nik: '3512345678900001' },
+  { id: 2, name: 'Hj. Siti Rokhmah', position: 'Ketua TP. PKK', gender: 'P', birth_place: 'Mojokerto', birth_date: '22 Januari 1975', marital_status: 'Kawin', address: 'Dsn. Bunutwetan RT 01 RW 01', education: 'S1', occupation: 'Ketua TP PKK', membership_status: 'Aktif', nik: '3512345678900002' },
+  { id: 3, name: 'Nurul Hidayah', position: 'Ketua Pokja I', gender: 'P', birth_place: 'Mojokerto', birth_date: '10 Maret 1988', marital_status: 'Kawin', address: 'Dsn. Bunutwetan RT 02 RW 01', education: 'SMA', occupation: 'Ibu Rumah Tangga', membership_status: 'Aktif', pokja: 1 },
+  { id: 4, name: 'Fitriani', position: 'Ketua Pokja II', gender: 'P', birth_place: 'Mojokerto', birth_date: '5 Juli 1990', marital_status: 'Kawin', address: 'Dsn. Bunutwetan RT 03 RW 01', education: 'D3', occupation: 'Guru', membership_status: 'Aktif', pokja: 2 },
+  { id: 5, name: 'Sari Dewi', position: 'Ketua Pokja III', gender: 'P', birth_place: 'Mojokerto', birth_date: '12 November 1985', marital_status: 'Kawin', address: 'Dsn. Bunutwetan RT 01 RW 02', education: 'S1', occupation: 'PNS', membership_status: 'Aktif', pokja: 3 },
+  { id: 6, name: 'Rina Wati', position: 'Ketua Pokja IV', gender: 'P', birth_place: 'Mojokerto', birth_date: '20 September 1992', marital_status: 'Kawin', address: 'Dsn. Bunutwetan RT 04 RW 02', education: 'SMA', occupation: 'Wiraswasta', membership_status: 'Aktif', pokja: 4 },
+];
 export const initialInventory: InventoryItem[] = [
   // Standalone items
   { id: 1, nama_barang: 'Papan Data PKK', asal_barang: '', jumlah: 1, tempat_penyimpanan: 'Kantor Desa', kondisi_barang: 'Bagus', children: [] },
@@ -510,6 +517,7 @@ export interface AppState {
     form: { title: string; excerpt: string; content: string; category: string };
   } | null;
   galFilter: number | "all";
+  fileFilter: number | "all";
   rf: { name: string; contact: string; category: string; desc: string };
   toast: string | null;
   nextId: number;
@@ -550,6 +558,7 @@ export const initialState: AppState = {
   confirmDelete: null,
   postModal: null,
   galFilter: "all",
+  fileFilter: "all",
   rf: {
     name: "",
     contact: "",
@@ -602,7 +611,7 @@ export type AppAction =
   | { type: "SET_W"; payload: number }
   | { type: "TOGGLE_MENU" }
   | { type: "SET_ROUTE"; payload: string }
-  | { type: "OPEN_POKJA"; payload: number }
+  | { type: "OPEN_POKJA"; payload: { pokja: number; tab?: string } }
   | { type: "SET_TAB"; payload: string }
   | { type: "SET_HERO_IDX"; payload: number }
   | { type: "SET_CAL_MONTH"; payload: { m: number; y: number } }
@@ -649,6 +658,7 @@ export type AppAction =
   | { type: "DELETE_USER"; payload: string }
   | { type: "SET_CONFIRM_DELETE"; payload: AppState["confirmDelete"] }
   | { type: "SET_GAL_FILTER"; payload: number | "all" }
+  | { type: "SET_FILE_FILTER"; payload: number | "all" }
   | {
       type: "SET_RF";
       payload: Partial<{
@@ -722,8 +732,8 @@ export function reducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         route: "detail",
-        activePokja: action.payload,
-        tab: "profil",
+        activePokja: action.payload.pokja,
+        tab: action.payload.tab ?? "profil",
         menuOpen: false,
       };
     case "SET_TAB":
@@ -864,6 +874,8 @@ export function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, confirmDelete: action.payload };
     case "SET_GAL_FILTER":
       return { ...state, galFilter: action.payload };
+    case "SET_FILE_FILTER":
+      return { ...state, fileFilter: action.payload };
     case "SET_RF":
       return { ...state, rf: { ...state.rf, ...action.payload } };
     case "ADD_REPORT":
@@ -890,7 +902,7 @@ export function reducer(state: AppState, action: AppAction): AppState {
         gallery: action.payload.gallery,
         files: action.payload.files,
         reports: action.payload.reports,
-        pkkMembers: action.payload.pkkMembers,
+        pkkMembers: action.payload.pkkMembers.length ? action.payload.pkkMembers : state.pkkMembers,
         surat: action.payload.surat.length ? action.payload.surat : state.surat,
         inventory: action.payload.inventory.length ? action.payload.inventory : state.inventory,
         blogPosts: action.payload.blogPosts,

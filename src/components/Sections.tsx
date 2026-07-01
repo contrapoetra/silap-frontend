@@ -3,7 +3,7 @@
 import { DerivedData } from "@/lib/derived";
 import { AppState, AppAction } from "@/lib/state";
 
-import { MONTH_NAMES_SHORT, STATUS } from "@/lib/constants";
+import { MONTH_NAMES_SHORT, POKJA, STATUS, STATUS_LABEL } from "@/lib/constants";
 import { AnalogTimePicker } from "./Modals";
 import { Dispatch, Fragment, useState, useEffect, useRef } from "react";
 import ExcelJS from 'exceljs/dist/exceljs.min.js';
@@ -21,11 +21,13 @@ interface Props {
   d: DerivedData;
   dispatch: Dispatch<AppAction>;
   go: (r: string) => void;
-  openPokja: (id: number) => void;
+  openPokja: (p: { pokja: number; tab?: string }) => void;
   showToast: (msg: string) => void;
 }
 
 export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
+  const kepalaDesa = st.pkkMembers.find(m => m.position === 'Pembina');
+  const ketuaTPPKK = st.pkkMembers.find(m => m.position === 'Ketua TP. PKK');
   return (
     <div style={{ animation: "silapFade .3s ease" }}>
       <section style={d.rs.hero}>
@@ -178,11 +180,13 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
               {d.heroDots.map((dt, i) => (
                 <div
                   key={i}
+                  onClick={dt.onClick}
                   style={{
                     width: dt.w,
                     height: 7,
                     background: dt.bg,
                     transition: "width .4s,background .4s",
+                    cursor: 'pointer',
                   }}
                 />
               ))}
@@ -278,7 +282,7 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
           ))}
         </div>
       </section>
-      <section style={d.rs.profilSec}>
+      <section id="profil-desa" style={d.rs.profilSec}>
         <div>
           <div
             style={{
@@ -348,7 +352,7 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
                   color: "#1e293b",
                 }}
               >
-                H. Bambang Sutejo
+                {kepalaDesa?.name || 'H. Bambang Sutejo'}
               </div>
             </div>
             <div style={{ background: "#f8fafc", padding: "14px 16px" }}>
@@ -369,7 +373,7 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
                   color: "#1e293b",
                 }}
               >
-                Ny. Endang Sutejo
+                {ketuaTPPKK?.name || 'Ny. Endang Sutejo'}
               </div>
             </div>
           </div>
@@ -649,6 +653,7 @@ export function PokjaOverviewSection({
 }
 
 export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
+  const pokjaKetua = st.pkkMembers.find(m => m.position === 'Ketua Pokja ' + d.active.rom);
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 22 }}>
       <button
@@ -856,9 +861,8 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
           >
-            {["Ketua", "Sekretaris", "Bendahara", "Anggota"].map((r, i) => (
+            {pokjaKetua && (
               <div
-                key={i}
                 style={{
                   background: "#f8fafc",
                   padding: "14px 16px",
@@ -881,20 +885,20 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                     flexShrink: 0,
                   }}
                 >
-                  {r[0]}
+                  {d.active.rom}
                 </div>
                 <div>
                   <div
                     style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}
                   >
-                    Nama {r}
+                    {pokjaKetua.name}
                   </div>
                   <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                    {r} {d.active.name}
+                    Ketua {d.active.name}
                   </div>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
@@ -1331,6 +1335,18 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
   const [uploadCaption, setUploadCaption] = useState('');
   const [uploadFile, setUploadFile] = useState<string | null>(null);
   const isAdmin = !!(d.u && d.u.role === 'admin');
+  const [fsIdx, setFsIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (fsIdx === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFsIdx(null);
+      if (e.key === 'ArrowLeft') setFsIdx(i => i !== null ? Math.max(0, i - 1) : null);
+      if (e.key === 'ArrowRight') setFsIdx(i => i !== null ? Math.min(d.allPhotos.length - 1, i + 1) : null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [fsIdx, d.allPhotos.length]);
 
   const handleUpload = () => {
     if (!uploadFile) { showToast('Pilih foto dulu'); return; }
@@ -1428,7 +1444,19 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
 
       <div style={d.rs.galGrid}>
         {d.allPhotos.map((g, i) => (
-          <div key={i} style={{ background: "#fff", border: "1px solid #e2e8f0", overflow: "hidden", position: 'relative' }}>
+          <div
+            key={i}
+            onClick={() => setFsIdx(i)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+              e.currentTarget.style.transform = "translateY(-3px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+            style={{ background: "#fff", border: "1px solid #e2e8f0", overflow: "hidden", position: 'relative', cursor: 'pointer', transition: "transform .15s,box-shadow .15s" }}
+          >
             <div style={{ position: "relative", minHeight: 140, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
               {g.image ? (
                 <img src={g.image} alt={g.caption} style={{ width: "100%", height: 140, objectFit: "cover" }} />
@@ -1441,7 +1469,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 {g.pokjaName}
               </span>
               {isAdmin && g.id && (
-                <button onClick={() => handleDeleteGal(g.id)} title="Hapus foto" style={{ position: 'absolute', top: 8, right: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.85)', color: '#fff', width: 26, height: 26, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                <button onClick={(e) => { e.stopPropagation(); handleDeleteGal(g.id); }} title="Hapus foto" style={{ position: 'absolute', top: 8, right: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.85)', color: '#fff', width: 26, height: 26, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
                   ✕
                 </button>
               )}
@@ -1452,6 +1480,147 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
             </div>
           </div>
         ))}
+      </div>
+
+      {fsIdx !== null && d.allPhotos[fsIdx] && (
+        <div
+          onClick={() => setFsIdx(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}
+        >
+          <button onClick={() => setFsIdx(null)} style={{ position: 'absolute', top: 16, right: 20, border: 'none', cursor: 'pointer', background: 'none', color: '#fff', fontSize: 28, fontFamily: 'inherit', lineHeight: 1 }}>✕</button>
+          {fsIdx > 0 && (
+            <button onClick={(e) => { e.stopPropagation(); setFsIdx(fsIdx - 1); }} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff', width: 44, height: 44, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>←</button>
+          )}
+          {fsIdx < d.allPhotos.length - 1 && (
+            <button onClick={(e) => { e.stopPropagation(); setFsIdx(fsIdx + 1); }} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.15)', color: '#fff', width: 44, height: 44, fontSize: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit' }}>→</button>
+          )}
+          <img
+            src={d.allPhotos[fsIdx].image!}
+            alt={d.allPhotos[fsIdx].caption}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain' }}
+          />
+          <div style={{ color: '#ccc', fontSize: 14, marginTop: 12, textAlign: 'center', padding: '0 24px' }}>
+            {d.allPhotos[fsIdx].caption}
+          </div>
+          <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+            {d.allPhotos[fsIdx].pokjaName} · {d.allPhotos[fsIdx].date}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function KalenderSection({ d, st, dispatch }: { d: DerivedData; st: AppState; dispatch: Dispatch<AppAction> }) {
+  const today = new Date();
+  const daysInMonth = new Date(st.calY, st.calM + 1, 0).getDate();
+  const firstDow = new Date(st.calY, st.calM, 1).getDay();
+  const startOffset = firstDow === 0 ? 6 : firstDow - 1;
+  const cells = Array.from({ length: startOffset + daysInMonth }, (_, i) => {
+    if (i < startOffset) return { day: null, events: [] };
+    const dayNum = i - startOffset + 1;
+    const isToday = today.getFullYear() === st.calY && today.getMonth() === st.calM && today.getDate() === dayNum;
+    const dayEvents = st.events.filter(e => e.y === st.calY && e.m === st.calM && e.d === dayNum).map(e => {
+      const poke = POKJA.find(p => p.id === e.pokja)!;
+      return { ...e, accent: poke.accent, tint: poke.tint, pokjaName: poke.name };
+    });
+    return { day: dayNum, isToday, events: dayEvents };
+  });
+
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+  return (
+    <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: d.rs.pageH1, fontWeight: 800, letterSpacing: "-.025em", color: "#0f172a", marginBottom: 7 }}>
+          Kalender Kegiatan
+        </h1>
+        <p style={{ fontSize: "14.5px", color: "#475569" }}>
+          Agenda seluruh pokja dalam satu halaman.
+        </p>
+      </div>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: d.rs.calPad }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button onClick={() => { let m = st.calM - 1, y = st.calY; if (m < 0) { m = 11; y--; } dispatch({ type: 'SET_CAL_MONTH', payload: { m, y } }); }} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 34, height: 34, fontSize: 16, color: '#475569' }}>‹</button>
+            <div style={{ fontSize: d.rs.calMonthFont, fontWeight: 800, color: '#0f172a', minWidth: 130, textAlign: 'center' }}>{d.cal.monthLabel}</div>
+            <button onClick={() => { let m = st.calM + 1, y = st.calY; if (m > 11) { m = 0; y++; } dispatch({ type: 'SET_CAL_MONTH', payload: { m, y } }); }} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 34, height: 34, fontSize: 16, color: '#475569' }}>›</button>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: d.rs.calGap }}>
+          {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((w, i) => (
+            <div key={i} style={{ textAlign: 'center', fontSize: '11px', fontWeight: 700, color: '#94a3b8', padding: '8px 0', textTransform: 'uppercase' }}>{w}</div>
+          ))}
+          {cells.map((c, i) => (
+            <div key={i} style={{ background: c.day ? (c.isToday ? '#eef2ff' : '#fff') : '#f8fafc', border: `1px solid ${c.day ? (c.isToday ? '#2563eb' : '#e2e8f0') : '#f1f5f9'}`, minHeight: d.isMob ? '48px' : '96px', padding: 3, position: 'relative' }}>
+              {c.day && <div style={{ fontSize: '11px', fontWeight: 700, color: c.isToday ? '#2563eb' : '#334155', marginBottom: 2 }}>{c.day}</div>}
+              {c.events.map((ev, j) => (
+                <div key={j} style={{ fontSize: '10px', fontWeight: 600, color: ev.accent, background: ev.tint, padding: '1px 4px', marginBottom: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${ev.title} (${ev.pokjaName})`}>
+                  {ev.title}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function BerkasSection({ d, st, dispatch, showToast }: { d: DerivedData; st: AppState; dispatch: Dispatch<AppAction>; showToast: (msg: string) => void }) {
+  const isAdmin = !!(d.u && d.u.role === 'admin');
+
+  const handleDeleteFile = (id: string | number) => {
+    if (confirm('Hapus berkas ini?')) {
+      dispatch({ type: 'DELETE_FILE', payload: id });
+    }
+  };
+
+  return (
+    <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: d.rs.pageH1, fontWeight: 800, letterSpacing: "-.025em", color: "#0f172a", marginBottom: 7 }}>
+          Berkas Pokja
+        </h1>
+        <p style={{ fontSize: "14.5px", color: "#475569" }}>
+          Dokumen dan berkas seluruh pokja.
+        </p>
+      </div>
+      <div className="silap-scroll" style={{ display: "flex", gap: 8, marginBottom: 18, overflowX: "auto", paddingBottom: 4 }}>
+        {d.berkasFilters.map((bf, i) => (
+          <button key={i} onClick={bf.onClick} style={{ border: `1px solid ${bf.border}`, cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "8px 16px", background: bf.bg, color: bf.color, whiteSpace: "nowrap", flexShrink: 0 }}>
+            {bf.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {d.allFiles.map((f, i) => {
+          const extColor = /\.xlsx?$/i.test(f.name) ? '#16a34a' : /\.docx?$/i.test(f.name) ? '#2563eb' : '#ea580c';
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #e2e8f0', padding: '12px 16px' }}>
+              <div style={{ width: 38, height: 38, background: `${extColor}18`, color: extColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11, flexShrink: 0 }}>
+                {(f.name.match(/\.(\w+)$/)?.[1] || 'FILE').toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>{f.size} · {f.pokjaName} · {f.date}</div>
+              </div>
+              {isAdmin && (
+                <button onClick={() => handleDeleteFile(f.id)} style={{ border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.85)', color: '#fff', width: 28, height: 28, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  ✕
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {d.allFiles.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fff', border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: 28, marginBottom: 8, color: '#cbd5e1' }}>📄</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#94a3b8' }}>Belum ada berkas</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1803,7 +1972,7 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
     hdr.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11, name: 'Calibri' };
     hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
     hdr.alignment = { horizontal: 'center', vertical: 'middle' };
-    st.reports.forEach((r, i) => ws.addRow([i + 1, r.date, r.name, r.contact, r.pokja, r.desc, r.status]));
+    st.reports.forEach((r, i) => ws.addRow([i + 1, r.date, r.name, r.contact, r.pokja, r.desc, STATUS_LABEL[r.status] || r.status]));
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
@@ -1988,7 +2157,7 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                   contact: st.rf.contact.trim() || "—",
                   pokja: pk,
                   desc: st.rf.desc.trim(),
-                  status: "Baru",
+                  status: "Masuk",
                 },
               });
               showToast("Laporan terkirim, terima kasih!");
@@ -2182,7 +2351,7 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {r.status}
+                                {STATUS_LABEL[r.status] || r.status}
                               </button>
                             </td>
                           </tr>
@@ -2238,7 +2407,7 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                           marginTop: 4,
                         }}
                       >
-                        {status}
+                        {STATUS_LABEL[status]}
                       </div>
                     </div>
                   );
@@ -2644,10 +2813,7 @@ export function DashboardSection({
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
               marginBottom: 14,
-              flexWrap: "wrap",
-              gap: 10,
             }}
           >
             <div>
@@ -2658,35 +2824,6 @@ export function DashboardSection({
                 {d.pokjaMemberList.length} anggota
               </div>
             </div>
-            <button
-              onClick={() => {
-                const cu = d.u;
-                const role = "anggota";
-                const pokja = cu && cu.pokja ? String(cu.pokja) : "1";
-                dispatch({
-                  type: "SET_USER_MODAL",
-                  payload: {
-                    mode: "add",
-                    editId: null,
-                    form: { nik: "", name: "", password: "", role, pokja },
-                    error: "",
-                  },
-                });
-              }}
-              style={{
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                fontSize: "13.5px",
-                fontWeight: 700,
-                padding: "9px 18px",
-                background: "#1e3a5f",
-                color: "#fff",
-                whiteSpace: "nowrap",
-              }}
-            >
-              ＋ Tambah Anggota
-            </button>
           </div>
           {d.pokjaMemberList.length > 0 ? (
             <div style={{ border: "1px solid #e2e8f0", overflow: "hidden" }}>
