@@ -48,7 +48,7 @@ export default function App() {
         ] = await Promise.all([
           supabase.from('users').select('*'),
           supabase.from('events').select('*'),
-          supabase.from('gallery').select('*'),
+          supabase.from('gallery').select('*').order('id', { ascending: false }),
           supabase.from('files').select('*'),
           supabase.from('reports').select('*'),
         ]);
@@ -131,7 +131,7 @@ export default function App() {
         ] = await Promise.all([
           supabase.from('users').select('*'),
           supabase.from('events').select('*'),
-          supabase.from('gallery').select('*'),
+          supabase.from('gallery').select('*').order('id', { ascending: false }),
           supabase.from('files').select('*'),
           supabase.from('reports').select('*'),
         ]);
@@ -184,6 +184,26 @@ export default function App() {
       window.removeEventListener('focus', refreshData);
     };
   }, [dispatch]);
+
+  // Read sync result from Google Calendar OAuth redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sync = params.get('sync');
+    if (sync) {
+      const goto = params.get('goto') || 'kalender';
+      go(goto);
+      if (sync === 'done') {
+        const ins = params.get('inserted');
+        const fail = params.get('failed');
+        showToast(`Sync selesai! ${ins} event ditambahkan${Number(fail) > 0 ? `, ${fail} gagal` : ''}`);
+      } else if (sync === 'denied') {
+        showToast('Sync dibatalkan');
+      } else if (sync === 'expired' || sync === 'token_error') {
+        showToast('Sync gagal. Coba lagi.');
+      }
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   // Synchronize currentUserId with localStorage
   useEffect(() => {
@@ -767,7 +787,7 @@ export default function App() {
         {st.route === 'detail' && <PokjaDetailSection d={d} st={st} dispatch={asyncDispatch} go={go} openPokja={openPokja} showToast={showToast} />}
         {st.route === 'galeri' && <GaleriSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} go={go} openPokja={openPokja} />}
         {st.route === 'pengumuman' && <PengumumanSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} go={go} openPokja={openPokja} />}
-        {st.route === 'kalender' && <KalenderSection d={d} st={st} dispatch={asyncDispatch} />}
+        {st.route === 'kalender' && <KalenderSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} />}
         {st.route === 'berkas' && <BerkasSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} />}
         {st.route === 'inovasi' && <InovasiSection d={d} st={st} dispatch={asyncDispatch} go={go} />}
         {st.route === 'editor' && <MilkdownProvider><EditorSection d={d} st={st} dispatch={asyncDispatch} go={go} showToast={showToast} /></MilkdownProvider>}

@@ -140,7 +140,7 @@ export interface AppState {
   calM: number;
   showLogin: boolean;
   loginForm: { nik: string; password: string; error: string; showDemo: boolean };
-  eventModal: { day: number; title: string; time: string; id?: string | number } | null;
+  eventModal: { day: number; title: string; time: string; id?: string | number; pokja: number } | null;
   galModal: { caption: string } | null;
   fileModal: { name: string; size: string } | null;
   avatarModal: boolean;

@@ -493,6 +493,7 @@ export interface AppState {
     title: string;
     time: string;
     id?: string | number;
+    pokja: number;
   } | null;
   galModal: { caption: string } | null;
   fileModal: { name: string; size: string } | null;

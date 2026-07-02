@@ -1,6 +1,22 @@
 import { AppState, rlabel, raccent, rinit, canEditPokja, makeAvatarStyle } from './state';
-import { POKJA, MONTHS, MONTH_ABBR, STATUS, EXT_TINT } from './constants';
-import type { User, BlogPost, OrgPosition, InventoryItem, SuratItem, PengumumanItem } from './types';
+import { POKJA, MONTHS, MONTH_ABBR, MONTH_NAMES_SHORT, STATUS, EXT_TINT } from './constants';
+import type { User, BlogPost, OrgPosition, InventoryItem, SuratItem, PengumumanItem, GalleryItem } from './types';
+
+function sortGalleryByDate(gallery: GalleryItem[]) {
+  const monthIdx: Record<string, number> = {};
+  MONTH_NAMES_SHORT.forEach((abbr, i) => { monthIdx[abbr] = i; });
+  return [...gallery].sort((a, b) => {
+    const parse = (s: string) => {
+      const parts = s.split(' ');
+      if (parts.length !== 3) return 0;
+      const d = parseInt(parts[0], 10);
+      const m = monthIdx[parts[1]] ?? -1;
+      const y = parseInt(parts[2], 10);
+      return y * 10000 + m * 100 + d;
+    };
+    return parse(b.date) - parse(a.date);
+  });
+}
 
 export interface DerivedData {
   u: User | null;
@@ -9,7 +25,7 @@ export interface DerivedData {
   isMob: boolean;
   isDesktop: boolean;
   rs: Record<string, any>;
-  heroCurrent: { caption: string; tag: string; pokjaName: string; accent: string };
+  heroCurrent: { image: string | null | undefined; caption: string; tag: string; pokjaName: string; accent: string };
   heroDots: { w: string; bg: string; onClick: () => void }[];
   userVals: Record<string, any>;
   nav: { label: string; onClick: () => void; onMobile: () => void; bg: string; color: string }[];
@@ -95,12 +111,12 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     dashQA: { display: 'grid', gridTemplateColumns: isMob ? '1fr' : '1fr 1fr', gap: '10px' },
   };
 
-  const heroPhotos = st.gallery.slice(0, 3).map(g => {
+  const heroPhotos = sortGalleryByDate(st.gallery).slice(0, 3).map(g => {
     const p = POKJA.find(x => x.id === g.pokja)!;
-    return { caption: g.caption, tag: g.tag, pokjaName: p.name, accent: p.accent };
+    return { image: g.image, caption: g.caption, tag: g.tag, pokjaName: p.name, accent: p.accent };
   });
   const hIdx = heroPhotos.length ? st.heroIdx % heroPhotos.length : 0;
-  const heroCurrent = heroPhotos[hIdx] || { caption: 'Dokumentasi kegiatan PKK', tag: 'foto kegiatan', pokjaName: 'PKK', accent: '#2563eb' };
+  const heroCurrent = heroPhotos[hIdx] || { image: null, caption: 'Dokumentasi kegiatan PKK', tag: 'foto kegiatan', pokjaName: 'PKK', accent: '#2563eb' };
   const heroDots = heroPhotos.map((_, i) => ({ w: i === hIdx ? '22px' : '7px', bg: i === hIdx ? '#fff' : 'rgba(255,255,255,.5)', onClick: () => dispatch({ type: 'SET_HERO_IDX', payload: i }) }));
 
   const userVals = u ? {
@@ -151,7 +167,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
 
   const features = [
     { glyph: '▤', title: 'Profil Desa', desc: 'Data desa & pengurus TP PKK.',     accent: '#2563eb', tint: '#eff6ff', onClick: () => { go('beranda'); setTimeout(() => document.getElementById('profil-desa')?.scrollIntoView({ behavior: 'smooth' }), 100); } },
-    { glyph: '◷', title: 'Kalender Kegiatan', desc: 'Agenda tiap pokja per bulan.', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => openPokja({ pokja: 1, tab: 'kalender' }) },
+    { glyph: '◷', title: 'Kalender Kegiatan', desc: 'Agenda tiap pokja per bulan.', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => go('kalender') },
     { glyph: '▦', title: 'Galeri', desc: 'Dokumentasi seluruh pokja.', accent: '#ea580c', tint: '#fff7ed', onClick: () => go('galeri') },
     { glyph: '✎', title: 'Laporan Warga', desc: 'Kirim laporan, rekap ke Excel.', accent: '#0891b2', tint: '#ecfeff', onClick: () => go('laporan') },
     { glyph: '⬓', title: 'Berkas Pokja', desc: 'Unggah & unduh dokumen.', accent: '#2563eb', tint: '#eff6ff', onClick: () => openPokja({ pokja: 1, tab: 'berkas' }) },
@@ -186,19 +202,19 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     const isToday = today.getFullYear() === st.calY && today.getMonth() === st.calM && today.getDate() === dayNum;
     const dayEvents = st.events.filter(e => e.pokja === st.activePokja && e.y === st.calY && e.m === st.calM && e.d === dayNum).map(e => ({
       id: e.id, title: e.title, time: e.time, accent: active.accent, tint: active.tint, canEdit: canEditActive,
-      onClick: (ev: React.MouseEvent) => { ev.stopPropagation(); if (canEditActive) dispatch({ type: 'SET_EVENT_MODAL', payload: { day: dayNum, title: e.title, time: e.time, id: e.id } }); },
+      onClick: (ev: React.MouseEvent) => { ev.stopPropagation(); if (canEditActive) dispatch({ type: 'SET_EVENT_MODAL', payload: { day: dayNum, title: e.title, time: e.time, id: e.id, pokja: st.activePokja } }); },
       onDelete: (ev: React.MouseEvent) => { ev.stopPropagation(); dispatch({ type: 'DELETE_EVENT', payload: e.id }); },
     }));
     return {
       day: dayNum, bg: isToday ? '#eef2ff' : '#fff', border: isToday ? active.accent : '#e2e8f0',
       numColor: isToday ? active.accent : '#334155', cursor: canEditActive ? 'pointer' : 'default',
-      onClick: canEditActive ? () => dispatch({ type: 'SET_EVENT_MODAL', payload: { day: dayNum, title: '', time: '' } }) : () => {},
+      onClick: canEditActive ? () => dispatch({ type: 'SET_EVENT_MODAL', payload: { day: dayNum, title: '', time: '', pokja: st.activePokja } }) : () => {},
       events: dayEvents, minH: isMob ? '48px' : '96px',
     };
   });
   const cal = { monthLabel: MONTHS[st.calM] + ' ' + st.calY, weekdays: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], cells: calCells };
 
-  const pokjaPhotos = st.gallery.filter(g => g.pokja === st.activePokja).map(g => ({
+  const pokjaPhotos = sortGalleryByDate(st.gallery.filter(g => g.pokja === st.activePokja)).map(g => ({
     caption: g.caption, date: g.date, tag: g.tag, image: g.image, canDelete: canEditActive,
     onDelete: () => dispatch({ type: 'DELETE_GALLERY', payload: g.id }),
   }));
@@ -218,10 +234,10 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     return { label: g.label, onClick: () => dispatch({ type: 'SET_GAL_FILTER', payload: g.id }), bg: on ? acc : '#fff', color: on ? '#fff' : '#475569', border: on ? acc : '#e2e8f0' };
   });
 
-  const allPhotos = st.gallery.filter(g => st.galFilter === 'all' || g.pokja === st.galFilter).map(g => {
+  const allPhotos = sortGalleryByDate(st.gallery.filter(g => st.galFilter === 'all' || g.pokja === st.galFilter)).map(g => {
     const p = POKJA.find(x => x.id === g.pokja)!;
     return { id: g.id, caption: g.caption, date: g.date, tag: g.tag, image: g.image, pokjaName: p.name, accent: p.accent };
-  }).reverse();
+  });
 
   const berkasFilterDef = [{ id: 'all' as const, label: 'Semua' }, ...POKJA.map(p => ({ id: p.id as number | 'all', label: p.name }))];
   const berkasFilters = berkasFilterDef.map(g => {
