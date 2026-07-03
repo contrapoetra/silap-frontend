@@ -929,12 +929,14 @@ export function EventModal({ st, d, dispatch, showToast }: Props) {
 export function GalModal({ st, d, dispatch, showToast }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
       showToast("Hanya berkas gambar yang didukung");
       return;
     }
+    setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
@@ -1106,8 +1108,8 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
             Batal
           </button>
           <button
-            onClick={() => {
-              if (!imagePreview) {
+            onClick={async () => {
+              if (!selectedFile || !imagePreview) {
                 showToast("Pilih atau seret foto dulu");
                 return;
               }
@@ -1121,18 +1123,26 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
                 month: "short",
                 year: "numeric",
               });
-              dispatch({
-                type: "ADD_GALLERY",
-                payload: {
-                  id: st.nextId,
-                  pokja: st.activePokja,
-                  caption: st.galModal!.caption.trim(),
-                  date: todayStr,
-                  tag: "foto baru baru",
-                  image: imagePreview,
-                } as any,
-              });
-              showToast("Foto diunggah");
+
+              try {
+                const { uploadToS3 } = await import("@/lib/s3-upload");
+                const imageUrl = await uploadToS3(selectedFile);
+                dispatch({
+                  type: "ADD_GALLERY",
+                  payload: {
+                    id: st.nextId,
+                    pokja: st.activePokja,
+                    caption: st.galModal!.caption.trim(),
+                    date: todayStr,
+                    tag: "foto baru baru",
+                    image: imageUrl,
+                  } as any,
+                });
+                showToast("Foto diunggah");
+              } catch (err) {
+                showToast("Gagal mengunggah foto");
+                console.error(err);
+              }
             }}
             style={{
               flex: 1.4,

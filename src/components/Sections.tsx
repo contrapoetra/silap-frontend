@@ -1508,7 +1508,8 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
   const [showUpload, setShowUpload] = useState(false);
   const [uploadPokja, setUploadPokja] = useState(1);
   const [uploadCaption, setUploadCaption] = useState("");
-  const [uploadFile, setUploadFile] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const isAdmin = !!(d.u && d.u.role === "admin");
   const [fsIdx, setFsIdx] = useState<number | null>(null);
 
@@ -1527,7 +1528,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
     return () => window.removeEventListener("keydown", handler);
   }, [fsIdx, d.allPhotos.length]);
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!uploadFile) {
       showToast("Pilih foto dulu");
       return;
@@ -1536,25 +1537,33 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
       showToast("Isi keterangan foto dulu");
       return;
     }
-    dispatch({
-      type: "ADD_GALLERY",
-      payload: {
-        id: st.nextId,
-        pokja: uploadPokja,
-        caption: uploadCaption.trim(),
-        date: new Date().toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }),
-        tag: "bakblabla",
-        image: uploadFile,
-      } as any,
-    });
-    setShowUpload(false);
-    setUploadFile(null);
-    setUploadCaption("");
-    showToast("Foto diunggah");
+    try {
+      const { uploadToS3 } = await import("@/lib/s3-upload");
+      const imageUrl = await uploadToS3(uploadFile);
+      dispatch({
+        type: "ADD_GALLERY",
+        payload: {
+          id: st.nextId,
+          pokja: uploadPokja,
+          caption: uploadCaption.trim(),
+          date: new Date().toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+          tag: "bakblabla",
+          image: imageUrl,
+        } as any,
+      });
+      setShowUpload(false);
+      setUploadFile(null);
+      setUploadPreview(null);
+      setUploadCaption("");
+      showToast("Foto diunggah");
+    } catch (err) {
+      showToast("Gagal mengunggah foto");
+      console.error(err);
+    }
   };
 
   const handleDeleteGal = (id: string | number) => {
@@ -1570,8 +1579,9 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
       showToast("Hanya berkas gambar yang didukung");
       return;
     }
+    setUploadFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setUploadFile(ev.target?.result as string);
+    reader.onload = (ev) => setUploadPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -1739,7 +1749,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                   onChange={handleFileSelect}
                   style={{ display: "none" }}
                 />
-                {uploadFile ? (
+                {uploadPreview ? (
                   <div
                     style={{
                       position: "relative",
@@ -1749,7 +1759,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                     }}
                   >
                     <img
-                      src={uploadFile}
+                      src={uploadPreview}
                       alt="Pratinjau"
                       style={{
                         width: "100%",
@@ -1821,6 +1831,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 onClick={() => {
                   setShowUpload(false);
                   setUploadFile(null);
+                  setUploadPreview(null);
                   setUploadCaption("");
                 }}
                 style={{
