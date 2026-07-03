@@ -6083,6 +6083,74 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
     membership_status: "Aktif",
   });
 
+  const handleExportExcel = async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Anggota PKK");
+    ws.columns = [
+      { width: 5 },
+      { width: 24 },
+      { width: 22 },
+      { width: 5 },
+      { width: 18 },
+      { width: 16 },
+      { width: 14 },
+      { width: 12 },
+      { width: 22 },
+      { width: 14 },
+    ];
+    const hdr = ws.addRow([
+      "No",
+      "Nama",
+      "Jabatan",
+      "L/P",
+      "Tempat Lahir",
+      "Tanggal Lahir",
+      "Status",
+      "Pendidikan",
+      "Pekerjaan",
+      "Keanggotaan",
+    ]);
+    hdr.font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" },
+      size: 11,
+      name: "Calibri",
+    };
+    hdr.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF1E3A5F" },
+    };
+    hdr.alignment = { horizontal: "center", vertical: "middle" };
+    d.pkkMembers.forEach((m, i) =>
+      ws.addRow([
+        i + 1,
+        m.name,
+        m.position,
+        m.gender,
+        m.birth_place,
+        m.birth_date,
+        m.marital_status,
+        m.education,
+        m.occupation,
+        m.membership_status,
+      ]),
+    );
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Anggota-PKK-PENDESA-P3S.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast("File Excel berhasil diunduh");
+  };
+
   const resetAdd = () => {
     setAddForm({
       name: "",
@@ -6203,7 +6271,27 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
               {d.pkkMembers.length} anggota
             </div>
           </div>
-          {!showForm && (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={handleExportExcel}
+              style={{
+                border: "1px solid #1e3a5f",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: 700,
+                padding: "9px 16px",
+                background: "#eef2ff",
+                color: "#1e3a5f",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span>▦</span> Export Excel
+            </button>
+            {!showForm && (
             <button
               onClick={() => {
                 resetAdd();
@@ -6224,8 +6312,9 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
             </button>
           )}
         </div>
+      </div>
 
-        {showForm && (
+      {showForm && (
           <div
             style={{
               background: "#f8fafc",
