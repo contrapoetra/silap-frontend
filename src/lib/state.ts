@@ -164,64 +164,7 @@ export const initialEvents: CalendarEvent[] = [
   },
 ];
 
-export const initialGallery: GalleryItem[] = [
-  {
-    id: 1,
-    pokja: 1,
-    caption: "Gotong royong perbaikan jalan",
-    date: "2 Jun 2026",
-    tag: "foto kerja bakti",
-  },
-  {
-    id: 2,
-    pokja: 1,
-    caption: "Peringatan hari kesatuan",
-    date: "28 Mei 2026",
-    tag: "foto upacara",
-  },
-  {
-    id: 3,
-    pokja: 2,
-    caption: "Pelatihan menjahit ibu-ibu",
-    date: "8 Jun 2026",
-    tag: "foto pelatihan",
-  },
-  {
-    id: 4,
-    pokja: 2,
-    caption: "Lomba membaca anak PAUD",
-    date: "15 Mei 2026",
-    tag: "foto lomba",
-  },
-  {
-    id: 5,
-    pokja: 3,
-    caption: "Panen sayur kebun warga",
-    date: "10 Jun 2026",
-    tag: "foto panen",
-  },
-  {
-    id: 6,
-    pokja: 3,
-    caption: "Demo masak menu sehat",
-    date: "12 Jun 2026",
-    tag: "foto demo masak",
-  },
-  {
-    id: 7,
-    pokja: 4,
-    caption: "Posyandu balita bulanan",
-    date: "3 Jun 2026",
-    tag: "foto posyandu",
-  },
-  {
-    id: 8,
-    pokja: 4,
-    caption: "Senam lansia ceria",
-    date: "18 Jun 2026",
-    tag: "foto senam",
-  },
-];
+export const initialGallery: GalleryItem[] = [];
 
 export const initialFiles: FileItem[] = [
   {

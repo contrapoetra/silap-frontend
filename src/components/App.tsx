@@ -308,6 +308,14 @@ export default function App() {
             confirmLabel: 'Hapus',
             isDanger: true,
             onConfirm: async () => {
+              const { data } = await supabase.from('gallery').select('image').eq('id', action.payload).single();
+              if (data?.image && data.image.startsWith('https://')) {
+                fetch('/api/delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ url: data.image }),
+                }).catch(() => {});
+              }
               const { error } = await supabase.from('gallery').delete().eq('id', action.payload);
               if (error) {
                 showToast('Gagal menghapus foto: ' + error.message);
