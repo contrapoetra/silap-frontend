@@ -1518,22 +1518,32 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   {fl.meta}
                 </div>
               </div>
-              <button
-                onClick={() => showToast("Mengunduh " + fl.name)}
-                style={{
-                  border: "1px solid #e2e8f0",
-                  background: "#fff",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  fontSize: "12.5px",
-                  fontWeight: 700,
-                  color: "#1e3a5f",
-                  padding: "7px 13px",
-                  flexShrink: 0,
-                }}
-              >
-                ⬇ Unduh
-              </button>
+              {fl.url ? (
+                <a
+                  href={fl.url}
+                  download={fl.name}
+                  style={{
+                    textDecoration: "none",
+                    border: "1px solid #e2e8f0",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    background: "#fff",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: "12.5px",
+                    fontWeight: 700,
+                    color: "#1e3a5f",
+                    padding: "7px 13px",
+                    flexShrink: 0,
+                  }}
+                >
+                  ⬇ Unduh
+                </a>
+              ) : (
+                <span style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic" }}>
+                  Berkas offline
+                </span>
+              )}
               {fl.canDelete && (
                 <button
                   onClick={fl.onDelete}
@@ -2704,12 +2714,7 @@ export function BerkasSection({
   showToast: (msg: string) => void;
 }) {
   const isAdmin = !!(d.u && d.u.role === "admin");
-
-  const handleDeleteFile = (id: string | number) => {
-    if (confirm("Hapus berkas ini?")) {
-      dispatch({ type: "DELETE_FILE", payload: id });
-    }
-  };
+  const canUploadBerkas = isAdmin || (!!d.u && d.u.pokja != null && st.fileFilter !== "all" && d.u.pokja === st.fileFilter);
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
@@ -2729,36 +2734,61 @@ export function BerkasSection({
           Dokumen dan berkas seluruh pokja.
         </p>
       </div>
-      <div
-        className="silap-scroll"
-        style={{
-          display: "flex",
-          gap: 8,
-          marginBottom: 18,
-          overflowX: "auto",
-          paddingBottom: 4,
-        }}
-      >
-        {d.berkasFilters.map((bf, i) => (
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", justifyContent: "space-between" }}>
+        <div
+          className="silap-scroll"
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            paddingBottom: 4,
+          }}
+        >
+          {d.berkasFilters.map((bf, i) => (
+            <button
+              key={i}
+              onClick={bf.onClick}
+              style={{
+                border: `1px solid ${bf.border}`,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: 700,
+                padding: "8px 16px",
+                background: bf.bg,
+                color: bf.color,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {bf.label}
+            </button>
+          ))}
+        </div>
+        {canUploadBerkas && (
           <button
-            key={i}
-            onClick={bf.onClick}
+            onClick={() =>
+              dispatch({
+                type: "SET_FILE_MODAL",
+                payload: { name: "", size: "" },
+              })
+            }
             style={{
-              border: `1px solid ${bf.border}`,
+              border: "1px dashed #1e3a5f",
+              background: "#eef2ff",
               cursor: "pointer",
               fontFamily: "inherit",
               fontSize: 13,
               fontWeight: 700,
+              color: "#1e3a5f",
               padding: "8px 16px",
-              background: bf.bg,
-              color: bf.color,
               whiteSpace: "nowrap",
               flexShrink: 0,
             }}
           >
-            {bf.label}
+            ⬆ Unggah
           </button>
-        ))}
+        )}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {d.allFiles.map((f, i) => {
@@ -2812,9 +2842,42 @@ export function BerkasSection({
                   {f.size} · {f.pokjaName} · {f.date}
                 </div>
               </div>
+              {f.url ? (
+                <a
+                  href={f.url}
+                  download={f.name}
+                  style={{
+                    textDecoration: "none",
+                    border: "1px solid #e2e8f0",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    background: "#fff",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: "12.5px",
+                    fontWeight: 700,
+                    color: "#1e3a5f",
+                    padding: "7px 13px",
+                    flexShrink: 0,
+                  }}
+                >
+                  ⬇ Unduh
+                </a>
+              ) : (
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "#94a3b8",
+                    fontStyle: "italic",
+                    flexShrink: 0,
+                  }}
+                >
+                  Offline
+                </span>
+              )}
               {isAdmin && (
                 <button
-                  onClick={() => handleDeleteFile(f.id)}
+                  onClick={() => dispatch({ type: "DELETE_FILE", payload: f.id })}
                   style={{
                     border: "none",
                     cursor: "pointer",

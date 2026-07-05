@@ -33,16 +33,11 @@ function compressImage(file: File): Promise<Blob> {
   });
 }
 
-export async function uploadToS3(file: File, onProgress?: (pct: number) => void): Promise<string> {
-  const isVideoFile = isVideo(file);
-  const body = isVideoFile ? file : await compressImage(file);
-  const fileName = file.name.replace(/\.[^.]+$/, '') + (isVideoFile ? '.mp4' : '.jpg');
-  const fileType = isVideoFile ? 'video/mp4' : 'image/jpeg';
-
+async function s3Put(body: Blob, folder: string, fileType: string, fileName: string, onProgress?: (pct: number) => void): Promise<string> {
   const res = await fetch('/api/upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fileName, fileType }),
+    body: JSON.stringify({ fileName, fileType, folder }),
   });
 
   if (!res.ok) {
@@ -69,8 +64,21 @@ export async function uploadToS3(file: File, onProgress?: (pct: number) => void)
     };
 
     xhr.onerror = () => reject(new Error('Network error during upload'));
-    xhr.send(body instanceof Blob ? body : body);
+    xhr.send(body);
   });
 
   return publicUrl;
+}
+
+export async function uploadToS3(file: File, onProgress?: (pct: number) => void): Promise<string> {
+  const isVideoFile = isVideo(file);
+  const body = isVideoFile ? file : await compressImage(file);
+  const fileName = file.name.replace(/\.[^.]+$/, '') + (isVideoFile ? '.mp4' : '.jpg');
+  const fileType = isVideoFile ? 'video/mp4' : 'image/jpeg';
+  return s3Put(body, 'gallery', fileType, fileName, onProgress);
+}
+
+export async function uploadBerkasToS3(file: File, onProgress?: (pct: number) => void): Promise<string> {
+  const ext = file.name.match(/\.(\w+)$/)?.[1] || 'bin';
+  return s3Put(file, 'berkas', file.type || 'application/octet-stream', `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`, onProgress);
 }

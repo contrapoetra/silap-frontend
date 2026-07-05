@@ -5,13 +5,14 @@ import { getS3Client, S3_BUCKET, S3_REGION } from '@/lib/s3';
 
 export async function POST(req: NextRequest) {
   try {
-    const { fileName, fileType } = await req.json();
+    const { fileName, fileType, folder } = await req.json();
 
     if (!fileName || !fileType) {
       return NextResponse.json({ error: 'Missing fileName or fileType' }, { status: 400 });
     }
 
-    const key = `gallery/${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const prefix = folder === 'berkas' ? 'berkas' : 'gallery';
+    const key = `${prefix}/${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
     const command = new PutObjectCommand({
       Bucket: S3_BUCKET,

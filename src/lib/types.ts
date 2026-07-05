@@ -46,6 +46,7 @@ export interface FileItem {
   size: string;
   by: string;
   date: string;
+  url?: string | null;
 }
 
 export interface PKKMember {

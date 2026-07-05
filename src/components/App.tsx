@@ -341,6 +341,7 @@ export default function App() {
               size: action.payload.size,
               by: action.payload.by,
               date: action.payload.date,
+              url: action.payload.url,
             })
             .select()
             .single();
@@ -359,6 +360,14 @@ export default function App() {
             confirmLabel: 'Hapus',
             isDanger: true,
             onConfirm: async () => {
+              const { data } = await supabase.from('files').select('url').eq('id', action.payload).single();
+              if (data?.url && data.url.startsWith('https://')) {
+                fetch('/api/delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ url: data.url }),
+                }).catch(() => {});
+              }
               const { error } = await supabase.from('files').delete().eq('id', action.payload);
               if (error) {
                 showToast('Gagal menghapus berkas: ' + error.message);

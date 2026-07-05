@@ -225,8 +225,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const pokjaFiles = st.files.filter(f => f.pokja === st.activePokja).map(f => ({
     name: f.name, ext: f.ext, meta: `${f.size} · ${f.by} · ${f.date}`,
     tint: (EXT_TINT[f.ext] || EXT_TINT.PDF).tint, accent: (EXT_TINT[f.ext] || EXT_TINT.PDF).accent,
-    canDelete: canEditActive,
-    onDownload: () => {},
+    canDelete: canEditActive, url: f.url,
     onDelete: () => dispatch({ type: 'DELETE_FILE', payload: f.id }),
   }));
 

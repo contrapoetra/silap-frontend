@@ -1205,9 +1205,66 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
 }
 
 export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleFile = (f: File) => {
+    setSelectedFile(f);
+    const kb = Math.max(1, Math.round(f.size / 1024));
+    dispatch({
+      type: "SET_FILE_MODAL",
+      payload: {
+        name: f.name,
+        size: kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB",
+      },
+    });
+  };
+
+  const handleUpload = async () => {
+    if (!st.fileModal!.name.trim() || !selectedFile) {
+      showToast("Pilih berkas dulu");
+      return;
+    }
+    const nm = st.fileModal!.name.trim();
+    const ext = /\.xlsx?$/i.test(nm)
+      ? "XLS"
+      : /\.docx?$/i.test(nm)
+        ? "DOC"
+        : "PDF";
+    setUploadProgress(1);
+    try {
+      const { uploadBerkasToS3 } = await import("@/lib/s3-upload");
+      const url = await uploadBerkasToS3(selectedFile, setUploadProgress);
+      dispatch({
+        type: "ADD_FILE",
+        payload: {
+          id: st.nextId,
+          pokja: st.activePokja,
+          name: nm,
+          ext,
+          size: st.fileModal!.size || "— KB",
+          by: d.u ? d.u.name : "—",
+          date: new Date().toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }),
+          url,
+        },
+      });
+      dispatch({ type: "SET_FILE_MODAL", payload: null });
+      showToast("Berkas diunggah");
+    } catch (err) {
+      setUploadProgress(0);
+      showToast("Gagal mengunggah berkas");
+      console.error(err);
+    }
+  };
+
   return (
     <div
-      onClick={() => dispatch({ type: "SET_FILE_MODAL", payload: null })}
+      onClick={() => { if (uploadProgress === 0) dispatch({ type: "SET_FILE_MODAL", payload: null }); }}
       style={{
         position: "fixed",
         inset: 0,
@@ -1239,7 +1296,7 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
             marginBottom: 3,
           }}
         >
-          Unggah Berkas · {d.active.name}
+          Unggah Berkas
         </div>
         <div style={{ fontSize: "12.5px", color: "#94a3b8", marginBottom: 14 }}>
           Mendukung PDF, Excel (.xlsx) &amp; Word (.docx).
@@ -1247,48 +1304,61 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
         <label
           style={{
             display: "block",
-            border: "1px dashed #cbd5e1",
-            background: "#f8fafc",
+            border: "2px dashed",
+            borderColor: isDragOver ? "#1e3a5f" : uploadProgress > 0 ? "#cbd5e1" : "#cbd5e1",
+            background: isDragOver ? "#eef2ff" : uploadProgress > 0 ? "#f1f5f9" : "#f8fafc",
             padding: 22,
             textAlign: "center",
             marginBottom: 11,
-            cursor: "pointer",
+            cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
+            opacity: uploadProgress > 0 ? 0.6 : 1,
+            transition: "border-color .15s,background .15s",
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#1e3a5f";
-            e.currentTarget.style.background = "#eef2ff";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#cbd5e1";
-            e.currentTarget.style.background = "#f8fafc";
+          onDragOver={(e) => { e.preventDefault(); if (uploadProgress === 0) setIsDragOver(true); }}
+          onDragEnter={(e) => { e.preventDefault(); if (uploadProgress === 0) setIsDragOver(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDragOver(false); }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+            if (uploadProgress > 0) return;
+            const f = e.dataTransfer.files?.[0];
+            if (f) handleFile(f);
           }}
         >
           <input
             type="file"
             accept=".pdf,.xls,.xlsx,.doc,.docx"
+            disabled={uploadProgress > 0}
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (!f) return;
-              const kb = Math.max(1, Math.round(f.size / 1024));
-              dispatch({
-                type: "SET_FILE_MODAL",
-                payload: {
-                  name: f.name,
-                  size:
-                    kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB",
-                },
-              });
+              if (f) handleFile(f);
             }}
             style={{ display: "none" }}
           />
-          <div style={{ fontSize: 24, marginBottom: 5, color: "#1e3a5f" }}>
-            ⬆
-          </div>
-          <div
-            style={{ fontSize: "13.5px", color: "#1e3a5f", fontWeight: 700 }}
-          >
-            Klik untuk memilih berkas
-          </div>
+          {selectedFile ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#1e3a5f",
+              }}
+            >
+              ✓ {selectedFile.name}
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 24, marginBottom: 5, color: isDragOver ? "#1e3a5f" : "#1e3a5f" }}>
+                {isDragOver ? "📥" : "⬆"}
+              </div>
+              <div style={{ fontSize: "13.5px", color: "#1e3a5f", fontWeight: 700 }}>
+                {isDragOver ? "Lepaskan berkas di sini" : "Klik atau seret berkas ke sini"}
+              </div>
+            </>
+          )}
           <div
             style={{
               display: "flex",
@@ -1382,62 +1452,52 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
         )}
         <div style={{ display: "flex", gap: 10 }}>
           <button
-            onClick={() => dispatch({ type: "SET_FILE_MODAL", payload: null })}
+            onClick={() => { if (uploadProgress === 0) dispatch({ type: "SET_FILE_MODAL", payload: null }); }}
             style={{
               flex: 1,
               border: "1px solid #e2e8f0",
-              cursor: "pointer",
+              cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
               fontFamily: "inherit",
               fontSize: 14,
               fontWeight: 700,
               padding: 12,
               background: "#fff",
               color: "#475569",
+              opacity: uploadProgress > 0 ? 0.5 : 1,
             }}
           >
             Batal
           </button>
           <button
-            onClick={() => {
-              if (!st.fileModal!.name.trim()) {
-                showToast("Pilih berkas dulu");
-                return;
-              }
-              const nm = st.fileModal!.name.trim();
-              const ext = /\.xlsx?$/i.test(nm)
-                ? "XLS"
-                : /\.docx?$/i.test(nm)
-                  ? "DOC"
-                  : "PDF";
-              dispatch({
-                type: "ADD_FILE",
-                payload: {
-                  id: st.nextId,
-                  pokja: st.activePokja,
-                  name: nm,
-                  ext,
-                  size: st.fileModal!.size || "— KB",
-                  by: d.u ? d.u.name : "—",
-                  date: "12 Jun 2026",
-                },
-              });
-              showToast("Berkas diunggah");
-            }}
+            onClick={handleUpload}
             style={{
               flex: 1.4,
               border: "none",
-              cursor: "pointer",
+              cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
               fontFamily: "inherit",
               fontSize: 14,
               fontWeight: 700,
               padding: 12,
-              background: "#1e3a5f",
+              background: uploadProgress > 0 ? "#94a3b8" : "#1e3a5f",
               color: "#fff",
+              opacity: uploadProgress > 0 ? 0.7 : 1,
             }}
           >
-            Unggah
+            {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : "Unggah"}
           </button>
         </div>
+        {uploadProgress > 0 && (
+          <div style={{ marginTop: 14, height: 6, background: "#e2e8f0" }}>
+            <div
+              style={{
+                width: `${uploadProgress}%`,
+                height: "100%",
+                background: "#1e3a5f",
+                transition: "width 0.2s ease",
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
