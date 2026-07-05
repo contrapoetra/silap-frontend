@@ -37,6 +37,8 @@ export default function App() {
 
   // Load initial data and restore session on mount (once)
   useEffect(() => {
+    let cancelled = false;
+
     async function initApp() {
       try {
         const [
@@ -52,6 +54,8 @@ export default function App() {
           supabase.from('files').select('*'),
           supabase.from('reports').select('*'),
         ]);
+
+        if (cancelled) return;
 
         let orgPositionsData: any[] = [];
         try { const { data } = await supabase.from('org_positions').select('*').order('sort_order'); orgPositionsData = data || []; } catch (_) {}
@@ -81,22 +85,27 @@ export default function App() {
         let suratData: any[] = [];
         try { const { data } = await supabase.from('surat').select('*'); suratData = data || []; } catch (_) {}
 
-        dispatch({
-          type: 'SET_INITIAL_DATA',
-          payload: {
-            users: users || [],
-            events: mappedEvents,
-            gallery: gallery || [],
-            files: files || [],
-            reports: reports || [],
-            pkkMembers: pkkMembersData,
-            inventory: [],
-            surat: suratData,
-            blogPosts: blogPostsData,
-            orgPositions: orgPositionsData,
-            pengumuman: [],
-          },
-        });
+        let pengumumanData: any[] = [];
+        try { const { data } = await supabase.from('pengumuman').select('*').order('created_at', { ascending: false }); pengumumanData = data || []; } catch (_) {}
+
+        if (!cancelled) {
+          dispatch({
+            type: 'SET_INITIAL_DATA',
+            payload: {
+              users: users || [],
+              events: mappedEvents,
+              gallery: gallery || [],
+              files: files || [],
+              reports: reports || [],
+              pkkMembers: pkkMembersData,
+              inventory: [],
+              surat: suratData,
+              blogPosts: blogPostsData,
+              orgPositions: orgPositionsData,
+              pengumuman: pengumumanData,
+            },
+          });
+        }
 
         // Restore saved session
         try {
@@ -110,12 +119,11 @@ export default function App() {
       } catch (err) {
         console.error('Failed to load data:', err);
         showToast('Terjadi kesalahan saat menghubungkan ke database');
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
       }
     }
     
     initApp();
+    return () => { cancelled = true; };
   }, [dispatch, showToast]);
 
   // Keep data in sync when returning to the tab
@@ -158,6 +166,9 @@ export default function App() {
         let suratData: any[] = [];
         try { const { data } = await supabase.from('surat').select('*'); suratData = data || []; } catch (_) {}
 
+        let pengumumanData: any[] = [];
+        try { const { data } = await supabase.from('pengumuman').select('*').order('created_at', { ascending: false }); pengumumanData = data || []; } catch (_) {}
+
         dispatch({
           type: 'SET_INITIAL_DATA',
           payload: {
@@ -171,7 +182,7 @@ export default function App() {
             surat: suratData,
             blogPosts: blogPostsData,
             orgPositions: orgPositionsData,
-            pengumuman: [],
+            pengumuman: pengumumanData,
           },
         });
       } catch (err) {
@@ -207,17 +218,12 @@ export default function App() {
 
   // Synchronize currentUserId with localStorage
   useEffect(() => {
-    if (st.loading) return;
-    try {
-      if (st.currentUserId) {
-        localStorage.setItem('silap_user_id', st.currentUserId);
-      } else {
-        localStorage.removeItem('silap_user_id');
-      }
-    } catch (err) {
-      console.warn('LocalStorage is not accessible:', err);
+    if (st.currentUserId) {
+      localStorage.setItem('silap_user_id', st.currentUserId);
+    } else {
+      localStorage.removeItem('silap_user_id');
     }
-  }, [st.currentUserId, st.loading]);
+  }, [st.currentUserId]);
 
   const asyncDispatch = useCallback((action: AppAction) => {
     (async () => {
@@ -667,15 +673,69 @@ export default function App() {
           break;
         }
         case 'ADD_PENGUMUMAN': {
-          dispatch({ type: 'ADD_PENGUMUMAN', payload: action.payload });
+          const { error: addPengErr, data: addPengData } = await supabase
+            .from('pengumuman')
+            .insert({
+              image: action.payload.image,
+              caption: action.payload.caption,
+              expires_at: action.payload.expires_at,
+              created_at: action.payload.created_at,
+              created_by: action.payload.created_by,
+            })
+            .select()
+            .single();
+
+          if (addPengErr) {
+            showToast('Gagal menambahkan pengumuman: ' + addPengErr.message);
+            return;
+          }
+          dispatch({ type: 'ADD_PENGUMUMAN', payload: { ...action.payload, id: addPengData.id } });
+          showToast('Pengumuman ditambahkan');
           break;
         }
         case 'UPDATE_PENGUMUMAN': {
+          const { error: updPengErr } = await supabase
+            .from('pengumuman')
+            .update({
+              image: action.payload.image,
+              caption: action.payload.caption,
+              expires_at: action.payload.expires_at,
+            })
+            .eq('id', action.payload.id);
+
+          if (updPengErr) {
+            showToast('Gagal memperbarui pengumuman: ' + updPengErr.message);
+            return;
+          }
           dispatch({ type: 'UPDATE_PENGUMUMAN', payload: action.payload });
+          showToast('Pengumuman diperbarui');
           break;
         }
         case 'DELETE_PENGUMUMAN': {
-          dispatch({ type: 'DELETE_PENGUMUMAN', payload: action.payload });
+          setConfirmModal({
+            title: 'Hapus Pengumuman?',
+            description: 'Apakah Anda yakin ingin menghapus pengumuman ini? Tindakan ini tidak dapat dibatalkan.',
+            confirmLabel: 'Hapus',
+            isDanger: true,
+            onConfirm: async () => {
+              const { data: pengDel } = await supabase.from('pengumuman').select('image').eq('id', action.payload).single();
+              if (pengDel?.image && pengDel.image.startsWith('https://')) {
+                fetch('/api/delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ url: pengDel.image }),
+                }).catch(() => {});
+              }
+              const { error: delPengErr } = await supabase.from('pengumuman').delete().eq('id', action.payload);
+              if (delPengErr) {
+                showToast('Gagal menghapus pengumuman: ' + delPengErr.message);
+                return;
+              }
+              dispatch({ type: 'DELETE_PENGUMUMAN', payload: action.payload });
+              setConfirmModal(null);
+              showToast('Pengumuman dihapus');
+            }
+          });
           break;
         }
         default:
@@ -715,33 +775,15 @@ export default function App() {
     });
   };
 
-  if (st.loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', fontFamily: "'Inter', system-ui, sans-serif", color: '#1e293b' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, background: 'rgba(255, 255, 255, 0.8)', padding: '40px 60px', boxShadow: '0 10px 40px rgba(0,0,0,0.08)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.5)' }}>
-          <div style={{ width: 50, height: 50, borderRadius: '50%', border: '4px solid #e2e8f0', borderTop: '4px solid #1e3a5f', animation: 'silapSpin 1s linear infinite' }}></div>
-          <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>PENDESA-P3S</h1>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#64748b', margin: 0 }}>Menghubungkan ke database...</p>
-          </div>
-        </div>
-        <style>{`
-          @keyframes silapSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
-  }
+
 
   return (
     <div className="silap-scroll" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f1f5f9', fontFamily: "'Inter', system-ui, sans-serif", color: '#1e293b', WebkitFontSmoothing: 'antialiased' }}>
-      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}`}</style>
+      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}button{cursor:pointer}button:not(:disabled):hover{opacity:.85}button:not(:disabled):active{opacity:.7}.silap-hover:hover{opacity:.85}.silap-hover:active{opacity:.7}`}</style>
       {/* HEADER */}
       <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '95%', margin: '0 auto', padding: d.rs.headerPad, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div onClick={() => go('beranda')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0 }}>
+          <div onClick={() => go('beranda')} className="silap-hover" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0 }}>
             <img src="./Logo1.png" alt="Logo Desa Bunutwetan" style={{ width: d.rs.logoSize, height: d.rs.logoSize, objectFit: 'contain' }} />
             <img src="./pkk.png" alt="Logo PKK" style={{ width: d.rs.logoSize, height: d.rs.logoSize, objectFit: 'contain' }} />
             <div style={{ lineHeight: 1.05 }}>
@@ -763,14 +805,14 @@ export default function App() {
               {!d.u && (
                 <>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '12.5px', fontWeight: 600, color: '#94a3b8', background: '#f8fafc', padding: '7px 12px', border: '1px solid #e2e8f0' }}><span style={{ width: 7, height: 7, background: '#94a3b8' }}></span>Mode Warga</span>
-                  <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: '10px 20px', background: '#1e3a5f', color: '#fff', boxShadow: '0 2px 8px rgba(30,58,95,0.15)' }}>Masuk</button>
+                  <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: '10px 20px', background: '#1e3a5f', color: '#fff', boxShadow: '0 2px 8px rgba(30,58,95,0.15)' }}>Masuk</button>
                 </>
               )}
               {d.u && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #e2e8f0', padding: '4px 5px 4px 12px' }}>
                   <div style={{ textAlign: 'right', lineHeight: 1.15 }}><div style={{ fontSize: 13, fontWeight: 700 }}>{d.userVals.name}</div><div style={{ fontSize: '10.5px', fontWeight: 600, color: d.userVals.chipColor }}>{d.userVals.roleLabel}</div></div>
-                  <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} title="Edit foto profil" style={{ cursor: 'pointer', width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>
-                  <button onClick={handleLogout} title="Keluar" style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⏻</button>
+                  <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" title="Edit foto profil" style={{ cursor: 'pointer', width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>
+                  <button onClick={handleLogout} title="Keluar" onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}} style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⏻</button>
                 </div>
               )}
             </div>
@@ -778,9 +820,9 @@ export default function App() {
 
           {d.isMob && (
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-              {d.u && <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} style={{ cursor: 'pointer', width: 34, height: 34, overflow: 'hidden', border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>}
-              {!d.u && <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: '#1e3a5f', color: '#fff' }}>Masuk</button>}
-              <button onClick={() => dispatch({ type: 'TOGGLE_MENU' })} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 38, height: 38, fontSize: 18, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.menuOpen ? '✕' : '☰'}</button>
+              {d.u && <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" style={{ cursor: 'pointer', width: 34, height: 34, overflow: 'hidden', border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>}
+              {!d.u && <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: '#1e3a5f', color: '#fff' }}>Masuk</button>}
+              <button onClick={() => dispatch({ type: 'TOGGLE_MENU' })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 38, height: 38, fontSize: 18, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.menuOpen ? '✕' : '☰'}</button>
             </div>
           )}
         </div>

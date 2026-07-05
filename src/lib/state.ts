@@ -413,7 +413,7 @@ export const initialSurat: SuratItem[] = [
 ];
 
 export interface AppState {
-  loading: boolean;
+
   currentUserId: string | null;
   w: number;
   menuOpen: boolean;
@@ -481,7 +481,7 @@ export interface AppState {
 }
 
 export const initialState: AppState = {
-  loading: true,
+
   currentUserId: null,
   w: 1200,
   menuOpen: false,
@@ -523,37 +523,11 @@ export const initialState: AppState = {
   suratView: 'masuk',
   blogPosts: [],
   orgPositions: [],
-  pengumuman: [
-    {
-      id: 0,
-      image: "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22600%22%3E%3Crect%20fill%3D%22%23ff6b6b%22%20width%3D%22400%22%20height%3D%22600%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20fill%3D%22white%22%20font-size%3D%2224%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3EKegiatan%20Sosialisasi%20PKK%3C%2Ftext%3E%3C%2Fsvg%3E",
-      caption: "Kegiatan Sosialisasi PKK",
-      expires_at: "2027-06-30T23:59",
-      created_at: "2026-06-01T08:00:00.000Z",
-      created_by: "Admin",
-    },
-    {
-      id: 1,
-      image: "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22600%22%3E%3Crect%20fill%3D%22%234ecdc4%22%20width%3D%22400%22%20height%3D%22600%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20fill%3D%22white%22%20font-size%3D%2224%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3EPendaftaran%20Anggota%20Baru%3C%2Ftext%3E%3C%2Fsvg%3E",
-      caption: "Pendaftaran Anggota Baru",
-      expires_at: "2027-07-15T23:59",
-      created_at: "2026-06-05T10:30:00.000Z",
-      created_by: "Admin",
-    },
-    {
-      id: 2,
-      image: "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22600%22%3E%3Crect%20fill%3D%22%23ffd93d%22%20width%3D%22400%22%20height%3D%22600%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20fill%3D%22white%22%20font-size%3D%2224%22%20font-weight%3D%22bold%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3ERapat%20Koordinasi%20Bulanan%3C%2Ftext%3E%3C%2Fsvg%3E",
-      caption: "Rapat Koordinasi Bulanan",
-      expires_at: "2027-08-01T23:59",
-      created_at: "2026-06-10T14:00:00.000Z",
-      created_by: "Admin",
-    },
-  ],
+  pengumuman: [],
   viewingPost: null,
 };
 
 export type AppAction =
-  | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_W"; payload: number }
   | { type: "TOGGLE_MENU" }
   | { type: "SET_ROUTE"; payload: string }
@@ -663,8 +637,6 @@ export type AppAction =
 
 export function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case "SET_LOADING":
-      return { ...state, loading: action.payload };
     case "SET_W":
       return { ...state, w: action.payload };
     case "TOGGLE_MENU":

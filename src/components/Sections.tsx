@@ -1274,6 +1274,8 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
               onClick={() =>
                 dispatch({ type: "SET_GAL_MODAL", payload: { caption: "" } })
               }
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}}
               style={{
                 border: "1px dashed #94a3b8",
                 background: "#f8fafc",
@@ -1421,16 +1423,31 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   >
                     {g.caption}
                   </div>
-                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
-                    {g.created_at
-                      ? new Date(g.created_at).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : g.date}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+                    <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                      {g.created_at
+                        ? new Date(g.created_at).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : g.date}
+                    </span>
+                    {g.image && (
+                      <a
+                        href={g.image}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        className="silap-hover"
+                        style={{ fontSize: 11, color: "#3b82f6", textDecoration: "none", fontWeight: 600, marginLeft: "auto" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        ⬇
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1454,6 +1471,8 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   payload: { name: "", size: "" },
                 })
               }
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}}
               style={{
                 border: "1px dashed #94a3b8",
                 background: "#f8fafc",
@@ -1520,25 +1539,26 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
               </div>
               {fl.url ? (
                 <a
-                  href={fl.url}
-                  download={fl.name}
-                  style={{
-                    textDecoration: "none",
-                    border: "1px solid #e2e8f0",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    background: "#fff",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    fontSize: "12.5px",
-                    fontWeight: 700,
-                    color: "#1e3a5f",
-                    padding: "7px 13px",
-                    flexShrink: 0,
-                  }}
-                >
-                  ⬇ Unduh
-                </a>
+href={fl.url}
+              download={fl.name}
+              className="silap-hover"
+              style={{
+                textDecoration: "none",
+                border: "1px solid #e2e8f0",
+                display: "inline-flex",
+                alignItems: "center",
+                background: "#fff",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: "12.5px",
+                fontWeight: 700,
+                color: "#1e3a5f",
+                padding: "7px 13px",
+                flexShrink: 0,
+              }}
+            >
+              ⬇ Unduh
+            </a>
               ) : (
                 <span style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic" }}>
                   Berkas offline
@@ -2157,6 +2177,8 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                     handleDeleteGal(g.id);
                   }}
                   title="Hapus foto"
+                  onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#b91c1c'}}
+                  onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(239,68,68,0.85)'}}
                   style={{
                     position: "absolute",
                     top: 8,
@@ -2189,16 +2211,31 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
               >
                 {g.caption}
               </div>
-              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
-                {g.created_at
-                  ? new Date(g.created_at).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : g.date}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
+                <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                  {g.created_at
+                    ? new Date(g.created_at).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : g.date}
+                </span>
+                {g.image && (
+                  <a
+                    href={g.image}
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                    className="silap-hover"
+                    style={{ fontSize: 11, color: "#3b82f6", textDecoration: "none", fontWeight: 600, marginLeft: "auto" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    ⬇
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -2225,6 +2262,8 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
         >
           <button
             onClick={() => setFsIdx(null)}
+            onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.opacity='.6'}}
+            onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.opacity='1'}}
             style={{
               position: "absolute",
               top: 16,
@@ -2246,6 +2285,8 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 e.stopPropagation();
                 setFsIdx(fsIdx - 1);
               }}
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.3)'}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.15)'}}
               style={{
                 position: "absolute",
                 left: 16,
@@ -2273,6 +2314,8 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 e.stopPropagation();
                 setFsIdx(fsIdx + 1);
               }}
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.3)'}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.15)'}}
               style={{
                 position: "absolute",
                 right: 16,
@@ -2340,6 +2383,17 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
           <div style={{ color: "#888", fontSize: 12, marginTop: 4 }}>
             {d.allPhotos[fsIdx].pokjaName} · {d.allPhotos[fsIdx].date}
           </div>
+          <a
+            href={d.allPhotos[fsIdx].image || "#"}
+            download
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="silap-hover"
+            style={{ color: "#60a5fa", fontSize: 13, marginTop: 8, textDecoration: "none", fontWeight: 600 }}
+          >
+            ⬇ Unduh
+          </a>
         </div>
       )}
     </div>
@@ -2773,6 +2827,8 @@ export function BerkasSection({
                 payload: { name: "", size: "" },
               })
             }
+            onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#dbeafe'}}
+            onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#eef2ff'}}
             style={{
               border: "1px dashed #1e3a5f",
               background: "#eef2ff",
@@ -2844,25 +2900,26 @@ export function BerkasSection({
               </div>
               {f.url ? (
                 <a
-                  href={f.url}
-                  download={f.name}
-                  style={{
-                    textDecoration: "none",
-                    border: "1px solid #e2e8f0",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    background: "#fff",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    fontSize: "12.5px",
-                    fontWeight: 700,
-                    color: "#1e3a5f",
-                    padding: "7px 13px",
-                    flexShrink: 0,
-                  }}
-                >
-                  ⬇ Unduh
-                </a>
+href={f.url}
+              download={f.name}
+              className="silap-hover"
+              style={{
+                textDecoration: "none",
+                border: "1px solid #e2e8f0",
+                display: "inline-flex",
+                alignItems: "center",
+                background: "#fff",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: "12.5px",
+                fontWeight: 700,
+                color: "#1e3a5f",
+                padding: "7px 13px",
+                flexShrink: 0,
+              }}
+            >
+              ⬇ Unduh
+            </a>
               ) : (
                 <span
                   style={{
@@ -2878,6 +2935,8 @@ export function BerkasSection({
               {isAdmin && (
                 <button
                   onClick={() => dispatch({ type: "DELETE_FILE", payload: f.id })}
+                  onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#b91c1c'}}
+                  onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(239,68,68,0.85)'}}
                   style={{
                     border: "none",
                     cursor: "pointer",
@@ -2932,6 +2991,7 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const [storyIndex, setStoryIndex] = useState(0);
   const [fsIdx, setFsIdx] = useState<number | null>(null);
@@ -3007,9 +3067,21 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = () => {
-    if (!preview) {
-      showToast("Pilih gambar");
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) {
+      setImageFile(f);
+      const r = new FileReader();
+      r.onload = () => setPreview(r.result as string);
+      r.readAsDataURL(f);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!imageFile) {
+      showToast("Pilih gambar dulu");
       return;
     }
     if (!addForm.caption.trim()) {
@@ -3021,30 +3093,37 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
       return;
     }
     const time = addForm.expires_time || "23:59";
-    const expires_at = `${addForm.expires_date}T${time}:00`;
-    dispatch({
-      type: "ADD_PENGUMUMAN",
-      payload: {
-        id: st.nextId,
-        image: preview,
-        caption: addForm.caption.trim(),
-        expires_at,
-        created_at: new Date().toISOString(),
-        created_by: d.u?.name || "",
-      },
-    });
-    setShowAdd(false);
-    setAddForm({ image: "", caption: "", expires_date: "", expires_time: "" });
-    setPreview("");
-    setImageFile(null);
-    showToast("Pengumuman ditambahkan");
+    const expires_at = new Date(`${addForm.expires_date}T${time}:00`).toISOString();
+    setUploadProgress(1);
+    try {
+      const { uploadToS3 } = await import("@/lib/s3-upload");
+      const imageUrl = await uploadToS3(imageFile, setUploadProgress);
+      dispatch({
+        type: "ADD_PENGUMUMAN",
+        payload: {
+          id: st.nextId,
+          image: imageUrl,
+          caption: addForm.caption.trim(),
+          expires_at,
+          created_at: new Date().toISOString(),
+          created_by: d.u?.name || "",
+        },
+      });
+      setShowAdd(false);
+      setAddForm({ image: "", caption: "", expires_date: "", expires_time: "" });
+      setPreview("");
+      setImageFile(null);
+      setUploadProgress(0);
+      showToast("Pengumuman ditambahkan");
+    } catch (err) {
+      setUploadProgress(0);
+      showToast("Gagal mengunggah gambar");
+      console.error(err);
+    }
   };
 
   const handleDelete = (id: string | number) => {
-    if (confirm("Hapus pengumuman ini?")) {
-      dispatch({ type: "DELETE_PENGUMUMAN", payload: id });
-      showToast("Pengumuman dihapus");
-    }
+    dispatch({ type: "DELETE_PENGUMUMAN", payload: id });
   };
 
   const handlePrev = (e: React.MouseEvent) => {
@@ -3100,6 +3179,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
       >
         <button
           onClick={() => setFsIdx(null)}
+          onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.3)'}}
+          onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.15)'}}
           style={{
             position: "absolute",
             top: d.isMob ? 12 : 20,
@@ -3124,6 +3205,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
         {hasNav && (
           <button
             onClick={fsPrev}
+            onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.25)'}}
+            onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.1)'}}
             style={{
               position: "absolute",
               left: d.isMob ? 6 : 20,
@@ -3296,6 +3379,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
             {!showAdd ? (
               <button
                 onClick={() => setShowAdd(true)}
+                onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#047857'}}
+                onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#059669'}}
                 style={{
                   border: "none",
                   cursor: "pointer",
@@ -3334,17 +3419,7 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                     setDragOver(true);
                   }}
                   onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragOver(false);
-                    const f = e.dataTransfer.files[0];
-                    if (f) {
-                      setImageFile(f);
-                      const r = new FileReader();
-                      r.onload = () => setPreview(r.result as string);
-                      r.readAsDataURL(f);
-                    }
-                  }}
+                  onDrop={handleDrop}
                   onClick={() => fileRef.current?.click()}
                   style={{
                     border: `2px dashed ${dragOver ? "#059669" : "#d1fae5"}`,
@@ -3457,7 +3532,10 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                       setShowAdd(false);
                       setPreview("");
                       setImageFile(null);
+                      setUploadProgress(0);
                     }}
+                    onMouseEnter={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#d1fae5'}}
+                    onMouseLeave={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}}
                     style={{
                       flex: 1,
                       border: "1px solid #d1fae5",
@@ -3475,22 +3553,30 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                   </button>
                   <button
                     onClick={handleAdd}
+                    onMouseEnter={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#047857'}}
+                    onMouseLeave={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#059669'}}
                     style={{
                       flex: 1.4,
                       border: "none",
-                      cursor: "pointer",
+                      cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                       fontFamily: "inherit",
                       fontSize: 12,
                       fontWeight: 700,
                       padding: "6px 0",
-                      background: "#059669",
+                      background: uploadProgress > 0 ? "#94a3b8" : "#059669",
                       color: "#fff",
                       borderRadius: 6,
+                      opacity: uploadProgress > 0 ? 0.7 : 1,
                     }}
                   >
                     Tambah
                   </button>
                 </div>
+                {uploadProgress > 0 && (
+                  <div style={{ height: 5, background: "#d1fae5" }}>
+                    <div style={{ width: `${uploadProgress}%`, height: "100%", background: "#059669", transition: "width .2s ease" }} />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -3570,6 +3656,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
           {active.length > 1 && (
             <button
               onClick={handlePrev}
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(0,0,0,0.75)'}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(0,0,0,0.55)'}}
               style={{
                 border: "none",
                 cursor: "pointer",
@@ -3681,6 +3769,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                           e.stopPropagation();
                           handleDelete(item.id);
                         }}
+                        onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.5)'}}
+                        onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.25)'}}
                         style={{
                           position: "absolute",
                           top: 6,
@@ -3711,6 +3801,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
           {active.length > 1 && (
             <button
               onClick={handleNext}
+              onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(0,0,0,0.75)'}}
+              onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='rgba(0,0,0,0.55)'}}
               style={{
                 border: "none",
                 cursor: "pointer",
@@ -3769,6 +3861,8 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
           <button
             onClick={() => setShowAdd(true)}
             title="Tambah Pengumuman"
+            onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#047857'}}
+            onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#059669'}}
             style={{
               border: "none",
               cursor: "pointer",
@@ -3830,7 +3924,10 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                   setShowAdd(false);
                   setPreview("");
                   setImageFile(null);
+                  setUploadProgress(0);
                 }}
+                onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.color='#0f172a'}}
+                onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.color='#475569'}}
                 style={{
                   border: "none",
                   cursor: "pointer",
@@ -3850,17 +3947,7 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                 setDragOver(true);
               }}
               onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragOver(false);
-                const f = e.dataTransfer.files[0];
-                if (f) {
-                  setImageFile(f);
-                  const r = new FileReader();
-                  r.onload = () => setPreview(r.result as string);
-                  r.readAsDataURL(f);
-                }
-              }}
+              onDrop={handleDrop}
               onClick={() => fileRef.current?.click()}
               style={{
                 border: `2px dashed ${dragOver ? "#059669" : "#d1fae5"}`,
@@ -3975,7 +4062,10 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                   setShowAdd(false);
                   setPreview("");
                   setImageFile(null);
+                  setUploadProgress(0);
                 }}
+                onMouseEnter={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#d1fae5'}}
+                onMouseLeave={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}}
                 style={{
                   flex: 1,
                   border: "1px solid #d1fae5",
@@ -3993,22 +4083,30 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
               </button>
               <button
                 onClick={handleAdd}
+                onMouseEnter={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#047857'}}
+                onMouseLeave={uploadProgress > 0 ? undefined : (e)=>{(e.currentTarget as HTMLElement).style.background='#059669'}}
                 style={{
                   flex: 1.4,
                   border: "none",
-                  cursor: "pointer",
+                  cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                   fontFamily: "inherit",
                   fontSize: 12,
                   fontWeight: 700,
                   padding: "6px 0",
-                  background: "#059669",
+                  background: uploadProgress > 0 ? "#94a3b8" : "#059669",
                   color: "#fff",
                   borderRadius: 6,
+                  opacity: uploadProgress > 0 ? 0.7 : 1,
                 }}
               >
                 Tambah
               </button>
             </div>
+            {uploadProgress > 0 && (
+              <div style={{ height: 5, background: "#d1fae5" }}>
+                <div style={{ width: `${uploadProgress}%`, height: "100%", background: "#059669", transition: "width .2s ease" }} />
+              </div>
+            )}
           </div>
         </div>
       )}

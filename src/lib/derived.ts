@@ -146,11 +146,11 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     { key: 'kalender', label: 'Kalender', route: 'kalender' },
     { key: 'laporan', label: 'Laporan', route: 'laporan' },
   ];
-  if (u) navDef.push({ key: 'dashboard', label: 'Akun', route: 'dashboard' });
   if (u && u.role === 'admin') navDef.push({ key: 'anggota-pkk', label: 'Anggota PKK', route: 'anggota-pkk' });
   if (u && u.role === 'admin') navDef.push({ key: 'inventaris', label: 'Inventaris', route: 'inventaris' });
   if (u && u.role === 'admin') navDef.push({ key: 'surat', label: 'Surat', route: 'surat' });
   if (u && u.role === 'admin') navDef.push({ key: 'berkas', label: 'Berkas', route: 'berkas' });
+  if (u) navDef.push({ key: 'dashboard', label: 'Akun', route: 'dashboard' });
   const activeRoute = st.route === 'detail' ? 'pokja' : st.route;
   const nav = navDef.map(n => ({
     label: n.label,

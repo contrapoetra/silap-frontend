@@ -12,6 +12,17 @@ interface Props {
   showToast: (msg: string) => void;
 }
 
+const btnHover = {
+  secondary: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "#e2e8f0"; },
+  secondaryL: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "#fff"; },
+  primary: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "#152e4a"; },
+  primaryL: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "#1e3a5f"; },
+  danger: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "#b91c1c"; },
+  dangerL: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.85)"; },
+  ghost: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "#f1f5f9"; },
+  ghostL: (e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.background = "transparent"; },
+};
+
 export function LoginModal({ st, d, dispatch, showToast }: Props) {
   const doLogin = () => {
     const nik = st.loginForm.nik.trim();
@@ -214,6 +225,8 @@ export function LoginModal({ st, d, dispatch, showToast }: Props) {
           )}
           <button
             onClick={doLogin}
+            onMouseEnter={btnHover.primary}
+            onMouseLeave={btnHover.primaryL}
             style={{
               width: "100%",
               border: "none",
@@ -232,6 +245,8 @@ export function LoginModal({ st, d, dispatch, showToast }: Props) {
           </button>
           <button
             onClick={() => dispatch({ type: "SET_SHOW_LOGIN", payload: false })}
+            onMouseEnter={btnHover.ghost}
+            onMouseLeave={btnHover.ghostL}
             style={{
               width: "100%",
               border: "none",
@@ -839,6 +854,8 @@ export function EventModal({ st, d, dispatch, showToast }: Props) {
                 dispatch({ type: "DELETE_EVENT", payload: st.eventModal!.id! });
                 dispatch({ type: "SET_EVENT_MODAL", payload: null });
               }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#fee2e2"; (e.currentTarget as HTMLElement).style.color = "#b91c1c"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#fef2f2"; (e.currentTarget as HTMLElement).style.color = "#ef4444"; }}
               style={{
                 border: "none",
                 cursor: "pointer",
@@ -856,6 +873,8 @@ export function EventModal({ st, d, dispatch, showToast }: Props) {
           )}
           <button
             onClick={() => dispatch({ type: "SET_EVENT_MODAL", payload: null })}
+            onMouseEnter={btnHover.secondary}
+            onMouseLeave={btnHover.secondaryL}
             style={{
               flex: 1,
               border: "1px solid #e2e8f0",
@@ -1117,6 +1136,8 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={() => dispatch({ type: "SET_GAL_MODAL", payload: null })}
+            onMouseEnter={uploadProgress > 0 ? undefined : btnHover.secondary}
+            onMouseLeave={uploadProgress > 0 ? undefined : btnHover.secondaryL}
             style={{
               flex: 1,
               border: "1px solid #e2e8f0",
@@ -1453,23 +1474,27 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={() => { if (uploadProgress === 0) dispatch({ type: "SET_FILE_MODAL", payload: null }); }}
+            onMouseEnter={uploadProgress > 0 ? undefined : btnHover.primary}
+            onMouseLeave={uploadProgress > 0 ? undefined : btnHover.primaryL}
             style={{
-              flex: 1,
-              border: "1px solid #e2e8f0",
+              flex: 1.4,
+              border: "none",
               cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
               fontFamily: "inherit",
               fontSize: 14,
               fontWeight: 700,
               padding: 12,
-              background: "#fff",
-              color: "#475569",
-              opacity: uploadProgress > 0 ? 0.5 : 1,
+              background: uploadProgress > 0 ? "#94a3b8" : "#1e3a5f",
+              color: "#fff",
+              opacity: uploadProgress > 0 ? 0.7 : 1,
             }}
           >
-            Batal
+            {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : "Unggah"}
           </button>
           <button
             onClick={handleUpload}
+            onMouseEnter={uploadProgress > 0 ? undefined : btnHover.primary}
+            onMouseLeave={uploadProgress > 0 ? undefined : btnHover.primaryL}
             style={{
               flex: 1.4,
               border: "none",
@@ -1609,6 +1634,8 @@ export function AvatarModal({ st, d, dispatch, showToast }: Props) {
             onClick={() =>
               dispatch({ type: "SET_AVATAR_MODAL", payload: false })
             }
+            onMouseEnter={btnHover.secondary}
+            onMouseLeave={btnHover.secondaryL}
             style={{
               flex: 1,
               border: "1px solid #e2e8f0",
@@ -1632,6 +1659,8 @@ export function AvatarModal({ st, d, dispatch, showToast }: Props) {
               dispatch({ type: "SAVE_AVATAR", payload: st.avatarPreview });
               showToast("Foto profil berhasil disimpan");
             }}
+            onMouseEnter={btnHover.primary}
+            onMouseLeave={btnHover.primaryL}
             style={{
               flex: 1.4,
               border: "none",
@@ -1887,6 +1916,8 @@ export function UserModal({ st, d, dispatch, showToast }: Props) {
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={() => dispatch({ type: "SET_USER_MODAL", payload: null })}
+            onMouseEnter={btnHover.secondary}
+            onMouseLeave={btnHover.secondaryL}
             style={{
               flex: 1,
               border: "1px solid #e2e8f0",
@@ -1979,6 +2010,8 @@ export function UserModal({ st, d, dispatch, showToast }: Props) {
                 showToast("Akun diperbarui");
               }
             }}
+            onMouseEnter={btnHover.primary}
+            onMouseLeave={btnHover.primaryL}
             style={{
               flex: 1.4,
               border: "none",
@@ -1991,7 +2024,7 @@ export function UserModal({ st, d, dispatch, showToast }: Props) {
               color: "#fff",
             }}
           >
-            {d.umV.saveLabel}
+            Simpan
           </button>
         </div>
       </div>
@@ -2076,6 +2109,8 @@ export function ConfirmDeleteModal({ st, d, dispatch, showToast }: Props) {
             onClick={() =>
               dispatch({ type: "SET_CONFIRM_DELETE", payload: null })
             }
+            onMouseEnter={btnHover.secondary}
+            onMouseLeave={btnHover.secondaryL}
             style={{
               flex: 1,
               border: "1px solid #e2e8f0",
@@ -2102,6 +2137,8 @@ export function ConfirmDeleteModal({ st, d, dispatch, showToast }: Props) {
               dispatch({ type: "DELETE_USER", payload: id });
               showToast("Akun " + (uName || "") + " dihapus");
             }}
+            onMouseEnter={btnHover.danger}
+            onMouseLeave={btnHover.dangerL}
             style={{
               flex: 1.4,
               border: "none",
