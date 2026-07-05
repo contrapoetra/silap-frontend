@@ -68,50 +68,49 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const u = st.currentUserId ? st.users.find(x => x.id === st.currentUserId) ?? null : null;
   const active = POKJA.find(p => p.id === st.activePokja)!;
   const canEditActive = canEditPokja(u, st.activePokja);
-  const isMob = (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) || st.w < 768;
+  const isMob = st.w < 768;
   const isDesktop = !isMob;
 
   const rs: Record<string, any> = {
-    headerPad: isMob ? '10px 16px' : '12px 20px',
-    logoSize: isMob ? '36px' : '42px',
-    logoFont: isMob ? '17px' : '19px',
-    mainPad: isMob ? '0 16px 56px' : '0 20px 80px',
-    hero: isMob ? { display: 'flex', flexDirection: 'column-reverse' as const, gap: '20px', padding: '24px 0 16px' } : { display: 'grid', gridTemplateColumns: '1.05fr .95fr', gap: '40px', alignItems: 'center', padding: '54px 0 40px' },
-    heroImgH: isMob ? '220px' : '330px',
-    heroTagMb: isMob ? '14px' : '22px',
-    heroCapFont: isMob ? '15px' : '18px',
-    h1: isMob ? { fontSize: '32px', lineHeight: '1.08', letterSpacing: '-.025em', fontWeight: '800', color: '#0f172a', marginBottom: '14px' } : { fontSize: '50px', lineHeight: '1.04', letterSpacing: '-.03em', fontWeight: '800', color: '#0f172a', marginBottom: '18px' },
-    bodyFont: isMob ? '15px' : '17px',
-    btnFont: isMob ? '14px' : '15px',
-    btnPad: isMob ? '12px 20px' : '14px 26px',
-    featGrid: { display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : 'repeat(3,1fr)', gap: isMob ? '12px' : '16px' },
-    cardPad: isMob ? '16px' : '20px',
-    sectionGap: isMob ? '28px' : '46px',
-    profilSec: { marginTop: isMob ? '28px' : '46px', display: 'grid', gridTemplateColumns: isMob ? '1fr' : '1fr 1fr', gap: isMob ? '16px' : '24px', background: '#fff', border: '1px solid #e2e8f0', padding: isMob ? '20px' : '30px' },
-    profilH2: isMob ? '22px' : '26px',
-    pokja4Grid: { display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : 'repeat(4,1fr)', gap: isMob ? '12px' : '16px' },
-    pokjaOverview: { display: 'grid', gridTemplateColumns: isMob ? '1fr' : '1fr 1fr', gap: isMob ? '16px' : '24px', alignItems: 'start' },
-    pokjaCardH: isMob ? '15px' : '18px',
-    h2: isMob ? '18px' : '21px',
-    pageH1: isMob ? '26px' : '32px',
-    detailH1: isMob ? '20px' : '27px',
-    tabFont: isMob ? '13px' : '14px',
-    tabPad: isMob ? '8px 14px' : '9px 18px',
+    headerPad: 'var(--silap-header-pad)',
+    logoSize: 'var(--silap-logo-size)',
+    logoFont: 'var(--silap-logo-font)',
+    mainPad: 'var(--silap-main-pad)',
+    hero: { display: 'var(--silap-hero-display)', gridTemplateColumns: 'var(--silap-hero-grid)', flexDirection: 'var(--silap-hero-flex-dir)', alignItems: 'var(--silap-hero-align)', gap: 'var(--silap-hero-gap)', padding: 'var(--silap-hero-pad)' },
+    heroImgH: 'var(--silap-hero-img-h)',
+    heroTagMb: 'var(--silap-hero-tag-mb)',
+    heroCapFont: 'var(--silap-hero-cap-font)',
+    h1: { fontSize: 'var(--silap-h1-fs)', lineHeight: 'var(--silap-h1-lh)', letterSpacing: 'var(--silap-h1-ls)', fontWeight: '800', color: '#0f172a', marginBottom: 'var(--silap-h1-mb)' },
+    bodyFont: 'var(--silap-body-font)',
+    btnFont: 'var(--silap-btn-font)',
+    btnPad: 'var(--silap-btn-pad)',
+    featGrid: { display: 'grid', gridTemplateColumns: 'var(--silap-feat-grid)', gap: 'var(--silap-feat-gap)' },
+    cardPad: 'var(--silap-card-pad)',
+    sectionGap: 'var(--silap-section-gap)',
+    profilSec: { marginTop: 'var(--silap-profil-mt)', display: 'grid', gridTemplateColumns: 'var(--silap-profil-grid)', gap: 'var(--silap-profil-gap)', background: '#fff', border: '1px solid #e2e8f0', padding: 'var(--silap-profil-pad)' },
+    profilH2: 'var(--silap-profil-h2)',
+    pokja4Grid: { display: 'grid', gridTemplateColumns: 'var(--silap-p4-grid)', gap: 'var(--silap-p4-gap)' },
+    pokjaOverview: { display: 'grid', gridTemplateColumns: 'var(--silap-po-grid)', gap: 'var(--silap-po-gap)', alignItems: 'start' },
+    pokjaCardH: 'var(--silap-pokja-card-h)',
+    h2: 'var(--silap-h2)',
+    pageH1: 'var(--silap-page-h1)',
+    detailH1: 'var(--silap-detail-h1)',
+    tabFont: 'var(--silap-tab-font)',
+    tabPad: 'var(--silap-tab-pad)',
     editLabel: isMob ? 'Dapat edit' : 'Anda dapat mengedit',
     readLabel: isMob ? 'Lihat saja' : 'Hanya lihat',
-    calPad: isMob ? '14px' : '22px',
-    calGap: isMob ? '3px' : '7px',
-    calCellPad: isMob ? '4px' : '8px',
-    calMonthFont: isMob ? '16px' : '19px',
-    calNumFont: isMob ? '11px' : '13px',
-    calEvFont: isMob ? '9.5px' : '10.5px',
-    galPokjaGrid: { display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : 'repeat(3,1fr)', gap: isMob ? '12px' : '16px' },
-    galGrid: { display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : 'repeat(4,1fr)', gap: isMob ? '12px' : '16px' },
-    laporanGrid: isMob ? { display: 'flex', flexDirection: 'column' as const, gap: '16px' } : { display: 'grid', gridTemplateColumns: '320px 1fr', gap: '22px', alignItems: 'start' },
-    dashHeroPad: isMob ? '20px 18px' : '26px 28px',
-    dashWelcome: isMob ? '20px' : '24px',
-    dashStats: { display: 'grid', gridTemplateColumns: isMob ? '1fr 1fr' : 'repeat(3,1fr)', gap: isMob ? '12px' : '16px', marginBottom: isMob ? '16px' : '20px' },
-    dashQA: { display: 'grid', gridTemplateColumns: isMob ? '1fr' : '1fr 1fr', gap: '10px' },
+    calPad: 'var(--silap-cal-pad)',
+    calGap: 'var(--silap-cal-gap)',
+    calCellPad: 'var(--silap-cal-cell-pad)',
+    calMonthFont: 'var(--silap-cal-month-font)',
+    calNumFont: 'var(--silap-cal-num-font)',
+    calEvFont: 'var(--silap-cal-ev-font)',
+    galPokjaGrid: { display: 'grid', gridTemplateColumns: 'var(--silap-gpk-grid)', gap: 'var(--silap-gpk-gap)' },
+    galGrid: { display: 'grid', gridTemplateColumns: 'var(--silap-gal-grid)', gap: 'var(--silap-gal-gap)' },
+    laporanGrid: { display: 'var(--silap-lap-display)', flexDirection: 'var(--silap-lap-dir)', gridTemplateColumns: 'var(--silap-lap-grid)', gap: 'var(--silap-lap-gap)', alignItems: 'start' },
+    dashHeroPad: 'var(--silap-dash-hero-pad)',
+    dashWelcome: 'var(--silap-dash-welcome)',
+    dashQA: { display: 'grid', gridTemplateColumns: 'var(--silap-dqa-grid)', gap: '10px' },
   };
 
   const heroPhotos = sortGallery(st.gallery, 'date').slice(0, 3).map(g => {
@@ -200,7 +199,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   while (cells.length % 7 !== 0) cells.push({ dim: true });
 
   const calCells = cells.map(c => {
-    if (c.dim) return { day: '', bg: '#f8fafc', border: '#f1f5f9', numColor: '#ccc', cursor: 'default', onClick: () => {}, events: [], minH: isMob ? '48px' : '96px' };
+    if (c.dim) return { day: '', bg: '#f8fafc', border: '#f1f5f9', numColor: '#ccc', cursor: 'default', onClick: () => {}, events: [], minH: 'var(--silap-cal-cell-min-h)' };
     const dayNum = c.day!;
     const isToday = today.getFullYear() === st.calY && today.getMonth() === st.calM && today.getDate() === dayNum;
     const dayEvents = st.events.filter(e => e.pokja === st.activePokja && e.y === st.calY && e.m === st.calM && e.d === dayNum).map(e => ({
@@ -212,7 +211,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
       day: dayNum, bg: isToday ? '#eef2ff' : '#fff', border: isToday ? active.accent : '#e2e8f0',
       numColor: isToday ? active.accent : '#334155', cursor: canEditActive ? 'pointer' : 'default',
       onClick: canEditActive ? () => dispatch({ type: 'SET_EVENT_MODAL', payload: { day: dayNum, title: '', time: '', pokja: st.activePokja } }) : () => {},
-      events: dayEvents, minH: isMob ? '48px' : '96px',
+      events: dayEvents, minH: 'var(--silap-cal-cell-min-h)',
     };
   });
   const cal = { monthLabel: MONTHS[st.calM] + ' ' + st.calY, weekdays: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], cells: calCells };

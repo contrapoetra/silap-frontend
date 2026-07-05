@@ -8,3 +8,169 @@ body{background:#f1f5f9}
 ::selection{background:#dbeafe}
 .silap-scroll::-webkit-scrollbar{height:6px;width:6px}
 .silap-scroll::-webkit-scrollbar-thumb{background:#cbd5e1}
+
+:root {
+  --silap-header-pad: 12px 20px;
+  --silap-logo-size: 42px;
+  --silap-logo-font: 19px;
+  --silap-main-pad: 0 20px 80px;
+  --silap-hero-img-h: 330px;
+  --silap-hero-tag-mb: 22px;
+  --silap-hero-cap-font: 18px;
+  --silap-body-font: 17px;
+  --silap-btn-font: 15px;
+  --silap-btn-pad: 14px 26px;
+  --silap-card-pad: 20px;
+  --silap-section-gap: 46px;
+  --silap-profil-h2: 26px;
+  --silap-pokja-card-h: 18px;
+  --silap-h2: 21px;
+  --silap-page-h1: 32px;
+  --silap-detail-h1: 27px;
+  --silap-tab-font: 14px;
+  --silap-tab-pad: 9px 18px;
+  --silap-cal-pad: 22px;
+  --silap-cal-gap: 7px;
+  --silap-cal-cell-pad: 8px;
+  --silap-cal-cell-min-h: 96px;
+  --silap-cal-month-font: 19px;
+  --silap-cal-num-font: 13px;
+  --silap-cal-ev-font: 10.5px;
+  --silap-dash-hero-pad: 26px 28px;
+  --silap-dash-welcome: 24px;
+
+  --silap-hero-display: grid;
+  --silap-hero-grid: 1.05fr .95fr;
+  --silap-hero-flex-dir: row;
+  --silap-hero-align: center;
+  --silap-hero-gap: 40px;
+  --silap-hero-pad: 54px 0 40px;
+
+  --silap-h1-fs: 50px;
+  --silap-h1-lh: 1.04;
+  --silap-h1-ls: -.03em;
+  --silap-h1-mb: 18px;
+
+  --silap-feat-grid: repeat(3,1fr);
+  --silap-feat-gap: 16px;
+
+  --silap-profil-mt: 46px;
+  --silap-profil-grid: 1fr 1fr;
+  --silap-profil-gap: 24px;
+  --silap-profil-pad: 30px;
+
+  --silap-p4-grid: repeat(4,1fr);
+  --silap-p4-gap: 16px;
+
+  --silap-po-grid: 1fr 1fr;
+  --silap-po-gap: 24px;
+
+  --silap-gpk-grid: repeat(3,1fr);
+  --silap-gpk-gap: 16px;
+
+  --silap-gal-grid: repeat(4,1fr);
+  --silap-gal-gap: 16px;
+
+  --silap-lap-display: grid;
+  --silap-lap-dir: none;
+  --silap-lap-grid: 320px 1fr;
+  --silap-lap-gap: 22px;
+
+  --silap-ds-grid: repeat(3,1fr);
+  --silap-ds-gap: 16px;
+  --silap-ds-mb: 20px;
+
+  --silap-dqa-grid: 1fr 1fr;
+
+  --silap-d-nav-display: flex;
+  --silap-m-nav-display: none;
+  --silap-m-nav-panel: none;
+  --silap-subtitle-display: block;
+
+  --silap-header-gap: 16px;
+  --silap-logo-gap: 10px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --silap-header-pad: 10px 12px;
+    --silap-logo-size: 32px;
+    --silap-logo-font: 15px;
+  --silap-main-pad: 0 16px 56px;
+  --silap-hero-img-h: 220px;
+  --silap-hero-tag-mb: 14px;
+  --silap-hero-cap-font: 15px;
+  --silap-body-font: 15px;
+  --silap-btn-font: 14px;
+  --silap-btn-pad: 12px 20px;
+  --silap-card-pad: 16px;
+  --silap-section-gap: 28px;
+  --silap-profil-h2: 22px;
+  --silap-pokja-card-h: 15px;
+  --silap-h2: 18px;
+  --silap-page-h1: 26px;
+  --silap-detail-h1: 20px;
+  --silap-tab-font: 13px;
+  --silap-tab-pad: 8px 14px;
+  --silap-cal-pad: 14px;
+  --silap-cal-gap: 3px;
+  --silap-cal-cell-pad: 4px;
+  --silap-cal-cell-min-h: 48px;
+  --silap-cal-month-font: 16px;
+  --silap-cal-num-font: 11px;
+  --silap-cal-ev-font: 9.5px;
+  --silap-dash-hero-pad: 20px 18px;
+  --silap-dash-welcome: 20px;
+
+  --silap-hero-display: flex;
+  --silap-hero-grid: none;
+  --silap-hero-flex-dir: column-reverse;
+  --silap-hero-align: stretch;
+  --silap-hero-gap: 20px;
+  --silap-hero-pad: 24px 0 16px;
+
+  --silap-h1-fs: 32px;
+  --silap-h1-lh: 1.08;
+  --silap-h1-ls: -.025em;
+  --silap-h1-mb: 14px;
+
+  --silap-feat-grid: 1fr 1fr;
+  --silap-feat-gap: 12px;
+
+  --silap-profil-mt: 28px;
+  --silap-profil-grid: 1fr;
+  --silap-profil-gap: 16px;
+  --silap-profil-pad: 20px;
+
+  --silap-p4-grid: 1fr 1fr;
+  --silap-p4-gap: 12px;
+
+  --silap-po-grid: 1fr;
+  --silap-po-gap: 16px;
+
+  --silap-gpk-grid: 1fr 1fr;
+  --silap-gpk-gap: 12px;
+
+  --silap-gal-grid: 1fr 1fr;
+  --silap-gal-gap: 12px;
+
+  --silap-lap-display: flex;
+  --silap-lap-dir: column;
+  --silap-lap-grid: none;
+  --silap-lap-gap: 16px;
+
+  --silap-ds-grid: 1fr 1fr;
+  --silap-ds-gap: 12px;
+  --silap-ds-mb: 16px;
+
+  --silap-dqa-grid: 1fr;
+
+  --silap-d-nav-display: none;
+  --silap-m-nav-display: flex;
+  --silap-m-nav-panel: block;
+  --silap-subtitle-display: none;
+
+  --silap-header-gap: 8px;
+  --silap-logo-gap: 6px;
+  }
+}
