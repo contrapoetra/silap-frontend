@@ -746,16 +746,23 @@ export default function App() {
 
   useEffect(() => {
     const onResize = () => dispatch({ type: 'SET_W', payload: window.innerWidth });
+    const mql = window.matchMedia('(max-width: 767px)');
+    const onMql = () => dispatch({ type: 'SET_W', payload: window.innerWidth });
     onResize();
     window.addEventListener('resize', onResize);
+    try { mql.addEventListener('change', onMql); } catch (_) {}
+    return () => {
+      window.removeEventListener('resize', onResize);
+      try { mql.removeEventListener('change', onMql); } catch (_) {}
+    };
+  }, []);
+
+  useEffect(() => {
     const hero = setInterval(() => {
       const n = Math.min(3, st.gallery.length);
       dispatch({ type: 'SET_HERO_IDX', payload: n ? (st.heroIdx + 1) % n : 0 });
     }, 3800);
-    return () => {
-      window.removeEventListener('resize', onResize);
-      clearInterval(hero);
-    };
+    return () => clearInterval(hero);
   }, [st.gallery.length, st.heroIdx]);
 
   const d = computeDerived(st, go, openPokja, asyncDispatch);

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [],
   },
+  allowedDevOrigins: ['silap.contrapoetra.com'],
 };
 
 export default nextConfig;

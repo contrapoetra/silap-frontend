@@ -68,7 +68,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const u = st.currentUserId ? st.users.find(x => x.id === st.currentUserId) ?? null : null;
   const active = POKJA.find(p => p.id === st.activePokja)!;
   const canEditActive = canEditPokja(u, st.activePokja);
-  const isMob = st.w < 768;
+  const isMob = (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) || st.w < 768;
   const isDesktop = !isMob;
 
   const rs: Record<string, any> = {
