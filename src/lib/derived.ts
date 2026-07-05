@@ -154,7 +154,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const nav = navDef.map(n => ({
     label: n.label,
     onClick: () => go(n.route),
-    onMobile: () => { go(n.route); dispatch({ type: 'TOGGLE_MENU' }); },
+    onMobile: () => { go(n.route); },
     bg: activeRoute === n.route ? '#e0e7ff' : 'transparent',
     color: activeRoute === n.route ? '#1e3a5f' : '#475569',
   }));
