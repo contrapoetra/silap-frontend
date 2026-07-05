@@ -1,6 +1,12 @@
 const MAX_WIDTH = 1920;
 const QUALITY = 0.8;
 
+const VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm', 'video/x-m4v'];
+
+function isVideo(file: File): boolean {
+  return VIDEO_TYPES.includes(file.type) || /\.(mov|mp4|avi|mkv|webm|m4v)$/i.test(file.name);
+}
+
 function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -27,18 +33,16 @@ function compressImage(file: File): Promise<Blob> {
   });
 }
 
-export async function uploadToS3(file: File): Promise<string> {
-  const compressed = await compressImage(file);
-
-  const fileName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+export async function uploadToS3(file: File, onProgress?: (pct: number) => void): Promise<string> {
+  const isVideoFile = isVideo(file);
+  const body = isVideoFile ? file : await compressImage(file);
+  const fileName = file.name.replace(/\.[^.]+$/, '') + (isVideoFile ? '.mp4' : '.jpg');
+  const fileType = isVideoFile ? 'video/mp4' : 'image/jpeg';
 
   const res = await fetch('/api/upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      fileName,
-      fileType: 'image/jpeg',
-    }),
+    body: JSON.stringify({ fileName, fileType }),
   });
 
   if (!res.ok) {
@@ -48,15 +52,25 @@ export async function uploadToS3(file: File): Promise<string> {
 
   const { uploadUrl, publicUrl } = await res.json();
 
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'PUT',
-    body: compressed,
-    headers: { 'Content-Type': 'image/jpeg' },
-  });
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('Content-Type', fileType);
 
-  if (!uploadRes.ok) {
-    throw new Error('Failed to upload file to S3');
-  }
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`Upload failed with status ${xhr.status}`));
+    };
+
+    xhr.onerror = () => reject(new Error('Network error during upload'));
+    xhr.send(body instanceof Blob ? body : body);
+  });
 
   return publicUrl;
 }

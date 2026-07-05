@@ -461,6 +461,7 @@ export interface AppState {
     form: { title: string; excerpt: string; content: string; category: string };
   } | null;
   galFilter: number | "all";
+  galSort: "date" | "name" | "pokja";
   fileFilter: number | "all";
   rf: { name: string; contact: string; category: string; desc: string };
   toast: string | null;
@@ -502,6 +503,7 @@ export const initialState: AppState = {
   confirmDelete: null,
   postModal: null,
   galFilter: "all",
+  galSort: "date",
   fileFilter: "all",
   rf: {
     name: "",
@@ -579,6 +581,7 @@ export type AppAction =
   | { type: "SET_GAL_MODAL"; payload: AppState["galModal"] }
   | { type: "ADD_GALLERY"; payload: GalleryItem }
   | { type: "DELETE_GALLERY"; payload: string | number }
+  | { type: "UPDATE_GALLERY_ID"; payload: { oldId: string | number; newId: string | number } }
   | { type: "SET_FILE_MODAL"; payload: AppState["fileModal"] }
   | { type: "ADD_FILE"; payload: FileItem }
   | { type: "DELETE_FILE"; payload: string | number }
@@ -602,6 +605,7 @@ export type AppAction =
   | { type: "DELETE_USER"; payload: string }
   | { type: "SET_CONFIRM_DELETE"; payload: AppState["confirmDelete"] }
   | { type: "SET_GAL_FILTER"; payload: number | "all" }
+  | { type: "SET_GAL_SORT"; payload: "date" | "name" | "pokja" }
   | { type: "SET_FILE_FILTER"; payload: number | "all" }
   | {
       type: "SET_RF";
@@ -753,6 +757,13 @@ export function reducer(state: AppState, action: AppAction): AppState {
         ...state,
         gallery: state.gallery.filter((g) => g.id !== action.payload),
       };
+    case "UPDATE_GALLERY_ID":
+      return {
+        ...state,
+        gallery: state.gallery.map((g) =>
+          g.id === action.payload.oldId ? { ...g, id: action.payload.newId } : g
+        ),
+      };
     case "SET_FILE_MODAL":
       return { ...state, fileModal: action.payload };
     case "ADD_FILE":
@@ -818,6 +829,8 @@ export function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, confirmDelete: action.payload };
     case "SET_GAL_FILTER":
       return { ...state, galFilter: action.payload };
+    case "SET_GAL_SORT":
+      return { ...state, galSort: action.payload };
     case "SET_FILE_FILTER":
       return { ...state, fileFilter: action.payload };
     case "SET_RF":

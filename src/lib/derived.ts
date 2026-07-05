@@ -2,20 +2,21 @@ import { AppState, rlabel, raccent, rinit, canEditPokja, makeAvatarStyle } from 
 import { POKJA, MONTHS, MONTH_ABBR, MONTH_NAMES_SHORT, STATUS, EXT_TINT } from './constants';
 import type { User, BlogPost, OrgPosition, InventoryItem, SuratItem, PengumumanItem, GalleryItem } from './types';
 
-function sortGalleryByDate(gallery: GalleryItem[]) {
-  const monthIdx: Record<string, number> = {};
-  MONTH_NAMES_SHORT.forEach((abbr, i) => { monthIdx[abbr] = i; });
-  return [...gallery].sort((a, b) => {
-    const parse = (s: string) => {
-      const parts = s.split(' ');
-      if (parts.length !== 3) return 0;
-      const d = parseInt(parts[0], 10);
-      const m = monthIdx[parts[1]] ?? -1;
-      const y = parseInt(parts[2], 10);
-      return y * 10000 + m * 100 + d;
-    };
-    return parse(b.date) - parse(a.date);
-  });
+function sortGallery(gallery: GalleryItem[], sort: 'date' | 'name' | 'pokja') {
+  const items = [...gallery];
+  if (sort === 'name') {
+    items.sort((a, b) => a.caption.localeCompare(b.caption));
+  } else if (sort === 'pokja') {
+    items.sort((a, b) => a.pokja - b.pokja);
+  }
+  if (sort === 'date') {
+    items.sort((a, b) => {
+      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return tb - ta;
+    });
+  }
+  return items;
 }
 
 export interface DerivedData {
@@ -36,7 +37,9 @@ export interface DerivedData {
   pokjaPhotos: any[];
   pokjaFiles: any[];
   galFilters: { label: string; onClick: () => void; bg: string; color: string; border: string }[];
+  galSortOptions: { label: string; onClick: () => void; active: boolean }[];
   allPhotos: any[];
+  galSections: { label: string; photos: any[] }[];
   berkasFilters: { label: string; onClick: () => void; bg: string; color: string; border: string }[];
   allFiles: any[];
   reportGroups: any[];
@@ -111,8 +114,8 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     dashQA: { display: 'grid', gridTemplateColumns: isMob ? '1fr' : '1fr 1fr', gap: '10px' },
   };
 
-  const heroPhotos = sortGalleryByDate(st.gallery).slice(0, 3).map(g => {
-    const p = POKJA.find(x => x.id === g.pokja)!;
+  const heroPhotos = sortGallery(st.gallery, 'date').slice(0, 3).map(g => {
+    const p = POKJA.find(x => x.id === g.pokja) || { name: 'Umum', accent: '#059669' };
     return { image: g.image, caption: g.caption, tag: g.tag, pokjaName: p.name, accent: p.accent };
   });
   const hIdx = heroPhotos.length ? st.heroIdx % heroPhotos.length : 0;
@@ -214,8 +217,8 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   });
   const cal = { monthLabel: MONTHS[st.calM] + ' ' + st.calY, weekdays: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'], cells: calCells };
 
-  const pokjaPhotos = sortGalleryByDate(st.gallery.filter(g => g.pokja === st.activePokja)).map(g => ({
-    caption: g.caption, date: g.date, tag: g.tag, image: g.image, canDelete: canEditActive,
+  const pokjaPhotos = sortGallery(st.gallery.filter(g => g.pokja === st.activePokja), st.galSort).map(g => ({
+    caption: g.caption, date: g.date, tag: g.tag, image: g.image, created_at: g.created_at, canDelete: canEditActive,
     onDelete: () => dispatch({ type: 'DELETE_GALLERY', payload: g.id }),
   }));
 
@@ -227,17 +230,43 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     onDelete: () => dispatch({ type: 'DELETE_FILE', payload: f.id }),
   }));
 
-  const galFilterDef = [{ id: 'all' as const, label: 'Semua' }, ...POKJA.map(p => ({ id: p.id as number | 'all', label: p.name }))];
+  const GAL_UMUM = { id: 5, name: 'Umum', accent: '#059669', tint: '#ecfdf5' };
+  const galFilterDef = [{ id: 'all' as const, label: 'Semua' }, ...POKJA.map(p => ({ id: p.id as number | 'all', label: p.name })), { id: GAL_UMUM.id as number | 'all', label: GAL_UMUM.name }];
   const galFilters = galFilterDef.map(g => {
     const on = st.galFilter === g.id;
-    const acc = g.id === 'all' ? '#1e3a5f' : POKJA.find(p => p.id === g.id)!.accent;
+    const acc = g.id === 'all' ? '#1e3a5f' : g.id === GAL_UMUM.id ? GAL_UMUM.accent : POKJA.find(p => p.id === g.id)!.accent;
     return { label: g.label, onClick: () => dispatch({ type: 'SET_GAL_FILTER', payload: g.id }), bg: on ? acc : '#fff', color: on ? '#fff' : '#475569', border: on ? acc : '#e2e8f0' };
   });
 
-  const allPhotos = sortGalleryByDate(st.gallery.filter(g => st.galFilter === 'all' || g.pokja === st.galFilter)).map(g => {
-    const p = POKJA.find(x => x.id === g.pokja)!;
-    return { id: g.id, caption: g.caption, date: g.date, tag: g.tag, image: g.image, pokjaName: p.name, accent: p.accent };
+  const sortDefs = [
+    { key: 'date' as const, label: 'Tanggal' },
+    { key: 'name' as const, label: 'Nama' },
+    { key: 'pokja' as const, label: 'Pokja' },
+  ];
+  const galSortOptions = sortDefs.map(s => ({
+    label: s.label,
+    active: st.galSort === s.key,
+    onClick: () => dispatch({ type: 'SET_GAL_SORT', payload: s.key }),
+  }));
+
+  const allPhotos = sortGallery(st.gallery.filter(g => st.galFilter === 'all' || g.pokja === st.galFilter), st.galSort).map(g => {
+    const p = g.pokja === GAL_UMUM.id ? GAL_UMUM : POKJA.find(x => x.id === g.pokja)!;
+    return { id: g.id, caption: g.caption, date: g.date, tag: g.tag, image: g.image, pokjaName: p.name, accent: p.accent, created_at: g.created_at };
   });
+
+  const galSections = (() => {
+    const groups = new Map<string, { label: string; photos: typeof allPhotos }>();
+    for (const p of allPhotos) {
+      const d = p.created_at ? new Date(p.created_at) : null;
+      const key = d ? `${d.getFullYear()}-${d.getMonth()}` : '__none';
+      const label = d ? `${MONTHS[d.getMonth()]} ${d.getFullYear()}` : 'Tanpa tanggal';
+      if (!groups.has(key)) groups.set(key, { label, photos: [] });
+      groups.get(key)!.photos.push(p);
+    }
+    return [...groups.entries()]
+      .sort(([a], [b]) => a === '__none' ? 1 : b === '__none' ? -1 : b.localeCompare(a))
+      .map(([_, v]) => v);
+  })();
 
   const berkasFilterDef = [{ id: 'all' as const, label: 'Semua' }, ...POKJA.map(p => ({ id: p.id as number | 'all', label: p.name }))];
   const berkasFilters = berkasFilterDef.map(g => {
@@ -411,7 +440,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   return {
     u, active, canEditActive, isMob, isDesktop, rs,
     heroCurrent, heroDots, userVals, nav, pokjas, features, tabs, cal,
-    pokjaPhotos, pokjaFiles, galFilters, allPhotos, berkasFilters, allFiles, reportGroups,
+    pokjaPhotos, pokjaFiles, galFilters, galSortOptions, allPhotos, galSections, berkasFilters, allFiles, reportGroups,
     dashStats, quickActions, allUsers, pokjaMemberList, pkkMembers, inventory, suratMasuk, suratKeluar, suratView: st.suratView, blogPosts: st.blogPosts, orgPositions: st.orgPositions, pengumuman: st.pengumuman, umV, avM, cdUser, lf, demoAccounts, fileModalV, eventModal,
   };
 }

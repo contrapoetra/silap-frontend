@@ -282,6 +282,9 @@ export default function App() {
           break;
         }
         case 'ADD_GALLERY': {
+          const tempId = action.payload.id;
+          dispatch({ type: 'ADD_GALLERY', payload: action.payload });
+
           const { error, data } = await supabase
             .from('gallery')
             .insert({
@@ -295,10 +298,11 @@ export default function App() {
             .single();
 
           if (error) {
+            dispatch({ type: 'DELETE_GALLERY', payload: tempId });
             showToast('Gagal mengunggah foto: ' + error.message);
             return;
           }
-          dispatch({ type: 'ADD_GALLERY', payload: { ...action.payload, id: data.id } });
+          dispatch({ type: 'UPDATE_GALLERY_ID', payload: { oldId: tempId, newId: data.id } });
           break;
         }
         case 'DELETE_GALLERY': {
@@ -724,6 +728,7 @@ export default function App() {
 
   return (
     <div className="silap-scroll" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f1f5f9', fontFamily: "'Inter', system-ui, sans-serif", color: '#1e293b', WebkitFontSmoothing: 'antialiased' }}>
+      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}`}</style>
       {/* HEADER */}
       <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '95%', margin: '0 auto', padding: d.rs.headerPad, display: 'flex', alignItems: 'center', gap: 16 }}>

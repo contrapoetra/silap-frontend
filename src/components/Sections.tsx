@@ -1313,11 +1313,38 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   }}
                 >
                   {g.image ? (
-                    <img
-                      src={g.image}
-                      alt={g.caption}
-                      style={{ width: "100%", height: 140, objectFit: "cover" }}
-                    />
+                    <div style={{ position: "relative", width: "100%", height: 140, flexShrink: 0 }}>
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%)",
+                          backgroundSize: "200% 100%",
+                          animation: "silapShimmer 1.5s ease-in-out infinite",
+                        }}
+                      />
+                          <div data-progress style={{ position: "absolute", bottom: 0, left: 0, height: 3, background: "linear-gradient(90deg,#3b82f6,#06b6d4)", animation: "silapProgress 2s ease-out forwards", zIndex: 2 }} />
+                          {g.image && /\.(mp4|mov)$/i.test(g.image) ? (
+                            <video
+                              src={g.image}
+                              muted
+                              playsInline
+                              preload="metadata"
+                              onLoadedData={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                              onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                              style={{ position: "relative", opacity: 0, transition: "opacity .3s", width: "100%", height: 140, objectFit: "cover", display: "block" }}
+                            />
+                          ) : (
+                            <img
+                              src={g.image}
+                              alt={g.caption}
+                              loading="lazy"
+                              onLoad={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "inherit"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                              onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "inherit"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                              style={{ position: "relative", opacity: 0, color: "transparent", transition: "opacity .3s", width: "100%", height: 140, objectFit: "cover", display: "block" }}
+                            />
+                          )}
+                        </div>
                   ) : (
                     <div
                       style={{
@@ -1339,6 +1366,24 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                       >
                         [ {g.tag} ]
                       </span>
+                    </div>
+                  )}
+                  {g.image && /\.(mp4|mov)$/i.test(g.image) && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "rgba(0,0,0,0.25)",
+                        fontSize: 36,
+                        color: "#fff",
+                        zIndex: 5,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      ▶
                     </div>
                   )}
                   {g.canDelete && (
@@ -1377,7 +1422,15 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                     {g.caption}
                   </div>
                   <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
-                    {g.date}
+                    {g.created_at
+                      ? new Date(g.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : g.date}
                   </div>
                 </div>
               </div>
@@ -1510,6 +1563,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const isAdmin = !!(d.u && d.u.role === "admin");
   const [fsIdx, setFsIdx] = useState<number | null>(null);
 
@@ -1537,9 +1591,10 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
       showToast("Isi keterangan foto dulu");
       return;
     }
+    setUploadProgress(1);
     try {
       const { uploadToS3 } = await import("@/lib/s3-upload");
-      const imageUrl = await uploadToS3(uploadFile);
+      const imageUrl = await uploadToS3(uploadFile, setUploadProgress);
       dispatch({
         type: "ADD_GALLERY",
         payload: {
@@ -1559,30 +1614,36 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
       setUploadFile(null);
       setUploadPreview(null);
       setUploadCaption("");
+      setUploadProgress(0);
       showToast("Foto diunggah");
     } catch (err) {
+      setUploadProgress(0);
       showToast("Gagal mengunggah foto");
       console.error(err);
     }
   };
 
   const handleDeleteGal = (id: string | number) => {
-    if (confirm("Hapus foto ini? Tindakan ini tidak dapat dibatalkan.")) {
-      dispatch({ type: "DELETE_GALLERY", payload: id });
-    }
+    dispatch({ type: "DELETE_GALLERY", payload: id });
   };
+
+  const isVideo = (f: File) => f.type.startsWith("video/") || /\.(mov|mp4|avi|mkv|webm|m4v)$/i.test(f.name);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      showToast("Hanya berkas gambar yang didukung");
+    if (!file.type.startsWith("image/") && !isVideo(file)) {
+      showToast("Hanya gambar dan video (MP4/MOV) yang didukung");
       return;
     }
     setUploadFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setUploadPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
+    if (isVideo(file)) {
+      setUploadPreview("__video__");
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => setUploadPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -1633,35 +1694,64 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
         )}
       </div>
       <div
-        className="silap-scroll"
         style={{
           display: "flex",
-          gap: 8,
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
           marginBottom: 18,
-          overflowX: "auto",
-          paddingBottom: 4,
         }}
       >
-        {d.galFilters.map((gf, i) => (
-          <button
-            key={i}
-            onClick={gf.onClick}
-            style={{
-              border: `1px solid ${gf.border}`,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              fontSize: 13,
-              fontWeight: 700,
-              padding: "8px 16px",
-              background: gf.bg,
-              color: gf.color,
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}
-          >
-            {gf.label}
-          </button>
-        ))}
+        <div
+          className="silap-scroll"
+          style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}
+        >
+          {d.galFilters.map((gf, i) => (
+            <button
+              key={i}
+              onClick={gf.onClick}
+              style={{
+                border: `1px solid ${gf.border}`,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: 700,
+                padding: "8px 16px",
+                background: gf.bg,
+                color: gf.color,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {gf.label}
+            </button>
+          ))}
+        </div>
+        <div
+          className="silap-scroll"
+          style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, flexShrink: 0 }}
+        >
+          {d.galSortOptions.map((so, i) => (
+            <button
+              key={i}
+              onClick={so.onClick}
+              style={{
+                border: so.active ? "1px solid #1e3a5f" : "1px solid #e2e8f0",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "6px 14px",
+                background: so.active ? "#1e3a5f" : "#fff",
+                color: so.active ? "#fff" : "#64748b",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {so.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {showUpload && (
@@ -1719,6 +1809,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                   Pokja III — Pangan, Sandang &amp; Rumah
                 </option>
                 <option value={4}>Pokja IV — Kesehatan &amp; Lingkungan</option>
+                {isAdmin && <option value={5}>Umum</option>}
               </select>
             </div>
             <div>
@@ -1745,11 +1836,28 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
               >
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/mp4,video/quicktime,.mov,.mp4"
                   onChange={handleFileSelect}
                   style={{ display: "none" }}
                 />
-                {uploadPreview ? (
+                {uploadPreview === "__video__" ? (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: 100,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#0f172a",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      gap: 6,
+                    }}
+                  >
+                    ▶ {uploadFile?.name}
+                  </div>
+                ) : uploadPreview ? (
                   <div
                     style={{
                       position: "relative",
@@ -1850,86 +1958,155 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
               </button>
               <button
                 onClick={handleUpload}
+                disabled={uploadProgress > 0}
                 style={{
                   flex: 1.4,
                   border: "none",
-                  cursor: "pointer",
+                  cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                   fontFamily: "inherit",
                   fontSize: 13,
                   fontWeight: 700,
                   padding: 10,
-                  background: "#1e3a5f",
+                  background: uploadProgress > 0 ? "#94a3b8" : "#1e3a5f",
                   color: "#fff",
+                  opacity: uploadProgress > 0 ? 0.7 : 1,
                 }}
               >
-                Unggah
+                {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : "Unggah"}
               </button>
             </div>
+            {uploadProgress > 0 && (
+              <div
+                style={{
+                  marginTop: 10,
+                  height: 6,
+                  background: "#e2e8f0",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${uploadProgress}%`,
+                    height: "100%",
+                    background: "#1e3a5f",
+                    transition: "width 0.2s ease",
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      <div style={d.rs.galGrid}>
-        {d.allPhotos.map((g, i) => (
-          <div
-            key={i}
-            onClick={() => setFsIdx(i)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-              e.currentTarget.style.transform = "translateY(-3px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "none";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-            style={{
-              background: "#fff",
-              border: "1px solid #e2e8f0",
-              overflow: "hidden",
-              position: "relative",
-              cursor: "pointer",
-              transition: "transform .15s,box-shadow .15s",
-            }}
-          >
+      <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
+        {d.galSections.map(section => (
+          <div key={section.label}>
             <div
               style={{
-                position: "relative",
-                minHeight: 140,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
+                fontSize: d.isMob ? 18 : 22,
+                fontWeight: 800,
+                color: "#0f172a",
+                paddingBottom: 14,
+                marginBottom: 20,
+                marginTop: 8,
+                borderBottom: "3px solid #cbd5e1",
+                letterSpacing: "-0.3px",
               }}
             >
-              {g.image ? (
-                <img
-                  src={g.image}
-                  alt={g.caption}
-                  style={{ width: "100%", height: 140, objectFit: "cover" }}
-                />
-              ) : (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      "repeating-linear-gradient(135deg,#f1f5f9,#f1f5f9 10px,#f8fafc 10px,#f8fafc 20px)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <span
+              {section.label}
+              <span style={{ fontWeight: 500, color: "#94a3b8", marginLeft: 10, fontSize: d.isMob ? 13 : 15 }}>
+                {section.photos.length} foto
+              </span>
+            </div>
+            <div style={d.rs.galGrid}>
+              {section.photos.map(g => {
+                const globalIdx = d.allPhotos.indexOf(g);
+                return (
+                  <div
+                    key={g.id || globalIdx}
+                    onClick={() => setFsIdx(globalIdx)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                      e.currentTarget.style.transform = "translateY(-3px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = "none";
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
                     style={{
-                      fontFamily: "ui-monospace,monospace",
-                      fontSize: 10,
-                      color: "#94a3b8",
+                      background: "#fff",
+                      border: "1px solid #e2e8f0",
+                      overflow: "hidden",
+                      position: "relative",
+                      cursor: "pointer",
+                      transition: "transform .15s,box-shadow .15s",
                     }}
                   >
-                    [ {g.tag} ]
-                  </span>
-                </div>
-              )}
+                    <div
+                      style={{
+                        position: "relative",
+                        minHeight: 140,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {g.image ? (
+                        <div style={{ position: "relative", width: "100%", height: 140, flexShrink: 0 }}>
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              background: "linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%)",
+                              backgroundSize: "200% 100%",
+                              animation: "silapShimmer 1.5s ease-in-out infinite",
+                            }}
+                          />
+                      <div data-progress style={{ position: "absolute", bottom: 0, left: 0, height: 3, background: "linear-gradient(90deg,#3b82f6,#06b6d4)", animation: "silapProgress 2s ease-out forwards", zIndex: 2 }} />
+                      {g.image && /\.(mp4|mov)$/i.test(g.image) ? (
+                        <video
+                          src={g.image}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          onLoadedData={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                          onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                          style={{ position: "relative", opacity: 0, transition: "opacity .3s", width: "100%", height: 140, objectFit: "cover", display: "block" }}
+                        />
+                      ) : (
+                        <img
+                          src={g.image}
+                          alt={g.caption}
+                          loading="lazy"
+                          onLoad={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "inherit"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                          onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.color = "inherit"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
+                          style={{ position: "relative", opacity: 0, color: "transparent", transition: "opacity .3s", width: "100%", height: 140, objectFit: "cover", display: "block" }}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "repeating-linear-gradient(135deg,#f1f5f9,#f1f5f9 10px,#f8fafc 10px,#f8fafc 20px)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "ui-monospace,monospace",
+                          fontSize: 10,
+                          color: "#94a3b8",
+                        }}
+                      >
+                        [ {g.tag} ]
+                      </span>
+                    </div>
+                  )}
               <span
                 style={{
                   position: "absolute",
@@ -1943,8 +2120,26 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                   zIndex: 10,
                 }}
               >
-                {g.pokjaName}
+                      {g.pokjaName}
               </span>
+              {g.image && /\.(mp4|mov)$/i.test(g.image) && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(0,0,0,0.25)",
+                    fontSize: 36,
+                    color: "#fff",
+                    zIndex: 5,
+                    pointerEvents: "none",
+                  }}
+                >
+                  ▶
+                </div>
+              )}
               {isAdmin && g.id && (
                 <button
                   onClick={(e) => {
@@ -1985,11 +2180,23 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 {g.caption}
               </div>
               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
-                {g.date}
+                {g.created_at
+                  ? new Date(g.created_at).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : g.date}
               </div>
             </div>
           </div>
-        ))}
+        );
+      })}
+    </div>
+  </div>
+))}
       </div>
 
       {fsIdx !== null && d.allPhotos[fsIdx] && (
@@ -2077,16 +2284,38 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
               →
             </button>
           )}
-          <img
-            src={d.allPhotos[fsIdx].image!}
-            alt={d.allPhotos[fsIdx].caption}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: "90vw",
-              maxHeight: "80vh",
-              objectFit: "contain",
-            }}
-          />
+          <div style={{ position: "relative", maxWidth: "90vw", maxHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(90deg,#334155 25%,#475569 50%,#334155 75%)",
+                backgroundSize: "200% 100%",
+                animation: "silapShimmer 1.5s ease-in-out infinite",
+              }}
+            />
+            <div data-progress-fs style={{ position: "absolute", bottom: 0, left: 0, height: 4, background: "linear-gradient(90deg,#3b82f6,#06b6d4)", animation: "silapProgress 2s ease-out forwards", zIndex: 2 }} />
+            {/\.(mp4|mov)$/i.test(d.allPhotos[fsIdx].image || '') ? (
+              <video
+                src={d.allPhotos[fsIdx].image!}
+                controls
+                autoPlay
+                onClick={(e) => e.stopPropagation()}
+                onLoadedData={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress-fs]')?.remove() }}
+                onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress-fs]')?.remove() }}
+                style={{ position: "relative", opacity: 0, transition: "opacity .3s", maxWidth: "90vw", maxHeight: "80vh" }}
+              />
+            ) : (
+              <img
+                src={d.allPhotos[fsIdx].image!}
+                alt={d.allPhotos[fsIdx].caption}
+                onClick={(e) => e.stopPropagation()}
+                onLoad={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress-fs]')?.remove() }}
+                onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress-fs]')?.remove() }}
+                style={{ position: "relative", opacity: 0, transition: "opacity .3s", maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain" }}
+              />
+            )}
+          </div>
           <div
             style={{
               color: "#ccc",

@@ -35,6 +35,7 @@ export interface GalleryItem {
   date: string;
   tag: string;
   image?: string | null;
+  created_at?: string;
 }
 
 export interface FileItem {
@@ -157,6 +158,7 @@ export interface AppState {
     form: { title: string; excerpt: string; content: string; category: string };
   } | null;
   galFilter: number | 'all';
+  galSort: 'date' | 'name' | 'pokja';
   rf: { name: string; contact: string; category: string; desc: string };
   toast: string | null;
   nextId: number;
@@ -193,6 +195,7 @@ export type AppAction =
   | { type: 'SET_GAL_MODAL'; payload: AppState['galModal'] }
   | { type: 'ADD_GALLERY'; payload: GalleryItem }
   | { type: 'DELETE_GALLERY'; payload: string | number }
+  | { type: 'UPDATE_GALLERY_ID'; payload: { oldId: string | number; newId: string | number } }
   | { type: 'SET_FILE_MODAL'; payload: AppState['fileModal'] }
   | { type: 'ADD_FILE'; payload: FileItem }
   | { type: 'DELETE_FILE'; payload: string | number }
@@ -207,6 +210,7 @@ export type AppAction =
   | { type: 'DELETE_USER'; payload: string }
   | { type: 'SET_CONFIRM_DELETE'; payload: AppState['confirmDelete'] }
   | { type: 'SET_GAL_FILTER'; payload: number | 'all' }
+  | { type: 'SET_GAL_SORT'; payload: 'date' | 'name' | 'pokja' }
   | { type: 'SET_FILE_FILTER'; payload: number | 'all' }
   | { type: 'SET_RF'; payload: Partial<AppState['rf']> }
   | { type: 'ADD_REPORT'; payload: ReportItem }

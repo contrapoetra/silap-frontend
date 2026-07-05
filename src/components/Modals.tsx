@@ -930,18 +930,25 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const isVideo = (f: File) => f.type.startsWith("video/") || /\.(mov|mp4|avi|mkv|webm|m4v)$/i.test(f.name);
 
   const handleFile = (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      showToast("Hanya berkas gambar yang didukung");
+    if (!file.type.startsWith("image/") && !isVideo(file)) {
+      showToast("Hanya gambar dan video (MP4/MOV) yang didukung");
       return;
     }
     setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (isVideo(file)) {
+      setImagePreview("__video__");
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -1006,14 +1013,31 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
         >
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,video/mp4,video/quicktime,.mov,.mp4"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
             }}
             style={{ display: "none" }}
           />
-          {imagePreview ? (
+          {imagePreview === "__video__" ? (
+            <div
+              style={{
+                width: "100%",
+                height: 120,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#0f172a",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                gap: 8,
+              }}
+            >
+              ▶ {selectedFile?.name}
+            </div>
+          ) : imagePreview ? (
             <div
               style={{
                 position: "relative",
@@ -1052,7 +1076,7 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
                 Seret foto ke sini atau klik untuk memilih
               </div>
               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
-                Mendukung JPG, PNG, WEBP, GIF
+                Mendukung JPG, PNG, WEBP, GIF, MP4, MOV
               </div>
             </>
           )}
@@ -1124,9 +1148,10 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
                 year: "numeric",
               });
 
+              setUploadProgress(1);
               try {
                 const { uploadToS3 } = await import("@/lib/s3-upload");
-                const imageUrl = await uploadToS3(selectedFile);
+                const imageUrl = await uploadToS3(selectedFile, setUploadProgress);
                 dispatch({
                   type: "ADD_GALLERY",
                   payload: {
@@ -1142,23 +1167,38 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
               } catch (err) {
                 showToast("Gagal mengunggah foto");
                 console.error(err);
+              } finally {
+                setUploadProgress(0);
               }
             }}
             style={{
               flex: 1.4,
               border: "none",
-              cursor: "pointer",
+              cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
               fontFamily: "inherit",
               fontSize: 14,
               fontWeight: 700,
               padding: 12,
-              background: "#1e3a5f",
+              background: uploadProgress > 0 ? "#94a3b8" : "#1e3a5f",
               color: "#fff",
+              opacity: uploadProgress > 0 ? 0.7 : 1,
             }}
           >
-            Unggah
+            {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : "Unggah"}
           </button>
         </div>
+        {uploadProgress > 0 && (
+          <div style={{ marginTop: 14, height: 6, background: "#e2e8f0" }}>
+            <div
+              style={{
+                width: `${uploadProgress}%`,
+                height: "100%",
+                background: "#1e3a5f",
+                transition: "width 0.2s ease",
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
