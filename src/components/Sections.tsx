@@ -1336,7 +1336,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                               onError={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.parentElement?.querySelector('[data-progress]')?.remove() }}
                               style={{ position: "relative", opacity: 0, transition: "opacity .3s", width: "100%", height: 140, objectFit: "cover", display: "block" }}
                             />
-                          ) : (
+                  ) : (
                             <img
                               src={g.image}
                               alt={g.caption}
@@ -4421,140 +4421,61 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                   <span>▦</span> Export Excel
           </button>
         </div>
-        <div
-                className="silap-scroll"
-                style={{ overflowX: "auto", border: "1px solid #e2e8f0" }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: "12.5px",
-                    minWidth: 580,
-                  }}
-                >
-                  <thead>
-                    <tr
-                      style={{
-                        background: "#1e3a5f",
-                        color: "#fff",
-                        textAlign: "left",
-                      }}
-                    >
-                      <th style={{ padding: "9px 11px", fontWeight: 700 }}>
-                        No
-                      </th>
-                      <th style={{ padding: "9px 11px", fontWeight: 700 }}>
-                        Tanggal
-                      </th>
-                      <th style={{ padding: "9px 11px", fontWeight: 700 }}>
-                        Pelapor
-                      </th>
-                      <th style={{ padding: "9px 11px", fontWeight: 700 }}>
-                        Pokja
-                      </th>
-                      <th style={{ padding: "9px 11px", fontWeight: 700 }}>
-                        Uraian
-                      </th>
-                      <th style={{ padding: "9px 11px", fontWeight: 700 }}>
-                        Status
-                      </th>
+        {d.isMob ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {d.reportGroups.map((g: any, gi: number) => (
+              <Fragment key={gi}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#1e3a5f", padding: "8px 11px", background: "#eef2ff", border: "1px solid #e2e8f0" }}>{g.monthLabel}</div>
+                {g.reports.map((r: any, i: number) => (
+                  <div key={`${gi}-${i}`} style={{ border: "1px solid #e2e8f0", padding: "11px 13px", background: i % 2 ? "#f8fafc" : "#fff" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 5 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "#1e293b" }}>#{r.no} {r.name}</div>
+                      <button onClick={r.onStatus} style={{ border: "none", cursor: r.statusCursor, fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "4px 10px", background: r.statusBg, color: r.statusColor, whiteSpace: "nowrap", flexShrink: 0 }}>{STATUS_LABEL[r.status] || r.status}</button>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>{r.date} · {r.pokja}</div>
+                    <div style={{ fontSize: 13, color: "#334155" }}>{r.desc}</div>
+                  </div>
+                ))}
+              </Fragment>
+            ))}
+          </div>
+        ) : (
+          <div className="silap-scroll" style={{ overflowX: "auto", border: "1px solid #e2e8f0" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.5px", minWidth: 580 }}>
+              <thead>
+                <tr style={{ background: "#1e3a5f", color: "#fff", textAlign: "left" }}>
+                  <th style={{ padding: "9px 11px", fontWeight: 700 }}>No</th>
+                  <th style={{ padding: "9px 11px", fontWeight: 700 }}>Tanggal</th>
+                  <th style={{ padding: "9px 11px", fontWeight: 700 }}>Pelapor</th>
+                  <th style={{ padding: "9px 11px", fontWeight: 700 }}>Pokja</th>
+                  <th style={{ padding: "9px 11px", fontWeight: 700 }}>Uraian</th>
+                  <th style={{ padding: "9px 11px", fontWeight: 700 }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.reportGroups.map((g: any, gi: number) => (
+                  <Fragment key={gi}>
+                    <tr style={{ background: "#eef2ff" }}>
+                      <td colSpan={6} style={{ fontWeight: 700, fontSize: 13, color: "#1e3a5f", padding: "8px 11px" }}>{g.monthLabel}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {d.reportGroups.map((g: any, gi: number) => (
-                      <Fragment key={gi}>
-                        <tr style={{ background: "#eef2ff" }}>
-                          <td
-                            colSpan={6}
-                            style={{
-                              fontWeight: 700,
-                              fontSize: 13,
-                              color: "#1e3a5f",
-                              padding: "8px 11px",
-                            }}
-                          >
-                            {g.monthLabel}
-                          </td>
-                        </tr>
-                        {g.reports.map((r: any, i: number) => (
-                          <tr
-                            key={`${gi}-${i}`}
-                            style={{
-                              borderBottom: "1px solid #f1f5f9",
-                              background: i % 2 ? "#f8fafc" : "#fff",
-                            }}
-                          >
-                            <td
-                              style={{
-                                padding: "9px 11px",
-                                color: "#94a3b8",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {r.no}
-                            </td>
-                            <td
-                              style={{
-                                padding: "9px 11px",
-                                color: "#334155",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {r.date}
-                            </td>
-                            <td
-                              style={{
-                                padding: "9px 11px",
-                                color: "#1e293b",
-                                fontWeight: 700,
-                              }}
-                            >
-                              {r.name}
-                            </td>
-                            <td
-                              style={{
-                                padding: "9px 11px",
-                                color: "#475569",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {r.pokja}
-                            </td>
-                            <td
-                              style={{
-                                padding: "9px 11px",
-                                color: "#334155",
-                                maxWidth: 200,
-                              }}
-                            >
-                              {r.desc}
-                            </td>
-                            <td style={{ padding: "9px 11px" }}>
-                              <button
-                                onClick={r.onStatus}
-                                style={{
-                                  border: "none",
-                                  cursor: r.statusCursor,
-                                  fontFamily: "inherit",
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  padding: "4px 10px",
-                                  background: r.statusBg,
-                                  color: r.statusColor,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {STATUS_LABEL[r.status] || r.status}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </Fragment>
+                    {g.reports.map((r: any, i: number) => (
+                      <tr key={`${gi}-${i}`} style={{ borderBottom: "1px solid #f1f5f9", background: i % 2 ? "#f8fafc" : "#fff" }}>
+                        <td style={{ padding: "9px 11px", color: "#94a3b8", fontWeight: 600 }}>{r.no}</td>
+                        <td style={{ padding: "9px 11px", color: "#334155", whiteSpace: "nowrap" }}>{r.date}</td>
+                        <td style={{ padding: "9px 11px", color: "#1e293b", fontWeight: 700 }}>{r.name}</td>
+                        <td style={{ padding: "9px 11px", color: "#475569", whiteSpace: "nowrap" }}>{r.pokja}</td>
+                        <td style={{ padding: "9px 11px", color: "#334155", maxWidth: 200 }}>{r.desc}</td>
+                        <td style={{ padding: "9px 11px" }}>
+                          <button onClick={r.onStatus} style={{ border: "none", cursor: r.statusCursor, fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "4px 10px", background: r.statusBg, color: r.statusColor, whiteSpace: "nowrap" }}>{STATUS_LABEL[r.status] || r.status}</button>
+                        </td>
+                      </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
             </>
           ) : (
             <>
@@ -6746,329 +6667,171 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
           </div>
         )}
 
-        <div
-          className="silap-scroll"
-          style={{ overflowX: "auto", border: "1px solid #e2e8f0" }}
-        >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "12px",
-              minWidth: 900,
-            }}
-          >
-            <thead>
-              <tr
-                style={{
-                  background: "#1e3a5f",
-                  color: "#fff",
-                  textAlign: "left",
-                }}
-              >
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>Nama</th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>
-                  Jabatan
-                </th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>L/P</th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>
-                  Tempat Lahir
-                </th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>
-                  Tanggal Lahir
-                </th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>Status</th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>
-                  Pendidikan
-                </th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>
-                  Pekerjaan
-                </th>
-                <th style={{ padding: "8px 10px", fontWeight: 700 }}>
-                  Keanggotaan
-                </th>
-                <th
-                  style={{ padding: "8px 10px", fontWeight: 700, width: 70 }}
-                ></th>
-              </tr>
-            </thead>
-            <tbody>
-              {d.pkkMembers.map((m: any, i: number) => {
-                const isE = editingId === m.id;
-                return (
-                  <tr
-                    key={i}
-                    style={{
-                      borderBottom: "1px solid #f1f5f9",
-                      background: isE ? "#eef2ff" : m.rowBg,
-                    }}
-                  >
-                    {isE ? (
-                      <>
-                        <td style={{ padding: "4px 6px" }}>
-                          <input
-                            value={ef.name}
-                            onChange={(e) =>
-                              setEf({ ...ef, name: e.target.value })
-                            }
-                            style={ic}
-                          />
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <select
-                            value={ef.position}
-                            onChange={(e) =>
-                              setEf({ ...ef, position: e.target.value })
-                            }
-                            style={sc}
-                          >
-                            {JABATAN_OPTIONS.map((o) => (
-                              <option key={o} value={o}>
-                                {o}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <select
-                            value={ef.gender}
-                            onChange={(e) =>
-                              setEf({ ...ef, gender: e.target.value })
-                            }
-                            style={sc}
-                          >
+        {d.isMob ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {d.pkkMembers.map((m: any, i: number) => {
+              const isE = editingId === m.id;
+              return (
+                <div key={i} style={{ border: "1px solid #e2e8f0", padding: "12px 14px", background: isE ? "#eef2ff" : m.rowBg }}>
+                  {isE ? (
+                    <>
+                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Nama</label>
+                      <input value={ef.name} onChange={(e) => setEf({ ...ef, name: e.target.value })} style={ic} />
+                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Jabatan</label>
+                      <select value={ef.position} onChange={(e) => setEf({ ...ef, position: e.target.value })} style={sc}>
+                        {JABATAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+                      </select>
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>L/P</label>
+                          <select value={ef.gender} onChange={(e) => setEf({ ...ef, gender: e.target.value })} style={sc}>
                             <option value="">—</option>
                             <option value="L">L</option>
                             <option value="P">P</option>
                           </select>
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <input
-                            value={ef.birth_place}
-                            onChange={(e) =>
-                              setEf({ ...ef, birth_place: e.target.value })
-                            }
-                            style={ic}
-                          />
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <input
-                            type="date"
-                            value={ef.birth_date}
-                            onChange={(e) =>
-                              setEf({ ...ef, birth_date: e.target.value })
-                            }
-                            style={ic}
-                          />
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <select
-                            value={ef.marital_status}
-                            onChange={(e) =>
-                              setEf({ ...ef, marital_status: e.target.value })
-                            }
-                            style={sc}
-                          >
-                            {STATUS_OPTIONS.map((o) => (
-                              <option key={o} value={o}>
-                                {o}
-                              </option>
-                            ))}
+                        </div>
+                        <div style={{ flex: 2 }}>
+                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Tempat Lahir</label>
+                          <input value={ef.birth_place} onChange={(e) => setEf({ ...ef, birth_place: e.target.value })} style={ic} />
+                        </div>
+                      </div>
+                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Tanggal Lahir</label>
+                      <input type="date" value={ef.birth_date} onChange={(e) => setEf({ ...ef, birth_date: e.target.value })} style={ic} />
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Status</label>
+                          <select value={ef.marital_status} onChange={(e) => setEf({ ...ef, marital_status: e.target.value })} style={sc}>
+                            {STATUS_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
                           </select>
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <select
-                            value={ef.education}
-                            onChange={(e) =>
-                              setEf({ ...ef, education: e.target.value })
-                            }
-                            style={sc}
-                          >
-                            {PENDIDIKAN_OPTIONS.map((o) => (
-                              <option key={o} value={o}>
-                                {o}
-                              </option>
-                            ))}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Pendidikan</label>
+                          <select value={ef.education} onChange={(e) => setEf({ ...ef, education: e.target.value })} style={sc}>
+                            {PENDIDIKAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
                           </select>
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <input
-                            value={ef.occupation}
-                            onChange={(e) =>
-                              setEf({ ...ef, occupation: e.target.value })
-                            }
-                            style={ic}
-                          />
-                        </td>
-                        <td style={{ padding: "4px 6px" }}>
-                          <select
-                            value={ef.membership_status}
-                            onChange={(e) =>
-                              setEf({
-                                ...ef,
-                                membership_status: e.target.value,
-                              })
-                            }
-                            style={sc}
-                          >
-                            <option value="Aktif">Aktif</option>
-                            <option value="Tidak Aktif">Tidak Aktif</option>
-                          </select>
-                        </td>
-                        <td
-                          style={{ padding: "4px 6px", whiteSpace: "nowrap" }}
-                        >
-                          <button
-                            onClick={() => setEditingId(null)}
-                            style={{
-                              border: "1px solid #cbd5e1",
-                              cursor: "pointer",
-                              fontFamily: "inherit",
-                              fontSize: 11,
-                              fontWeight: 600,
-                              padding: "5px 10px",
-                              background: "#fff",
-                              color: "#475569",
-                              marginRight: 5,
-                            }}
-                          >
-                            Batal
-                          </button>
-                          <button
-                            onClick={saveEdit}
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              fontFamily: "inherit",
-                              fontSize: 11,
-                              fontWeight: 700,
-                              padding: "5px 10px",
-                              background: "#1e3a5f",
-                              color: "#fff",
-                            }}
-                          >
-                            Simpan
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td
-                          style={{
-                            padding: "8px 10px",
-                            color: "#1e293b",
-                            fontWeight: 700,
-                          }}
-                        >
-                          {m.name}
-                        </td>
-                        <td style={{ padding: "8px 10px", color: "#475569" }}>
-                          <span
-                            style={{
-                              fontSize: "10.5px",
-                              fontWeight: 600,
-                              padding: "3px 7px",
-                              background:
-                                POSITION_COLORS[m.position]?.bg || "#f1f5f9",
-                              color:
-                                POSITION_COLORS[m.position]?.text || "#475569",
-                            }}
-                          >
-                            {m.position}
-                          </span>
-                        </td>
-                        <td style={{ padding: "8px 10px", color: "#64748b" }}>
-                          {m.gender || "—"}
-                        </td>
-                        <td style={{ padding: "8px 10px", color: "#64748b" }}>
-                          {m.birth_place || "—"}
-                        </td>
-                        <td
-                          style={{
-                            padding: "8px 10px",
-                            color: "#64748b",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {m.birth_date || "—"}
-                        </td>
-                        <td style={{ padding: "8px 10px", color: "#64748b" }}>
-                          {m.marital_status || "—"}
-                        </td>
-                        <td style={{ padding: "8px 10px", color: "#64748b" }}>
-                          {m.education || "—"}
-                        </td>
-                        <td
-                          style={{
-                            padding: "8px 10px",
-                            color: "#334155",
-                            maxWidth: 140,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {m.occupation || "—"}
-                        </td>
-                        <td style={{ padding: "8px 10px" }}>
-                          <span
-                            style={{
-                              fontSize: "10px",
-                              fontWeight: 700,
-                              padding: "3px 8px",
-                              background:
-                                m.membership_status === "Aktif"
-                                  ? "#f0fdf4"
-                                  : "#fef2f2",
-                              color:
-                                m.membership_status === "Aktif"
-                                  ? "#16a34a"
-                                  : "#ef4444",
-                            }}
-                          >
-                            {m.membership_status || "—"}
-                          </span>
-                        </td>
-                        <td
-                          style={{ padding: "8px 10px", whiteSpace: "nowrap" }}
-                        >
-                          <button
-                            onClick={() => startEdit(m)}
-                            title="Edit"
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              background: "none",
-                              color: "#1e3a5f",
-                              fontSize: 14,
-                              padding: "2px 6px",
-                            }}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            onClick={() => handleDelete(m.id, m.name)}
-                            title="Hapus"
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              background: "none",
-                              color: "#ef4444",
-                              fontSize: 14,
-                              padding: "2px 6px",
-                            }}
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                        </div>
+                      </div>
+                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Pekerjaan</label>
+                      <input value={ef.occupation} onChange={(e) => setEf({ ...ef, occupation: e.target.value })} style={ic} />
+                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Keanggotaan</label>
+                      <select value={ef.membership_status} onChange={(e) => setEf({ ...ef, membership_status: e.target.value })} style={sc}>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Tidak Aktif">Tidak Aktif</option>
+                      </select>
+                      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                        <button onClick={() => setEditingId(null)} style={{ flex: 1, border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 600, padding: "8px", background: "#fff", color: "#475569" }}>Batal</button>
+                        <button onClick={saveEdit} style={{ flex: 1, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "8px", background: "#1e3a5f", color: "#fff" }}>Simpan</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>{m.name}</div>
+                          <span style={{ fontSize: "10.5px", fontWeight: 600, padding: "3px 7px", background: POSITION_COLORS[m.position]?.bg || "#f1f5f9", color: POSITION_COLORS[m.position]?.text || "#475569" }}>{m.position}</span>
+                        </div>
+                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                          <button onClick={() => startEdit(m)} title="Edit" style={{ border: "none", cursor: "pointer", background: "#eef2ff", color: "#1e3a5f", fontSize: 15, padding: "8px 12px", borderRadius: 6 }}>✎ Edit</button>
+                          <button onClick={() => handleDelete(m.id, m.name)} title="Hapus" style={{ border: "none", cursor: "pointer", background: "#fef2f2", color: "#ef4444", fontSize: 15, padding: "8px 12px", borderRadius: 6 }}>✕ Hapus</button>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>{m.gender || "—"} · {m.birth_place || "—"} · {m.birth_date || "—"}</div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>{m.marital_status || "—"} · {m.education || "—"} · {m.occupation || "—"}</div>
+                      <div style={{ marginTop: 8 }}>
+                        <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", background: m.membership_status === "Aktif" ? "#f0fdf4" : "#fef2f2", color: m.membership_status === "Aktif" ? "#16a34a" : "#ef4444" }}>{m.membership_status || "—"}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="silap-scroll" style={{ overflowX: "auto", border: "1px solid #e2e8f0" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", minWidth: 900 }}>
+              <thead>
+                <tr style={{ background: "#1e3a5f", color: "#fff", textAlign: "left" }}>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Nama</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Jabatan</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>L/P</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Tempat Lahir</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Tanggal Lahir</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Status</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Pendidikan</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Pekerjaan</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Keanggotaan</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700, width: 70 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.pkkMembers.map((m: any, i: number) => {
+                  const isE = editingId === m.id;
+                  return (
+                    <tr key={i} style={{ borderBottom: "1px solid #f1f5f9", background: isE ? "#eef2ff" : m.rowBg }}>
+                      {isE ? (
+                        <>
+                          <td style={{ padding: "4px 6px" }}><input value={ef.name} onChange={(e) => setEf({ ...ef, name: e.target.value })} style={ic} /></td>
+                          <td style={{ padding: "4px 6px" }}>
+                            <select value={ef.position} onChange={(e) => setEf({ ...ef, position: e.target.value })} style={sc}>
+                              {JABATAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+                            </select>
+                          </td>
+                          <td style={{ padding: "4px 6px" }}>
+                            <select value={ef.gender} onChange={(e) => setEf({ ...ef, gender: e.target.value })} style={sc}>
+                              <option value="">—</option><option value="L">L</option><option value="P">P</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: "4px 6px" }}><input value={ef.birth_place} onChange={(e) => setEf({ ...ef, birth_place: e.target.value })} style={ic} /></td>
+                          <td style={{ padding: "4px 6px" }}><input type="date" value={ef.birth_date} onChange={(e) => setEf({ ...ef, birth_date: e.target.value })} style={ic} /></td>
+                          <td style={{ padding: "4px 6px" }}>
+                            <select value={ef.marital_status} onChange={(e) => setEf({ ...ef, marital_status: e.target.value })} style={sc}>
+                              {STATUS_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+                            </select>
+                          </td>
+                          <td style={{ padding: "4px 6px" }}>
+                            <select value={ef.education} onChange={(e) => setEf({ ...ef, education: e.target.value })} style={sc}>
+                              {PENDIDIKAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+                            </select>
+                          </td>
+                          <td style={{ padding: "4px 6px" }}><input value={ef.occupation} onChange={(e) => setEf({ ...ef, occupation: e.target.value })} style={ic} /></td>
+                          <td style={{ padding: "4px 6px" }}>
+                            <select value={ef.membership_status} onChange={(e) => setEf({ ...ef, membership_status: e.target.value })} style={sc}>
+                              <option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: "4px 6px", whiteSpace: "nowrap" }}>
+                            <button onClick={() => setEditingId(null)} style={{ border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: 600, padding: "5px 10px", background: "#fff", color: "#475569", marginRight: 5 }}>Batal</button>
+                            <button onClick={saveEdit} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: 700, padding: "5px 10px", background: "#1e3a5f", color: "#fff" }}>Simpan</button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td style={{ padding: "8px 10px", color: "#1e293b", fontWeight: 700 }}>{m.name}</td>
+                          <td style={{ padding: "8px 10px", color: "#475569" }}>
+                            <span style={{ fontSize: "10.5px", fontWeight: 600, padding: "3px 7px", background: POSITION_COLORS[m.position]?.bg || "#f1f5f9", color: POSITION_COLORS[m.position]?.text || "#475569" }}>{m.position}</span>
+                          </td>
+                          <td style={{ padding: "8px 10px", color: "#64748b" }}>{m.gender || "—"}</td>
+                          <td style={{ padding: "8px 10px", color: "#64748b" }}>{m.birth_place || "—"}</td>
+                          <td style={{ padding: "8px 10px", color: "#64748b", whiteSpace: "nowrap" }}>{m.birth_date || "—"}</td>
+                          <td style={{ padding: "8px 10px", color: "#64748b" }}>{m.marital_status || "—"}</td>
+                          <td style={{ padding: "8px 10px", color: "#64748b" }}>{m.education || "—"}</td>
+                          <td style={{ padding: "8px 10px", color: "#334155", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.occupation || "—"}</td>
+                          <td style={{ padding: "8px 10px" }}>
+                            <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", background: m.membership_status === "Aktif" ? "#f0fdf4" : "#fef2f2", color: m.membership_status === "Aktif" ? "#16a34a" : "#ef4444" }}>{m.membership_status || "—"}</span>
+                          </td>
+                          <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>
+                            <button onClick={() => startEdit(m)} title="Edit" style={{ border: "none", cursor: "pointer", background: "#eef2ff", color: "#1e3a5f", fontSize: 13, padding: "6px 10px", borderRadius: 5 }}>✎</button>
+                            <button onClick={() => handleDelete(m.id, m.name)} title="Hapus" style={{ border: "none", cursor: "pointer", background: "#fef2f2", color: "#ef4444", fontSize: 13, padding: "6px 10px", borderRadius: 5 }}>✕</button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -7100,6 +6863,18 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
     key: string;
     dir: "asc" | "desc";
   } | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const longPressFiredRef = useRef(false);
+  const [actionMenu, setActionMenu] = useState<{ item: any } | null>(null);
+  const [drawerAnim, setDrawerAnim] = useState(false);
+
+  useEffect(() => {
+    if (actionMenu) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setDrawerAnim(true)));
+    } else {
+      setDrawerAnim(false);
+    }
+  }, [actionMenu]);
 
   const currentView = st.suratView;
   const items = currentView === "masuk" ? d.suratMasuk : d.suratKeluar;
@@ -7605,7 +7380,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
 
         {/* Email-like list */}
         <div style={{ maxHeight: 480, overflowY: "auto" }}>
-          {items.length > 0 && (
+          {items.length > 0 && !d.isMob && (
             <div
               style={{
                 display: "flex",
@@ -7672,7 +7447,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
               const isE = editingId === m.id;
               const isExpanded = expandedId === m.id;
               return (
-                <div key={m.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <div key={m.id} style={d.isMob ? { marginBottom: 6 } : { borderBottom: "1px solid #f1f5f9" }}>
                   {isE ? (
                     <div style={{ padding: 12, background: "#eef2ff" }}>
                       <div
@@ -7784,6 +7559,69 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                         </button>
                       </div>
                     </div>
+                  ) : d.isMob ? (
+                    <>
+                      <div
+                        onClick={() => {
+                          if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
+                          if (actionMenu) { setActionMenu(null); return; }
+                          setExpandedId(isExpanded ? null : m.id);
+                        }}
+                        onTouchStart={() => {
+                          longPressFiredRef.current = false;
+                          clearTimeout(longPressTimerRef.current);
+                          longPressTimerRef.current = setTimeout(() => {
+                            longPressFiredRef.current = true;
+                            setActionMenu({ item: m });
+                          }, 1000);
+                        }}
+                        onTouchMove={() => { clearTimeout(longPressTimerRef.current); }}
+                        onTouchEnd={() => { clearTimeout(longPressTimerRef.current); }}
+                        onContextMenu={(e) => { e.preventDefault(); setActionMenu(actionMenu?.item?.id === m.id ? null : { item: m }); }}
+                        style={{
+                          border: "1px solid #e2e8f0",
+                          padding: "12px 14px",
+                          background: isExpanded ? "#f8fafc" : "#fff",
+                          position: "relative",
+                          userSelect: "none",
+                          WebkitUserSelect: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {m.asal_surat_dari || "—"}
+                            </div>
+                            <div style={{ fontSize: "12.5px", color: "#475569", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {m.perihal}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8" }}>{m.tanggal_terima}</div>
+                            <div style={{ fontSize: "10px", color: "#cbd5e1" }}>{m.tanggal_surat}</div>
+                            <div style={{ fontSize: "9px", color: "#e2e8f0", marginTop: 1 }}>{m.nomor_surat}</div>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActionMenu({ item: m }); }}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            onTouchEnd={(e) => e.stopPropagation()}
+                            style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, lineHeight: 1, padding: "8px 6px", background: "#e2e8f0", color: "#475569", borderRadius: 6, flexShrink: 0, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
+                          >⋮</button>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div style={{ padding: "12px 14px", fontSize: "12.5px", color: "#64748b", lineHeight: 1.7, background: "#f8fafc", border: "1px solid #e2e8f0", borderTop: "none" }}>
+                          <div><strong>Nomor Surat:</strong> {m.nomor_surat || "—"}</div>
+                          <div><strong>Tanggal Surat:</strong> {m.tanggal_surat || "—"}</div>
+                          <div><strong>Tanggal Terima:</strong> {m.tanggal_terima || "—"}</div>
+                          <div><strong>Asal:</strong> {m.asal_surat_dari || "—"}</div>
+                          <div><strong>Perihal:</strong> {m.perihal || "—"}</div>
+                          <div><strong>Lampiran:</strong> {m.lampiran || "—"}</div>
+                          <div><strong>Diteruskan Kepada:</strong> {m.diteruskan_kepada || "—"}</div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <>
                       <div
@@ -7798,25 +7636,6 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                           transition: "background .1s",
                         }}
                       >
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: "50%",
-                            background: "#e0f2fe",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 13,
-                            color: "#0284c7",
-                            fontWeight: 700,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {m.asal_surat_dari
-                            ? m.asal_surat_dari[0].toUpperCase()
-                            : "?"}
-                        </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div
                             style={{
@@ -7866,7 +7685,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                             {m.nomor_surat}
                           </div>
                         </div>
-                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -7876,13 +7695,14 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                             style={{
                               border: "none",
                               cursor: "pointer",
-                              background: "none",
+                              background: "#eef2ff",
                               color: "#1e3a5f",
-                              fontSize: 13,
-                              padding: "2px 4px",
+                              fontSize: 14,
+                              padding: "7px 11px",
+                              borderRadius: 6,
                             }}
                           >
-                            ✎
+                            ✎ Edit
                           </button>
                           <button
                             onClick={(e) => {
@@ -7893,13 +7713,14 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                             style={{
                               border: "none",
                               cursor: "pointer",
-                              background: "none",
+                              background: "#fef2f2",
                               color: "#ef4444",
-                              fontSize: 13,
-                              padding: "2px 4px",
+                              fontSize: 14,
+                              padding: "7px 11px",
+                              borderRadius: 6,
                             }}
                           >
-                            ✕
+                            ✕ Hapus
                           </button>
                         </div>
                       </div>
@@ -7948,6 +7769,24 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
           )}
         </div>
       </div>
+
+      {actionMenu && d.isMob && (
+        <>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 1000, opacity: drawerAnim ? 1 : 0, transition: "opacity .3s ease" }} onClick={() => setActionMenu(null)} />
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", zIndex: 1001, borderRadius: "14px 14px 0 0", padding: "20px 20px max(20px, env(safe-area-inset-bottom))", boxShadow: "0 -6px 30px rgba(0,0,0,.15)", transform: drawerAnim ? "translateY(0)" : "translateY(100%)", transition: "transform .35s ease-out" }}>
+            <div style={{ width: 36, height: 4, background: "#cbd5e1", borderRadius: 2, margin: "0 auto 14px" }} />
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2 }}>
+              {actionMenu.item.asal_surat_dari || "—"}
+            </div>
+            <div style={{ fontSize: "11.5px", color: "#64748b", marginBottom: 14 }}>{actionMenu.item.perihal}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>✎ Edit</button>
+              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item.id, actionMenu.item.perihal); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>✕ Hapus</button>
+              <button onClick={() => setActionMenu(null)} style={{ border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px 14px", background: "#fff", color: "#475569", borderRadius: 8, textAlign: "center" }}>Batal</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -7979,6 +7818,18 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
     kondisi_barang: "",
   });
   const [hoveredId, setHoveredId] = useState<string | number | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const longPressFiredRef = useRef(false);
+  const [actionMenu, setActionMenu] = useState<{ item: any; depth: number } | null>(null);
+  const [drawerAnim, setDrawerAnim] = useState(false);
+
+  useEffect(() => {
+    if (actionMenu) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setDrawerAnim(true)));
+    } else {
+      setDrawerAnim(false);
+    }
+  }, [actionMenu]);
 
   const ic: React.CSSProperties = {
     width: "100%",
@@ -8287,7 +8138,30 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
           </div>
         </div>
       ) : (
-        <>
+        d.isMob ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ minWidth: 0 }}>
+                <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>{num}.</span>
+                {" "}
+                <span style={{ fontWeight: depth === 0 ? 700 : 600, color: "#1e293b", fontSize: "13px" }}>{cleanName(m.nama_barang)}</span>
+                {hasKids && <span style={{ color: "#64748b", fontSize: "11px", fontWeight: 600, marginLeft: 4 }}>({m.children.length} item)</span>}
+              </div>
+              <div style={{ display: "flex", gap: 10, fontSize: "11.5px", color: "#64748b", flexWrap: "wrap", marginTop: 4 }}>
+                <span>Jumlah: <strong style={{color:"#1e293b"}}>{hasKids ? totalJumlah(m) : m.jumlah}</strong></span>
+                <span>Tempat: {m.tempat_penyimpanan || "—"}</span>
+                <span style={{ padding: "2px 8px", background: kndBg(m.kondisi_barang), color: kndCl(m.kondisi_barang), fontWeight: 600, fontSize: "10.5px" }}>{m.kondisi_barang || "—"}</span>
+              </div>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setActionMenu({ item: m, depth }); }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, lineHeight: 1, padding: "8px 6px", background: "#e2e8f0", color: "#475569", borderRadius: 6, flexShrink: 0, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
+            >⋮</button>
+          </div>
+        ) : (
+          <>
           <span
             style={{
               color: "#64748b",
@@ -8434,13 +8308,14 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               style={{
                 border: "none",
                 cursor: "pointer",
-                background: "none",
+                background: "#eef2ff",
                 color: "#1e3a5f",
-                fontSize: 13,
-                padding: "2px 4px",
+                fontSize: 14,
+                padding: "7px 11px",
+                borderRadius: 6,
               }}
             >
-              ✎
+              ✎ Edit
             </button>
             <button
               onClick={(e) => {
@@ -8451,24 +8326,35 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               style={{
                 border: "none",
                 cursor: "pointer",
-                background: "none",
+                background: "#fef2f2",
                 color: "#ef4444",
-                fontSize: 13,
-                padding: "2px 4px",
+                fontSize: 14,
+                padding: "7px 11px",
+                borderRadius: 6,
               }}
             >
-              ✕
+              ✕ Hapus
             </button>
           </span>
-        </>
+          </>
+        )
       );
 
       return (
         <div key={m.id}>
           <div
-            onMouseEnter={() => setHoveredId(m.id)}
-            onMouseLeave={() => setHoveredId(null)}
-            style={{
+            {...(d.isMob ? {} : { onMouseEnter: () => setHoveredId(m.id), onMouseLeave: () => setHoveredId(null) })}
+            style={d.isMob ? {
+              border: depth > 0 ? "1px solid #e2e8f0" : "1px solid #e2e8f0",
+              borderLeft: depth > 0 ? "3px solid #94a3b8" : "1px solid #e2e8f0",
+              padding: "12px 14px",
+              marginBottom: 6,
+              background: isE ? "#eef2ff" : "#fff",
+              position: "relative",
+              userSelect: "none",
+              WebkitUserSelect: "none",
+              cursor: hasKids ? "pointer" : "default",
+            } : {
               padding: "6px 10px",
               display: "flex",
               alignItems: "center",
@@ -8482,6 +8368,31 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
                     ? "#fafafa"
                     : "transparent",
             }}
+            onClick={() => {
+              if (!d.isMob) return;
+              if (actionMenu) { setActionMenu(null); return; }
+              if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
+              if (hasKids) {
+                const n = new Set(collapsed);
+                if (n.has(m.id)) n.delete(m.id);
+                else n.add(m.id);
+                setCollapsed(n);
+              }
+            }}
+            onTouchStart={d.isMob ? () => {
+              longPressFiredRef.current = false;
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = setTimeout(() => {
+                longPressFiredRef.current = true;
+                setActionMenu({ item: m, depth });
+              }, 1000);
+            } : undefined}
+            onTouchMove={d.isMob ? () => { clearTimeout(longPressTimerRef.current); } : undefined}
+            onTouchEnd={d.isMob ? () => { clearTimeout(longPressTimerRef.current); } : undefined}
+            onContextMenu={d.isMob ? (e) => {
+              e.preventDefault();
+              setActionMenu(actionMenu?.item?.id === m.id ? null : { item: m, depth });
+            } : undefined}
           >
             {row}
           </div>
@@ -8937,46 +8848,52 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             overflow: "hidden",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 10px",
-              background: "#1e3a5f",
-              color: "#fff",
-              fontSize: "11px",
-              fontWeight: 700,
-            }}
-          >
-            <span style={{ width: 14, flexShrink: 0 }} />
-            <span
+          {!d.isMob && (
+            <div
               style={{
-                flexShrink: 0,
-                minWidth: 28,
-                textAlign: "right",
-                marginRight: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 10px",
+                background: "#1e3a5f",
+                color: "#fff",
+                fontSize: "11px",
+                fontWeight: 700,
               }}
             >
-              No
-            </span>
-            <span style={{ flex: 1, minWidth: 0 }}>Nama Barang</span>
-            <span style={{ flexShrink: 0, width: 48, textAlign: "right" }}>
-              Jml
-            </span>
-            <span style={{ flexShrink: 0, width: 130, textAlign: "center" }}>
-              Tempat
-            </span>
-            <span style={{ flexShrink: 0, width: 70, textAlign: "center" }}>
-              Kondisi
-            </span>
-            <span style={{ flexShrink: 0, width: 76, textAlign: "center" }}>
-              Aksi
-            </span>
-          </div>
+              <span style={{ width: 14, flexShrink: 0 }} />
+              <span style={{ flexShrink: 0, minWidth: 28, textAlign: "right", marginRight: 4 }}>No</span>
+              <span style={{ flex: 1, minWidth: 0 }}>Nama Barang</span>
+              <span style={{ flexShrink: 0, width: 48, textAlign: "right" }}>Jml</span>
+              <span style={{ flexShrink: 0, width: 130, textAlign: "center" }}>Tempat</span>
+              <span style={{ flexShrink: 0, width: 70, textAlign: "center" }}>Kondisi</span>
+              <span style={{ flexShrink: 0, width: 76, textAlign: "center" }}>Aksi</span>
+            </div>
+          )}
           {renderTree(st.inventory)}
         </div>
       </div>
+
+      {actionMenu && d.isMob && (
+        <>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 1000, opacity: drawerAnim ? 1 : 0, transition: "opacity .3s ease" }} onClick={() => setActionMenu(null)} />
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", zIndex: 1001, borderRadius: "14px 14px 0 0", padding: "20px 20px max(20px, env(safe-area-inset-bottom))", boxShadow: "0 -6px 30px rgba(0,0,0,.15)", transform: drawerAnim ? "translateY(0)" : "translateY(100%)", transition: "transform .35s ease-out" }}>
+            <div style={{ width: 36, height: 4, background: "#cbd5e1", borderRadius: 2, margin: "0 auto 14px" }} />
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2 }}>
+              {cleanName(actionMenu.item.nama_barang)}
+            </div>
+            <div style={{ fontSize: "11.5px", color: "#64748b", marginBottom: 14 }}>#{actionMenu.item.id}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {actionMenu.depth === 0 && (
+                <button onClick={() => { setActionMenu(null); setEditingId(null); resetSub(); setSubParentId(subParentId === actionMenu.item.id ? null : actionMenu.item.id); if (collapsed.has(actionMenu.item.id)) { const n = new Set(collapsed); n.delete(actionMenu.item.id); setCollapsed(n); } }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#f0fdf4", color: "#059669", borderRadius: 8, textAlign: "left" }}>＋ Tambah Sub-Barang</button>
+              )}
+              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>✎ Edit</button>
+              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>✕ Hapus</button>
+              <button onClick={() => setActionMenu(null)} style={{ border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px 14px", background: "#fff", color: "#475569", borderRadius: 8, textAlign: "center" }}>Batal</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
