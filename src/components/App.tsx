@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function App() {
   const [st, dispatch] = useReducer<AppState, [AppAction]>(reducer, initialState);
+  const [checkingSession, setCheckingSession] = useState(() => typeof window !== 'undefined' ? !!localStorage.getItem('silap_user_id') : false);
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     description: string;
@@ -40,6 +41,8 @@ export default function App() {
     let cancelled = false;
 
     async function initApp() {
+      const savedUserId = typeof window !== 'undefined' ? localStorage.getItem('silap_user_id') : null;
+      if (savedUserId) setCheckingSession(true);
       try {
         const [
           { data: users, error: errUsers },
@@ -116,7 +119,9 @@ export default function App() {
         } catch (err) {
           console.warn('Failed to restore saved user session:', err);
         }
+        setCheckingSession(false);
       } catch (err) {
+        setCheckingSession(false);
         console.error('Failed to load data:', err);
         showToast('Terjadi kesalahan saat menghubungkan ke database');
       }
@@ -220,8 +225,6 @@ export default function App() {
   useEffect(() => {
     if (st.currentUserId) {
       localStorage.setItem('silap_user_id', st.currentUserId);
-    } else {
-      localStorage.removeItem('silap_user_id');
     }
   }, [st.currentUserId]);
 
@@ -775,6 +778,7 @@ export default function App() {
       isDanger: false,
       onConfirm: () => {
         showToast('Anda telah keluar');
+        localStorage.removeItem('silap_user_id');
         dispatch({ type: 'LOGOUT' });
         setConfirmModal(null);
         window.scrollTo(0, 0);
@@ -786,7 +790,7 @@ export default function App() {
 
   return (
     <div className="silap-scroll" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f1f5f9', fontFamily: "'Inter', system-ui, sans-serif", color: '#1e293b', WebkitFontSmoothing: 'antialiased' }}>
-      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}button{cursor:pointer}button:not(:disabled):hover{opacity:.85}button:not(:disabled):active{opacity:.7}.silap-hover:hover{opacity:.85}.silap-hover:active{opacity:.7}`}</style>
+      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}@keyframes silapSpin{to{transform:rotate(360deg)}}button{cursor:pointer}button:not(:disabled):hover{opacity:.85}button:not(:disabled):active{opacity:.7}.silap-hover:hover{opacity:.85}.silap-hover:active{opacity:.7}`}</style>
       {/* HEADER */}
       <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '95%', margin: '0 auto', padding: d.rs.headerPad, display: 'flex', alignItems: 'center', columnGap: 'var(--silap-header-gap)', flexWrap: 'wrap', rowGap: 4 }}>
@@ -813,7 +817,7 @@ export default function App() {
             {!d.u && (
               <>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '12.5px', fontWeight: 600, color: '#94a3b8', background: '#f8fafc', padding: '7px 12px', border: '1px solid #e2e8f0' }}><span style={{ width: 7, height: 7, background: '#94a3b8' }}></span>Mode Warga</span>
-                <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: '10px 20px', background: '#1e3a5f', color: '#fff', boxShadow: '0 2px 8px rgba(30,58,95,0.15)' }}>Masuk</button>
+                <button suppressHydrationWarning disabled={checkingSession} onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: checkingSession ? 'default' : 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: '10px 20px', background: checkingSession ? '#94a3b8' : '#1e3a5f', color: '#fff', boxShadow: checkingSession ? 'none' : '0 2px 8px rgba(30,58,95,0.15)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>{checkingSession ? <><span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span>Memeriksa</> : 'Masuk'}</button>
               </>
             )}
             {d.u && (
@@ -827,7 +831,7 @@ export default function App() {
 
           <div style={{ display: 'var(--silap-m-nav-display)', marginLeft: 'auto', alignItems: 'center', gap: 8 }}>
             {d.u && <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" style={{ cursor: 'pointer', width: 34, height: 34, overflow: 'hidden', border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>}
-            {!d.u && <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: '#1e3a5f', color: '#fff' }}>Masuk</button>}
+            {!d.u && <button suppressHydrationWarning disabled={checkingSession} onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: checkingSession ? 'default' : 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: checkingSession ? '#94a3b8' : '#1e3a5f', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 5 }}>{checkingSession ? <><span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span>Memeriksa</> : 'Masuk'}</button>}
             <button onClick={() => dispatch({ type: 'TOGGLE_MENU' })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 38, height: 38, fontSize: 18, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.menuOpen ? '✕' : '☰'}</button>
           </div>
         </div>
