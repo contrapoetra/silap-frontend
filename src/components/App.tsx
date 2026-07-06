@@ -8,9 +8,12 @@ import { BerandaSection, PokjaOverviewSection, PokjaDetailSection, GaleriSection
 import { LoginModal, EventModal, GalModal, FileUploadModal, AvatarModal, UserModal, ConfirmDeleteModal } from './Modals';
 import { supabase } from '@/lib/supabase';
 
-export default function App() {
-  const [st, dispatch] = useReducer<AppState, [AppAction]>(reducer, initialState);
-  const [checkingSession, setCheckingSession] = useState(() => typeof window !== 'undefined' ? !!localStorage.getItem('silap_user_id') : false);
+export default function App({ initialUserId, initialUsers }: { initialUserId?: string | null; initialUsers?: any[] }) {
+  const [st, dispatch] = useReducer<AppState, [AppAction]>(reducer, {
+    ...initialState,
+    currentUserId: initialUserId ?? null,
+    users: initialUsers ?? [],
+  });
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     description: string;
@@ -18,6 +21,7 @@ export default function App() {
     isDanger?: boolean;
     onConfirm: () => void;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const showToast = useCallback((msg: string) => {
@@ -41,8 +45,6 @@ export default function App() {
     let cancelled = false;
 
     async function initApp() {
-      const savedUserId = typeof window !== 'undefined' ? localStorage.getItem('silap_user_id') : null;
-      if (savedUserId) setCheckingSession(true);
       try {
         const [
           { data: users, error: errUsers },
@@ -108,22 +110,19 @@ export default function App() {
               pengumuman: pengumumanData,
             },
           });
-        }
 
-        // Restore saved session
-        try {
-          const savedUserId = localStorage.getItem('silap_user_id');
-          if (savedUserId && users?.some((u: any) => u.id === savedUserId)) {
-            dispatch({ type: 'DO_LOGIN', payload: savedUserId });
+          // Navigate to dashboard if session was restored via cookie
+          if (initialUserId && users?.some((u: any) => u.id === initialUserId)) {
+            dispatch({ type: 'DO_LOGIN', payload: initialUserId });
+          } else if (st.currentUserId && !users?.some((u: any) => u.id === st.currentUserId)) {
+            dispatch({ type: 'LOGOUT' });
           }
-        } catch (err) {
-          console.warn('Failed to restore saved user session:', err);
+          setLoading(false);
         }
-        setCheckingSession(false);
       } catch (err) {
-        setCheckingSession(false);
         console.error('Failed to load data:', err);
         showToast('Terjadi kesalahan saat menghubungkan ke database');
+        setLoading(false);
       }
     }
     
@@ -221,10 +220,10 @@ export default function App() {
     }
   }, []);
 
-  // Synchronize currentUserId with localStorage
+  // Synchronize currentUserId with cookie
   useEffect(() => {
     if (st.currentUserId) {
-      localStorage.setItem('silap_user_id', st.currentUserId);
+      document.cookie = `silap_session=${st.currentUserId}; path=/; max-age=2592000; SameSite=Lax`;
     }
   }, [st.currentUserId]);
 
@@ -778,7 +777,7 @@ export default function App() {
       isDanger: false,
       onConfirm: () => {
         showToast('Anda telah keluar');
-        localStorage.removeItem('silap_user_id');
+        document.cookie = 'silap_session=; path=/; max-age=0';
         dispatch({ type: 'LOGOUT' });
         setConfirmModal(null);
         window.scrollTo(0, 0);
@@ -817,21 +816,21 @@ export default function App() {
             {!d.u && (
               <>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '12.5px', fontWeight: 600, color: '#94a3b8', background: '#f8fafc', padding: '7px 12px', border: '1px solid #e2e8f0' }}><span style={{ width: 7, height: 7, background: '#94a3b8' }}></span>Mode Warga</span>
-                <button suppressHydrationWarning disabled={checkingSession} onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: checkingSession ? 'default' : 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: '10px 20px', background: checkingSession ? '#94a3b8' : '#1e3a5f', color: '#fff', boxShadow: checkingSession ? 'none' : '0 2px 8px rgba(30,58,95,0.15)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>{checkingSession ? <><span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span>Memeriksa</> : 'Masuk'}</button>
+                <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: '10px 20px', background: '#1e3a5f', color: '#fff', boxShadow: '0 2px 8px rgba(30,58,95,0.15)' }}>Masuk</button>
               </>
             )}
             {d.u && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #e2e8f0', padding: '4px 5px 4px 12px' }}>
                 <div style={{ textAlign: 'right', lineHeight: 1.15 }}><div style={{ fontSize: 13, fontWeight: 700 }}>{d.userVals.name}</div><div style={{ fontSize: '10.5px', fontWeight: 600, color: d.userVals.chipColor }}>{d.userVals.roleLabel}</div></div>
-                <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" title="Edit foto profil" style={{ cursor: 'pointer', width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>
+                <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" title="Edit foto profil" style={{ cursor: 'pointer', width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>
                 <button onClick={handleLogout} title="Keluar" onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}} style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⏻</button>
               </div>
             )}
           </div>
 
           <div style={{ display: 'var(--silap-m-nav-display)', marginLeft: 'auto', alignItems: 'center', gap: 8 }}>
-            {d.u && <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" style={{ cursor: 'pointer', width: 34, height: 34, overflow: 'hidden', border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>}
-            {!d.u && <button suppressHydrationWarning disabled={checkingSession} onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: checkingSession ? 'default' : 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: checkingSession ? '#94a3b8' : '#1e3a5f', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 5 }}>{checkingSession ? <><span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span>Memeriksa</> : 'Masuk'}</button>}
+            {d.u && <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" style={{ cursor: 'pointer', width: 34, height: 34, overflow: 'hidden', border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>}
+            {!d.u && <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: '#1e3a5f', color: '#fff' }}>Masuk</button>}
             <button onClick={() => dispatch({ type: 'TOGGLE_MENU' })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 38, height: 38, fontSize: 18, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.menuOpen ? '✕' : '☰'}</button>
           </div>
         </div>
@@ -844,7 +843,7 @@ export default function App() {
             {d.u && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f8fafc', padding: '12px 14px', marginTop: 6, marginBottom: 8 }}>
-                  <div style={{ width: 38, height: 38, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div></div>
+                  <div style={{ width: 38, height: 38, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>
                   <div><div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{d.userVals.name}</div><div style={{ fontSize: 12, color: d.userVals.chipColor, fontWeight: 600 }}>{d.userVals.roleLabel}</div></div>
                 </div>
                 <button onClick={handleLogout} style={{ width: '100%', border: '1px solid #e2e8f0', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, padding: 11, background: '#fff', color: '#ef4444' }}>Keluar</button>
