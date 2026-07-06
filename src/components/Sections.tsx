@@ -4695,8 +4695,10 @@ export function DashboardSection({
         <div
           style={{
             display: "flex",
+            justifyContent: d.isMob ? "space-between" : undefined,
             gap: d.isMob ? "10px" : "14px",
             flexWrap: "wrap",
+            width: d.isMob ? "100%" : undefined,
           }}
         >
           {d.dashStats.map((s, i) => (
@@ -4706,7 +4708,8 @@ export function DashboardSection({
                 background: "rgba(255,255,255,.15)",
                 padding: d.isMob ? "10px 14px" : "12px 18px",
                 textAlign: "center",
-                minWidth: d.isMob ? 80 : 100,
+                flex: d.isMob ? 1 : undefined,
+                minWidth: d.isMob ? 0 : 100,
               }}
             >
               <div
