@@ -1152,7 +1152,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                 ›
               </button>
             </div>
-            {d.canEditActive && (
+          {!d.isMob && d.canEditActive && (
               <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>
                 Klik tanggal untuk tambah
               </span>
@@ -1453,6 +1453,39 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
               </div>
             ))}
           </div>
+          {d.isMob && d.canEditActive && (() => {
+            return (
+              <div style={{ position: "sticky", bottom: 24, height: 0, overflow: "visible", zIndex: 50 }}>
+                <button
+                  onClick={() =>
+                    dispatch({ type: "SET_GAL_MODAL", payload: { caption: "" } })
+                  }
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 24,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    background: "#1e3a5f",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: 56,
+                    height: 56,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 4px 12px rgba(30,58,95,.4)",
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="11" y1="5" x2="11" y2="17" />
+                    <line x1="5" y1="11" x2="17" y2="11" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })()}
         </div>
       )}
       {st.tab === "berkas" && (
@@ -1463,7 +1496,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
             padding: 8,
           }}
         >
-          {d.canEditActive && (
+          {!d.isMob && d.canEditActive && (
             <button
               onClick={() =>
                 dispatch({
@@ -1581,6 +1614,42 @@ href={fl.url}
               )}
             </div>
           ))}
+          {d.isMob && d.canEditActive && (() => {
+            return (
+              <div style={{ position: "sticky", bottom: 24, height: 0, overflow: "visible", zIndex: 50 }}>
+                <button
+                  onClick={() =>
+                    dispatch({
+                      type: "SET_FILE_MODAL",
+                      payload: { name: "", size: "" },
+                    })
+                  }
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 24,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    background: "#1e3a5f",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: 56,
+                    height: 56,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 4px 12px rgba(30,58,95,.4)",
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="11" y1="5" x2="11" y2="17" />
+                    <line x1="5" y1="11" x2="17" y2="11" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
@@ -1703,7 +1772,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
             Dokumentasi seluruh pokja dalam satu halaman.
           </p>
         </div>
-        {isAdmin && !showUpload && (
+        {!d.isMob && isAdmin && !showUpload && (
           <button
             onClick={() => setShowUpload(true)}
             style={{
@@ -2396,6 +2465,35 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
           </a>
         </div>
       )}
+      {d.isMob && isAdmin && !showUpload && (
+        <div style={{ position: "sticky", bottom: 24, height: 0, overflow: "visible", zIndex: 50 }}>
+          <button
+            onClick={() => setShowUpload(true)}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              right: 24,
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              background: "#1e3a5f",
+              color: "#fff",
+              borderRadius: "50%",
+              width: 56,
+              height: 56,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(30,58,95,.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="11" y1="5" x2="11" y2="17" />
+              <line x1="5" y1="11" x2="17" y2="11" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -2768,6 +2866,7 @@ export function BerkasSection({
   showToast: (msg: string) => void;
 }) {
   const isAdmin = !!(d.u && d.u.role === "admin");
+  const canUploadBerkas = isAdmin || (!!d.u && d.u.pokja != null && st.fileFilter !== "all" && d.u.pokja === st.fileFilter);
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
@@ -2788,6 +2887,30 @@ export function BerkasSection({
             Dokumen dan berkas seluruh pokja.
           </p>
         </div>
+        {!d.isMob && canUploadBerkas && (
+          <button
+            onClick={() =>
+              dispatch({
+                type: "SET_FILE_MODAL",
+                payload: { name: "", size: "" },
+              })
+            }
+            style={{
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: 13,
+              fontWeight: 700,
+              padding: "9px 18px",
+              background: "#16a34a",
+              color: "#fff",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            ＋ Unggah Berkas
+          </button>
+        )}
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center" }}>
         <div
@@ -4761,6 +4884,82 @@ export function DashboardSection({
               ＋ Tambah Akun
             </button>
           </div>
+          {d.isMob ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {d.allUsers.map((au, i) => (
+                <div
+                  key={i}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    padding: "12px 14px",
+                    background: "#fff",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <div style={au.avatarStyle as React.CSSProperties}>
+                      {au.avatarInitial}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#1e293b" }}>
+                        {au.name}
+                      </div>
+                      <div style={{ fontSize: 11, fontFamily: "ui-monospace,monospace", color: "#94a3b8", letterSpacing: ".04em" }}>
+                        {au.nikMasked}
+                      </div>
+                    </div>
+                    <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexShrink: 0 }}>
+                      <button
+                        onClick={au.onEdit}
+                        style={{
+                          border: "1px solid #e2e8f0",
+                          background: "#f8fafc",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          fontSize: "11.5px",
+                          fontWeight: 700,
+                          color: "#1e3a5f",
+                          padding: "7px 11px",
+                        }}
+                      >
+                        Edit
+                      </button>
+                      {au.canDelete && (
+                        <button
+                          onClick={au.onDelete}
+                          style={{
+                            border: "1px solid #fef2f2",
+                            background: "#fdf2f2",
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            fontSize: "11.5px",
+                            fontWeight: 700,
+                            color: "#ef4444",
+                            padding: "7px 11px",
+                          }}
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, fontSize: "12.5px", color: "#475569" }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: "4px 9px",
+                        background: au.roleBg,
+                        color: au.roleColor,
+                      }}
+                    >
+                      {au.roleLabel}
+                    </span>
+                    <span style={{ color: "#94a3b8" }}>{au.pokjaName}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
           <div
             className="silap-scroll"
             style={{ overflowX: "auto", border: "1px solid #e2e8f0" }}
@@ -4891,6 +5090,7 @@ export function DashboardSection({
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
       {d.userVals.isKetua && (
