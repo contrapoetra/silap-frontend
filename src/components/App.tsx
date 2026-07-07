@@ -853,14 +853,50 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
         )}
       </header>
 
-      <main style={{ flex: 1, width: '100%', maxWidth: '95%', margin: '0 auto', padding: st.route === 'pengumuman' ? '0' : d.rs.mainPad, display: st.route === 'pengumuman' ? 'flex' : 'block', flexDirection: 'column' }}>
+      <main style={{ flex: 1, width: '100%', maxWidth: '95%', margin: '0 auto', padding: st.route === 'pengumuman' ? '0' : d.rs.mainPad, display: 'flex', flexDirection: 'column' }}>
         {st.route === 'beranda' && <BerandaSection d={d} st={st} dispatch={asyncDispatch} go={go} openPokja={openPokja} showToast={showToast} />}
         {st.route === 'pokja' && <PokjaOverviewSection d={d} go={go} />}
         {st.route === 'detail' && <PokjaDetailSection d={d} st={st} dispatch={asyncDispatch} go={go} openPokja={openPokja} showToast={showToast} />}
         {st.route === 'galeri' && <GaleriSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} go={go} openPokja={openPokja} />}
         {st.route === 'pengumuman' && <PengumumanSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} go={go} openPokja={openPokja} />}
         {st.route === 'kalender' && <KalenderSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} />}
-        {st.route === 'berkas' && <BerkasSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} />}
+        {st.route === 'berkas' && (() => {
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+              <BerkasSection d={d} st={st} dispatch={asyncDispatch} showToast={showToast} />
+              {d.u && (() => {
+                const isAdmin = d.u.role === 'admin';
+                const canUploadBerkas = isAdmin || (d.u.pokja != null && st.fileFilter !== 'all' && d.u.pokja === st.fileFilter);
+                return canUploadBerkas ? (
+                  <div style={{ position: 'sticky', bottom: 28, alignSelf: 'flex-end' }}>
+                    <button
+                      onClick={() => asyncDispatch({ type: 'SET_FILE_MODAL', payload: { name: '', size: '' } })}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        background: '#16a34a',
+                        color: '#fff',
+                        borderRadius: '50%',
+                        width: 56,
+                        height: 56,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(22,163,74,.4)',
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <line x1="11" y1="5" x2="11" y2="17" />
+                        <line x1="5" y1="11" x2="17" y2="11" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : null;
+              })()}
+            </div>
+          );
+        })()}
         {st.route === 'inovasi' && <InovasiSection d={d} st={st} dispatch={asyncDispatch} go={go} />}
         {st.route === 'editor' && <MilkdownProvider><EditorSection d={d} st={st} dispatch={asyncDispatch} go={go} showToast={showToast} /></MilkdownProvider>}
         {st.route === 'post' && <BlogPostSection d={d} st={st} dispatch={asyncDispatch} go={go} />}

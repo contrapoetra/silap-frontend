@@ -1226,56 +1226,59 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
 }
 
 export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  const handleFile = (f: File) => {
-    setSelectedFile(f);
-    const kb = Math.max(1, Math.round(f.size / 1024));
-    dispatch({
-      type: "SET_FILE_MODAL",
-      payload: {
-        name: f.name,
-        size: kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB",
-      },
-    });
+  const addFiles = (files: FileList) => {
+    setSelectedFiles((prev) => [...prev, ...Array.from(files)]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUpload = async () => {
-    if (!st.fileModal!.name.trim() || !selectedFile) {
+    if (selectedFiles.length === 0) {
       showToast("Pilih berkas dulu");
       return;
     }
-    const nm = st.fileModal!.name.trim();
-    const ext = /\.xlsx?$/i.test(nm)
-      ? "XLS"
-      : /\.docx?$/i.test(nm)
-        ? "DOC"
-        : "PDF";
     setUploadProgress(1);
     try {
       const { uploadBerkasToS3 } = await import("@/lib/s3-upload");
-      const url = await uploadBerkasToS3(selectedFile, setUploadProgress);
-      dispatch({
-        type: "ADD_FILE",
-        payload: {
-          id: st.nextId,
-          pokja: st.activePokja,
-          name: nm,
-          ext,
-          size: st.fileModal!.size || "— KB",
-          by: d.u ? d.u.name : "—",
-          date: new Date().toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          }),
-          url,
-        },
-      });
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const f = selectedFiles[i];
+        const nm = f.name;
+        const ext = /\.xlsx?$/i.test(nm)
+          ? "XLS"
+          : /\.docx?$/i.test(nm)
+            ? "DOC"
+            : "PDF";
+        const kb = Math.max(1, Math.round(f.size / 1024));
+        const size = kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB";
+        const url = await uploadBerkasToS3(f, (pct) =>
+          setUploadProgress(Math.round(((i + pct / 100) / selectedFiles.length) * 100))
+        );
+        dispatch({
+          type: "ADD_FILE",
+          payload: {
+            id: st.nextId + i,
+            pokja: st.activePokja,
+            name: nm,
+            ext,
+            size,
+            by: d.u ? d.u.name : "—",
+            date: new Date().toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            }),
+            url,
+          },
+        });
+      }
       dispatch({ type: "SET_FILE_MODAL", payload: null });
-      showToast("Berkas diunggah");
+      showToast(`${selectedFiles.length} berkas diunggah`);
     } catch (err) {
       setUploadProgress(0);
       showToast("Gagal mengunggah berkas");
@@ -1342,33 +1345,23 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
             e.preventDefault();
             setIsDragOver(false);
             if (uploadProgress > 0) return;
-            const f = e.dataTransfer.files?.[0];
-            if (f) handleFile(f);
+            if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
           }}
         >
           <input
             type="file"
             accept=".pdf,.xls,.xlsx,.doc,.docx"
             disabled={uploadProgress > 0}
+            multiple
             onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
+              if (e.target.files?.length) addFiles(e.target.files);
+              e.target.value = "";
             }}
             style={{ display: "none" }}
           />
-          {selectedFile ? (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#1e3a5f",
-              }}
-            >
-              ✓ {selectedFile.name}
+          {selectedFiles.length > 0 ? (
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1e3a5f" }}>
+              ✓ {selectedFiles.length} berkas dipilih
             </div>
           ) : (
             <>
@@ -1423,78 +1416,81 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
             </span>
           </div>
         </label>
-        {d.fileModalV.name && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              padding: "10px 12px",
-              marginBottom: 16,
-            }}
-          >
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                background: d.fileModalV.tint,
-                color: d.fileModalV.accent,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 10,
-                fontWeight: 800,
-                flexShrink: 0,
-              }}
-            >
-              {d.fileModalV.ext}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#1e293b",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {d.fileModalV.name}
-              </div>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                {d.fileModalV.size} · siap diunggah
-              </div>
-            </div>
-            <span style={{ color: "#1e3a5f", fontSize: 15 }}>✓</span>
+        {selectedFiles.length > 0 && (
+          <div style={{ marginBottom: 16, maxHeight: 160, overflowY: "auto" }}>
+            {selectedFiles.map((f, i) => {
+              const kb = Math.max(1, Math.round(f.size / 1024));
+              const size = kb >= 1024 ? (kb / 1024).toFixed(1) + " MB" : kb + " KB";
+              return (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    padding: "8px 12px",
+                    marginBottom: 4,
+                  }}
+                >
+                  <span style={{ color: "#1e3a5f", fontSize: 13 }}>✓</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "#1e293b",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {f.name}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#94a3b8" }}>{size}</div>
+                  </div>
+                  {uploadProgress === 0 && (
+                    <button
+                      onClick={() => removeFile(i)}
+                      style={{
+                        border: "none",
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        background: "transparent",
+                        color: "#94a3b8",
+                        fontSize: 16,
+                        padding: "2px 6px",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={() => { if (uploadProgress === 0) dispatch({ type: "SET_FILE_MODAL", payload: null }); }}
-            onMouseEnter={uploadProgress > 0 ? undefined : btnHover.primary}
-            onMouseLeave={uploadProgress > 0 ? undefined : btnHover.primaryL}
             style={{
-              flex: 1.4,
-              border: "none",
+              flex: 1,
+              border: "1px solid #cbd5e1",
               cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
               fontFamily: "inherit",
               fontSize: 14,
               fontWeight: 700,
               padding: 12,
-              background: uploadProgress > 0 ? "#94a3b8" : "#1e3a5f",
-              color: "#fff",
-              opacity: uploadProgress > 0 ? 0.7 : 1,
+              background: uploadProgress > 0 ? "#f1f5f9" : "#fff",
+              color: "#475569",
+              opacity: uploadProgress > 0 ? 0.5 : 1,
             }}
           >
-            {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : "Unggah"}
+            Batal
           </button>
           <button
             onClick={handleUpload}
-            onMouseEnter={uploadProgress > 0 ? undefined : btnHover.primary}
-            onMouseLeave={uploadProgress > 0 ? undefined : btnHover.primaryL}
             style={{
               flex: 1.4,
               border: "none",
@@ -1508,7 +1504,7 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
               opacity: uploadProgress > 0 ? 0.7 : 1,
             }}
           >
-            {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : "Unggah"}
+            {uploadProgress > 0 ? `Mengunggah ${uploadProgress}%` : `Unggah (${selectedFiles.length})`}
           </button>
         </div>
         {uploadProgress > 0 && (

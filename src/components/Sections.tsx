@@ -2768,27 +2768,28 @@ export function BerkasSection({
   showToast: (msg: string) => void;
 }) {
   const isAdmin = !!(d.u && d.u.role === "admin");
-  const canUploadBerkas = isAdmin || (!!d.u && d.u.pokja != null && st.fileFilter !== "all" && d.u.pokja === st.fileFilter);
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1
-          style={{
-            fontSize: d.rs.pageH1,
-            fontWeight: 800,
-            letterSpacing: "-.025em",
-            color: "#0f172a",
-            marginBottom: 7,
-          }}
-        >
-          Berkas Pokja
-        </h1>
-        <p style={{ fontSize: "14.5px", color: "#475569" }}>
-          Dokumen dan berkas seluruh pokja.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
+        <div>
+          <h1
+            style={{
+              fontSize: d.rs.pageH1,
+              fontWeight: 800,
+              letterSpacing: "-.025em",
+              color: "#0f172a",
+              marginBottom: 7,
+            }}
+          >
+            Berkas Pokja
+          </h1>
+          <p style={{ fontSize: "14.5px", color: "#475569" }}>
+            Dokumen dan berkas seluruh pokja.
+          </p>
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center" }}>
         <div
           className="silap-scroll"
           style={{
@@ -2819,32 +2820,6 @@ export function BerkasSection({
             </button>
           ))}
         </div>
-        {canUploadBerkas && (
-          <button
-            onClick={() =>
-              dispatch({
-                type: "SET_FILE_MODAL",
-                payload: { name: "", size: "" },
-              })
-            }
-            onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#dbeafe'}}
-            onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#eef2ff'}}
-            style={{
-              border: "1px dashed #1e3a5f",
-              background: "#eef2ff",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#1e3a5f",
-              padding: "8px 16px",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}
-          >
-            ⬆ Unggah
-          </button>
-        )}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {d.allFiles.map((f, i) => {
