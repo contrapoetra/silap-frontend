@@ -1453,39 +1453,6 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
               </div>
             ))}
           </div>
-          {d.isMob && d.canEditActive && (() => {
-            return (
-              <div style={{ position: "sticky", bottom: 24, height: 0, overflow: "visible", zIndex: 50 }}>
-                <button
-                  onClick={() =>
-                    dispatch({ type: "SET_GAL_MODAL", payload: { caption: "" } })
-                  }
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    right: 24,
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    background: "#1e3a5f",
-                    color: "#fff",
-                    borderRadius: "50%",
-                    width: 56,
-                    height: 56,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 4px 12px rgba(30,58,95,.4)",
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <line x1="11" y1="5" x2="11" y2="17" />
-                    <line x1="5" y1="11" x2="17" y2="11" />
-                  </svg>
-                </button>
-              </div>
-            );
-          })()}
         </div>
       )}
       {st.tab === "berkas" && (
@@ -1614,42 +1581,6 @@ href={fl.url}
               )}
             </div>
           ))}
-          {d.isMob && d.canEditActive && (() => {
-            return (
-              <div style={{ position: "sticky", bottom: 24, height: 0, overflow: "visible", zIndex: 50 }}>
-                <button
-                  onClick={() =>
-                    dispatch({
-                      type: "SET_FILE_MODAL",
-                      payload: { name: "", size: "" },
-                    })
-                  }
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    right: 24,
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    background: "#1e3a5f",
-                    color: "#fff",
-                    borderRadius: "50%",
-                    width: 56,
-                    height: 56,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 4px 12px rgba(30,58,95,.4)",
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <line x1="11" y1="5" x2="11" y2="17" />
-                    <line x1="5" y1="11" x2="17" y2="11" />
-                  </svg>
-                </button>
-              </div>
-            );
-          })()}
         </div>
       )}
     </div>
@@ -2466,13 +2397,10 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
         </div>
       )}
       {d.isMob && isAdmin && !showUpload && (
-        <div style={{ position: "sticky", bottom: 24, height: 0, overflow: "visible", zIndex: 50 }}>
+        <div style={{ position: "fixed", bottom: 80, right: 24, zIndex: 50 }}>
           <button
             onClick={() => setShowUpload(true)}
             style={{
-              position: "absolute",
-              bottom: 0,
-              right: 24,
               border: "none",
               cursor: "pointer",
               fontFamily: "inherit",
@@ -6721,6 +6649,19 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
     resetAdd();
   };
 
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const longPressFiredRef = useRef(false);
+  const [actionMenu, setActionMenu] = useState<{ item: any } | null>(null);
+  const [drawerAnim, setDrawerAnim] = useState(false);
+
+  useEffect(() => {
+    if (actionMenu) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setDrawerAnim(true)));
+    } else {
+      setDrawerAnim(false);
+    }
+  }, [actionMenu]);
+
   const handleDelete = (id: string | number, name: string) => {
     if (confirm(`Hapus ${name} dari daftar anggota PKK?`)) {
       dispatch({ type: "DELETE_PKK_MEMBER", payload: id });
@@ -6791,7 +6732,7 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
             >
               <span>▦</span> Export Excel
             </button>
-            {!showForm && (
+            {!d.isMob && !showForm && (
             <button
               onClick={() => {
                 resetAdd();
@@ -6815,12 +6756,22 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
       </div>
 
       {showForm && (
+        <div
+          onClick={() => setShowForm(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 60,
+            background: "rgba(15,23,42,.6)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 16, animation: "silapFade .2s ease",
+          }}
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              padding: 16,
-              marginBottom: 16,
+              background: "#fff",
+              maxWidth: 410, width: "100%", padding: 26,
+              animation: "silapPop .25s ease",
+              maxHeight: "90vh", overflowY: "auto" as const,
             }}
           >
             <div
@@ -6840,83 +6791,39 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
               onCancel={resetAdd}
             />
           </div>
+          </div>
         )}
 
         {d.isMob ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {d.pkkMembers.map((m: any, i: number) => {
-              const isE = editingId === m.id;
               return (
-                <div key={i} style={{ border: "1px solid #e2e8f0", padding: "12px 14px", background: isE ? "#eef2ff" : m.rowBg }}>
-                  {isE ? (
-                    <>
-                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Nama</label>
-                      <input value={ef.name} onChange={(e) => setEf({ ...ef, name: e.target.value })} style={ic} />
-                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Jabatan</label>
-                      <select value={ef.position} onChange={(e) => setEf({ ...ef, position: e.target.value })} style={sc}>
-                        {JABATAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
-                      </select>
-                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>L/P</label>
-                          <select value={ef.gender} onChange={(e) => setEf({ ...ef, gender: e.target.value })} style={sc}>
-                            <option value="">—</option>
-                            <option value="L">L</option>
-                            <option value="P">P</option>
-                          </select>
-                        </div>
-                        <div style={{ flex: 2 }}>
-                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Tempat Lahir</label>
-                          <input value={ef.birth_place} onChange={(e) => setEf({ ...ef, birth_place: e.target.value })} style={ic} />
-                        </div>
+                <div key={i} style={{ border: "1px solid #e2e8f0", padding: "12px 14px", background: m.rowBg }}
+                  onTouchStart={() => { longPressFiredRef.current = false; longPressTimerRef.current = setTimeout(() => { longPressFiredRef.current = true; setActionMenu({ item: m }); }, 1000); }}
+                  onTouchEnd={() => { clearTimeout(longPressTimerRef.current); }}
+                  onTouchMove={() => { clearTimeout(longPressTimerRef.current); }}
+                  onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return; } setActionMenu({ item: m }); }}
+                >
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>{m.name}</div>
+                        <span style={{ fontSize: "10.5px", fontWeight: 600, padding: "3px 7px", background: POSITION_COLORS[m.position]?.bg || "#f1f5f9", color: POSITION_COLORS[m.position]?.text || "#475569" }}>{m.position}</span>
                       </div>
-                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Tanggal Lahir</label>
-                      <input type="date" value={ef.birth_date} onChange={(e) => setEf({ ...ef, birth_date: e.target.value })} style={ic} />
-                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Status</label>
-                          <select value={ef.marital_status} onChange={(e) => setEf({ ...ef, marital_status: e.target.value })} style={sc}>
-                            {STATUS_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
-                          </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 2 }}>Pendidikan</label>
-                          <select value={ef.education} onChange={(e) => setEf({ ...ef, education: e.target.value })} style={sc}>
-                            {PENDIDIKAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
-                          </select>
-                        </div>
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <button
+                          onClick={() => { setActionMenu({ item: m }); }}
+                          title="Menu"
+                          style={{ border: "none", cursor: "pointer", background: "#f1f5f9", color: "#475569", fontSize: 15, padding: "8px 10px", borderRadius: 6, lineHeight: 1 }}
+                        >⋮</button>
                       </div>
-                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Pekerjaan</label>
-                      <input value={ef.occupation} onChange={(e) => setEf({ ...ef, occupation: e.target.value })} style={ic} />
-                      <label style={{ fontSize: "10.5px", fontWeight: 700, color: "#475569", display: "block", marginTop: 8, marginBottom: 2 }}>Keanggotaan</label>
-                      <select value={ef.membership_status} onChange={(e) => setEf({ ...ef, membership_status: e.target.value })} style={sc}>
-                        <option value="Aktif">Aktif</option>
-                        <option value="Tidak Aktif">Tidak Aktif</option>
-                      </select>
-                      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                        <button onClick={() => setEditingId(null)} style={{ flex: 1, border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 600, padding: "8px", background: "#fff", color: "#475569" }}>Batal</button>
-                        <button onClick={saveEdit} style={{ flex: 1, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "8px", background: "#1e3a5f", color: "#fff" }}>Simpan</button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: "#1e293b" }}>{m.name}</div>
-                          <span style={{ fontSize: "10.5px", fontWeight: 600, padding: "3px 7px", background: POSITION_COLORS[m.position]?.bg || "#f1f5f9", color: POSITION_COLORS[m.position]?.text || "#475569" }}>{m.position}</span>
-                        </div>
-                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                          <button onClick={() => startEdit(m)} title="Edit" style={{ border: "none", cursor: "pointer", background: "#eef2ff", color: "#1e3a5f", fontSize: 15, padding: "8px 12px", borderRadius: 6 }}>✎ Edit</button>
-                          <button onClick={() => handleDelete(m.id, m.name)} title="Hapus" style={{ border: "none", cursor: "pointer", background: "#fef2f2", color: "#ef4444", fontSize: 15, padding: "8px 12px", borderRadius: 6 }}>✕ Hapus</button>
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>{m.gender || "—"} · {m.birth_place || "—"} · {m.birth_date || "—"}</div>
-                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>{m.marital_status || "—"} · {m.education || "—"} · {m.occupation || "—"}</div>
-                      <div style={{ marginTop: 8 }}>
-                        <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", background: m.membership_status === "Aktif" ? "#f0fdf4" : "#fef2f2", color: m.membership_status === "Aktif" ? "#16a34a" : "#ef4444" }}>{m.membership_status || "—"}</span>
-                      </div>
-                    </>
-                  )}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>{m.gender || "—"} · {m.birth_place || "—"} · {m.birth_date || "—"}</div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>{m.marital_status || "—"} · {m.education || "—"} · {m.occupation || "—"}</div>
+                    <div style={{ marginTop: 8 }}>
+                      <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", background: m.membership_status === "Aktif" ? "#f0fdf4" : "#fef2f2", color: m.membership_status === "Aktif" ? "#16a34a" : "#ef4444" }}>{m.membership_status || "—"}</span>
+                    </div>
+                  </>
                 </div>
               );
             })}
@@ -7008,6 +6915,106 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
           </div>
         )}
       </div>
+      {d.isMob && !showForm && (
+        <div style={{ position: "fixed", bottom: 80, right: 24, zIndex: 50 }}>
+          <button
+            onClick={() => { resetAdd(); setShowForm(true); }}
+            style={{
+              border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: "#1e3a5f", color: "#fff", borderRadius: "50%",
+              width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(30,58,95,.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="11" y1="5" x2="11" y2="17" /><line x1="5" y1="11" x2="17" y2="11" />
+            </svg>
+          </button>
+        </div>
+      )}
+      {actionMenu && d.isMob && (
+        <>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 1000, opacity: drawerAnim ? 1 : 0, transition: "opacity .3s ease" }} onClick={() => setActionMenu(null)} />
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", zIndex: 1001, borderRadius: "14px 14px 0 0", padding: "20px 20px max(20px, env(safe-area-inset-bottom))", boxShadow: "0 -6px 30px rgba(0,0,0,.15)", transform: drawerAnim ? "translateY(0)" : "translateY(100%)", transition: "transform .35s ease-out" }}>
+            <div style={{ width: 36, height: 4, background: "#cbd5e1", borderRadius: 2, margin: "0 auto 14px" }} />
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2 }}>
+              {actionMenu.item.name}
+            </div>
+            <div style={{ fontSize: "11.5px", color: "#64748b", marginBottom: 14 }}>#{actionMenu.item.position}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>✎ Edit</button>
+              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item.id, actionMenu.item.name); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>✕ Hapus</button>
+              <button onClick={() => setActionMenu(null)} style={{ border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px 14px", background: "#fff", color: "#475569", borderRadius: 8, textAlign: "center" }}>Batal</button>
+            </div>
+          </div>
+        </>
+      )}
+      {editingId !== null && d.isMob && (
+        <div
+          onClick={() => setEditingId(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 60,
+            background: "rgba(15,23,42,.6)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 16, animation: "silapFade .2s ease",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff", maxWidth: 410, width: "100%", padding: 26,
+              animation: "silapPop .25s ease",
+              maxHeight: "90vh", overflowY: "auto" as const,
+            }}
+          >
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 16 }}>Edit Anggota</div>
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 3 }}>Nama</label>
+            <input value={ef.name} onChange={(e) => setEf({ ...ef, name: e.target.value })} style={ic} />
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginTop: 10, marginBottom: 3 }}>Jabatan</label>
+            <select value={ef.position} onChange={(e) => setEf({ ...ef, position: e.target.value })} style={sc}>
+              {JABATAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+            </select>
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 3 }}>L/P</label>
+                <select value={ef.gender} onChange={(e) => setEf({ ...ef, gender: e.target.value })} style={sc}>
+                  <option value="">—</option><option value="L">L</option><option value="P">P</option>
+                </select>
+              </div>
+              <div style={{ flex: 2 }}>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 3 }}>Tempat Lahir</label>
+                <input value={ef.birth_place} onChange={(e) => setEf({ ...ef, birth_place: e.target.value })} style={ic} />
+              </div>
+            </div>
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginTop: 10, marginBottom: 3 }}>Tanggal Lahir</label>
+            <input type="date" value={ef.birth_date} onChange={(e) => setEf({ ...ef, birth_date: e.target.value })} style={ic} />
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 3 }}>Status</label>
+                <select value={ef.marital_status} onChange={(e) => setEf({ ...ef, marital_status: e.target.value })} style={sc}>
+                  {STATUS_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginBottom: 3 }}>Pendidikan</label>
+                <select value={ef.education} onChange={(e) => setEf({ ...ef, education: e.target.value })} style={sc}>
+                  {PENDIDIKAN_OPTIONS.map((o) => (<option key={o} value={o}>{o}</option>))}
+                </select>
+              </div>
+            </div>
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginTop: 10, marginBottom: 3 }}>Pekerjaan</label>
+            <input value={ef.occupation} onChange={(e) => setEf({ ...ef, occupation: e.target.value })} style={ic} />
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#475569", display: "block", marginTop: 10, marginBottom: 3 }}>Keanggotaan</label>
+            <select value={ef.membership_status} onChange={(e) => setEf({ ...ef, membership_status: e.target.value })} style={sc}>
+              <option value="Aktif">Aktif</option><option value="Tidak Aktif">Tidak Aktif</option>
+            </select>
+            <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+              <button onClick={() => setEditingId(null)} style={{ flex: 1, border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: 10, background: "#fff", color: "#475569" }}>Batal</button>
+              <button onClick={saveEdit} style={{ flex: 1.4, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: 10, background: "#1e3a5f", color: "#fff" }}>Simpan</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -7306,7 +7313,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
             >
               Export Excel
             </button>
-            {!showForm && (
+            {!d.isMob && !showForm && (
               <button
                 onClick={() => {
                   resetAdd();
@@ -7329,15 +7336,26 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
           </div>
         </div>
 
-        {/* Add form */}
+        {/* Add form modal */}
         {showForm && (
           <div
+            onClick={() => setShowForm(false)}
             style={{
-              background: "#f8fafc",
-              borderBottom: "1px solid #e2e8f0",
-              padding: 16,
+              position: "fixed", inset: 0, zIndex: 60,
+              background: "rgba(15,23,42,.6)", backdropFilter: "blur(4px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 16, animation: "silapFade .2s ease",
             }}
           >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#fff",
+                maxWidth: 410, width: "100%", padding: 26,
+                animation: "silapPop .25s ease",
+                maxHeight: "90vh", overflowY: "auto" as const,
+              }}
+            >
             <div
               style={{
                 fontSize: 14,
@@ -7551,6 +7569,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
               </div>
             </div>
           </div>
+          </div>
         )}
 
         {/* Email-like list */}
@@ -7623,7 +7642,70 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
               const isExpanded = expandedId === m.id;
               return (
                 <div key={m.id} style={d.isMob ? { marginBottom: 6 } : { borderBottom: "1px solid #f1f5f9" }}>
-                  {isE ? (
+                  {d.isMob ? (
+                    <>
+                      <div
+                        onClick={() => {
+                          if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
+                          if (actionMenu) { setActionMenu(null); return; }
+                          setExpandedId(isExpanded ? null : m.id);
+                        }}
+                        onTouchStart={() => {
+                          longPressFiredRef.current = false;
+                          clearTimeout(longPressTimerRef.current);
+                          longPressTimerRef.current = setTimeout(() => {
+                            longPressFiredRef.current = true;
+                            setActionMenu({ item: m });
+                          }, 1000);
+                        }}
+                        onTouchMove={() => { clearTimeout(longPressTimerRef.current); }}
+                        onTouchEnd={() => { clearTimeout(longPressTimerRef.current); }}
+                        onContextMenu={(e) => { e.preventDefault(); setActionMenu(actionMenu?.item?.id === m.id ? null : { item: m }); }}
+                        style={{
+                          border: "1px solid #e2e8f0",
+                          padding: "12px 14px",
+                          background: isExpanded ? "#f8fafc" : "#fff",
+                          position: "relative",
+                          userSelect: "none",
+                          WebkitUserSelect: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {m.asal_surat_dari || "—"}
+                            </div>
+                            <div style={{ fontSize: "12.5px", color: "#475569", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {m.perihal}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8" }}>{m.tanggal_terima}</div>
+                            <div style={{ fontSize: "10px", color: "#cbd5e1" }}>{m.tanggal_surat}</div>
+                            <div style={{ fontSize: "9px", color: "#e2e8f0", marginTop: 1 }}>{m.nomor_surat}</div>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActionMenu({ item: m }); }}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            onTouchEnd={(e) => e.stopPropagation()}
+                            style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, lineHeight: 1, padding: "8px 6px", background: "#e2e8f0", color: "#475569", borderRadius: 6, flexShrink: 0, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
+                          >⋮</button>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div style={{ padding: "12px 14px", fontSize: "12.5px", color: "#64748b", lineHeight: 1.7, background: "#f8fafc", border: "1px solid #e2e8f0", borderTop: "none" }}>
+                          <div><strong>Nomor Surat:</strong> {m.nomor_surat || "—"}</div>
+                          <div><strong>Tanggal Surat:</strong> {m.tanggal_surat || "—"}</div>
+                          <div><strong>Tanggal Terima:</strong> {m.tanggal_terima || "—"}</div>
+                          <div><strong>Asal:</strong> {m.asal_surat_dari || "—"}</div>
+                          <div><strong>Perihal:</strong> {m.perihal || "—"}</div>
+                          <div><strong>Lampiran:</strong> {m.lampiran || "—"}</div>
+                          <div><strong>Diteruskan Kepada:</strong> {m.diteruskan_kepada || "—"}</div>
+                        </div>
+                      )}
+                    </>
+                  ) : isE ? (
                     <div style={{ padding: 12, background: "#eef2ff" }}>
                       <div
                         style={{
@@ -7734,69 +7816,6 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                         </button>
                       </div>
                     </div>
-                  ) : d.isMob ? (
-                    <>
-                      <div
-                        onClick={() => {
-                          if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
-                          if (actionMenu) { setActionMenu(null); return; }
-                          setExpandedId(isExpanded ? null : m.id);
-                        }}
-                        onTouchStart={() => {
-                          longPressFiredRef.current = false;
-                          clearTimeout(longPressTimerRef.current);
-                          longPressTimerRef.current = setTimeout(() => {
-                            longPressFiredRef.current = true;
-                            setActionMenu({ item: m });
-                          }, 1000);
-                        }}
-                        onTouchMove={() => { clearTimeout(longPressTimerRef.current); }}
-                        onTouchEnd={() => { clearTimeout(longPressTimerRef.current); }}
-                        onContextMenu={(e) => { e.preventDefault(); setActionMenu(actionMenu?.item?.id === m.id ? null : { item: m }); }}
-                        style={{
-                          border: "1px solid #e2e8f0",
-                          padding: "12px 14px",
-                          background: isExpanded ? "#f8fafc" : "#fff",
-                          position: "relative",
-                          userSelect: "none",
-                          WebkitUserSelect: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {m.asal_surat_dari || "—"}
-                            </div>
-                            <div style={{ fontSize: "12.5px", color: "#475569", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {m.perihal}
-                            </div>
-                          </div>
-                          <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8" }}>{m.tanggal_terima}</div>
-                            <div style={{ fontSize: "10px", color: "#cbd5e1" }}>{m.tanggal_surat}</div>
-                            <div style={{ fontSize: "9px", color: "#e2e8f0", marginTop: 1 }}>{m.nomor_surat}</div>
-                          </div>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setActionMenu({ item: m }); }}
-                            onTouchStart={(e) => e.stopPropagation()}
-                            onTouchEnd={(e) => e.stopPropagation()}
-                            style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, lineHeight: 1, padding: "8px 6px", background: "#e2e8f0", color: "#475569", borderRadius: 6, flexShrink: 0, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
-                          >⋮</button>
-                        </div>
-                      </div>
-                      {isExpanded && (
-                        <div style={{ padding: "12px 14px", fontSize: "12.5px", color: "#64748b", lineHeight: 1.7, background: "#f8fafc", border: "1px solid #e2e8f0", borderTop: "none" }}>
-                          <div><strong>Nomor Surat:</strong> {m.nomor_surat || "—"}</div>
-                          <div><strong>Tanggal Surat:</strong> {m.tanggal_surat || "—"}</div>
-                          <div><strong>Tanggal Terima:</strong> {m.tanggal_terima || "—"}</div>
-                          <div><strong>Asal:</strong> {m.asal_surat_dari || "—"}</div>
-                          <div><strong>Perihal:</strong> {m.perihal || "—"}</div>
-                          <div><strong>Lampiran:</strong> {m.lampiran || "—"}</div>
-                          <div><strong>Diteruskan Kepada:</strong> {m.diteruskan_kepada || "—"}</div>
-                        </div>
-                      )}
-                    </>
                   ) : (
                     <>
                       <div
@@ -7961,6 +7980,47 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
             </div>
           </div>
         </>
+      )}
+      {d.isMob && !showForm && (
+        <div style={{ position: "fixed", bottom: 80, right: 24, zIndex: 50 }}>
+          <button
+            onClick={() => { resetAdd(); setShowForm(true); }}
+            style={{
+              border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: "#1e3a5f", color: "#fff", borderRadius: "50%",
+              width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(30,58,95,.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="11" y1="5" x2="11" y2="17" /><line x1="5" y1="11" x2="17" y2="11" />
+            </svg>
+          </button>
+        </div>
+      )}
+      {editingId !== null && d.isMob && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", backdropFilter: "blur(2px)", zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", width: "92%", maxWidth: 400, borderRadius: 12, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,.2)", animation: "silapPop .25s ease" }}>
+            <h3 style={{ margin: "0 0 14px", fontSize: 15, color: "#1e293b" }}>Edit Surat</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <input value={ef.tanggal_terima} onChange={(e) => setEf({ ...ef, tanggal_terima: e.target.value })} style={ic} placeholder="Tgl terima" />
+                <input value={ef.tanggal_surat} onChange={(e) => setEf({ ...ef, tanggal_surat: e.target.value })} style={ic} placeholder="Tgl surat" />
+              </div>
+              <input value={ef.nomor_surat} onChange={(e) => setEf({ ...ef, nomor_surat: e.target.value })} style={ic} placeholder="Nomor surat" />
+              <input value={ef.asal_surat_dari} onChange={(e) => setEf({ ...ef, asal_surat_dari: e.target.value })} style={ic} placeholder="Asal surat" />
+              <input value={ef.perihal} onChange={(e) => setEf({ ...ef, perihal: e.target.value })} style={ic} placeholder="Perihal" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <input value={ef.lampiran} onChange={(e) => setEf({ ...ef, lampiran: e.target.value })} style={ic} placeholder="Lampiran" />
+                <input value={ef.diteruskan_kepada} onChange={(e) => setEf({ ...ef, diteruskan_kepada: e.target.value })} style={ic} placeholder="Diteruskan" />
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                <button onClick={() => setEditingId(null)} style={{ flex: 1, border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 0", background: "#fff", color: "#475569", borderRadius: 8 }}>Batal</button>
+                <button onClick={saveEdit} style={{ flex: 1.4, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "8px 0", background: "#1e3a5f", color: "#fff", borderRadius: 8 }}>Simpan</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -8229,7 +8289,29 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
       }
       if (depth > 0) prefix += isLast ? "└ " : "├ ";
 
-      const row = isE ? (
+      const row = d.isMob ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ minWidth: 0 }}>
+              <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>{num}.</span>
+              {" "}
+              <span style={{ fontWeight: depth === 0 ? 700 : 600, color: "#1e293b", fontSize: "13px" }}>{cleanName(m.nama_barang)}</span>
+              {hasKids && <span style={{ color: "#64748b", fontSize: "11px", fontWeight: 600, marginLeft: 4 }}>({m.children.length} item)</span>}
+            </div>
+            <div style={{ display: "flex", gap: 10, fontSize: "11.5px", color: "#64748b", flexWrap: "wrap", marginTop: 4 }}>
+              <span>Jumlah: <strong style={{color:"#1e293b"}}>{hasKids ? totalJumlah(m) : m.jumlah}</strong></span>
+              <span>Tempat: {m.tempat_penyimpanan || "—"}</span>
+              <span style={{ padding: "2px 8px", background: kndBg(m.kondisi_barang), color: kndCl(m.kondisi_barang), fontWeight: 600, fontSize: "10.5px" }}>{m.kondisi_barang || "—"}</span>
+            </div>
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setActionMenu({ item: m, depth }); }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+            style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, lineHeight: 1, padding: "8px 6px", background: "#e2e8f0", color: "#475569", borderRadius: 6, flexShrink: 0, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
+          >⋮</button>
+        </div>
+      ) : isE ? (
         <div
           style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}
         >
@@ -8310,30 +8392,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             >
               Simpan
             </button>
-          </div>
-        </div>
-      ) : (
-        d.isMob ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ minWidth: 0 }}>
-                <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>{num}.</span>
-                {" "}
-                <span style={{ fontWeight: depth === 0 ? 700 : 600, color: "#1e293b", fontSize: "13px" }}>{cleanName(m.nama_barang)}</span>
-                {hasKids && <span style={{ color: "#64748b", fontSize: "11px", fontWeight: 600, marginLeft: 4 }}>({m.children.length} item)</span>}
-              </div>
-              <div style={{ display: "flex", gap: 10, fontSize: "11.5px", color: "#64748b", flexWrap: "wrap", marginTop: 4 }}>
-                <span>Jumlah: <strong style={{color:"#1e293b"}}>{hasKids ? totalJumlah(m) : m.jumlah}</strong></span>
-                <span>Tempat: {m.tempat_penyimpanan || "—"}</span>
-                <span style={{ padding: "2px 8px", background: kndBg(m.kondisi_barang), color: kndCl(m.kondisi_barang), fontWeight: 600, fontSize: "10.5px" }}>{m.kondisi_barang || "—"}</span>
-              </div>
             </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setActionMenu({ item: m, depth }); }}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-              style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, lineHeight: 1, padding: "8px 6px", background: "#e2e8f0", color: "#475569", borderRadius: 6, flexShrink: 0, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
-            >⋮</button>
           </div>
         ) : (
           <>
@@ -8513,7 +8572,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
           </span>
           </>
         )
-      );
+      ;
 
       return (
         <div key={m.id}>
@@ -8761,7 +8820,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             >
               Export Excel
             </button>
-            {!showForm && (
+            {!d.isMob && !showForm && (
               <button
                 onClick={() => {
                   resetAdd();
@@ -8786,13 +8845,23 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
 
         {showForm && (
           <div
+            onClick={() => setShowForm(false)}
             style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              padding: 16,
-              marginBottom: 16,
+              position: "fixed", inset: 0, zIndex: 60,
+              background: "rgba(15,23,42,.6)", backdropFilter: "blur(4px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 16, animation: "silapFade .2s ease",
             }}
           >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#fff",
+                maxWidth: 410, width: "100%", padding: 26,
+                animation: "silapPop .25s ease",
+                maxHeight: "90vh", overflowY: "auto" as const,
+              }}
+            >
             <div
               style={{
                 fontSize: 14,
@@ -9013,6 +9082,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               </div>
             </div>
           </div>
+          </div>
         )}
 
         {/* Tree view */}
@@ -9068,6 +9138,45 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             </div>
           </div>
         </>
+      )}
+      {d.isMob && !showForm && (
+        <div style={{ position: "fixed", bottom: 80, right: 24, zIndex: 50 }}>
+          <button
+            onClick={() => { resetAdd(); setShowForm(true); }}
+            style={{
+              border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: "#1e3a5f", color: "#fff", borderRadius: "50%",
+              width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(30,58,95,.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="11" y1="5" x2="11" y2="17" /><line x1="5" y1="11" x2="17" y2="11" />
+            </svg>
+          </button>
+        </div>
+      )}
+      {editingId !== null && d.isMob && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", backdropFilter: "blur(2px)", zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", width: "92%", maxWidth: 400, borderRadius: 12, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,.2)", animation: "silapPop .25s ease" }}>
+            <h3 style={{ margin: "0 0 14px", fontSize: 15, color: "#1e293b" }}>Edit Barang</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <input value={ef.nama_barang} onChange={(e) => setEf({ ...ef, nama_barang: e.target.value })} placeholder="Nama barang" style={ic} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <input value={ef.asal_barang} onChange={(e) => setEf({ ...ef, asal_barang: e.target.value })} placeholder="Asal" style={ic} />
+                <input type="number" min="0" value={ef.jumlah} onChange={(e) => setEf({ ...ef, jumlah: parseInt(e.target.value) || 0 })} style={ic} placeholder="Jumlah" />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <input value={ef.tempat_penyimpanan} onChange={(e) => setEf({ ...ef, tempat_penyimpanan: e.target.value })} placeholder="Tempat" style={ic} />
+                <input value={ef.kondisi_barang} onChange={(e) => setEf({ ...ef, kondisi_barang: e.target.value })} placeholder="Kondisi" style={ic} />
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                <button onClick={() => setEditingId(null)} style={{ flex: 1, border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 0", background: "#fff", color: "#475569", borderRadius: 8 }}>Batal</button>
+                <button onClick={saveEdit} style={{ flex: 1.4, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "8px 0", background: "#1e3a5f", color: "#fff", borderRadius: 8 }}>Simpan</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
