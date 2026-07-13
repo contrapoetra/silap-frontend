@@ -93,6 +93,9 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
         let pengumumanData: any[] = [];
         try { const { data } = await supabase.from('pengumuman').select('*').order('created_at', { ascending: false }); pengumumanData = data || []; } catch (_) {}
 
+        let profileDescData = "";
+        try { const { data } = await supabase.from('profil_desa').select('deskripsi').eq('id', 1).single(); profileDescData = data?.deskripsi || ""; } catch (_) {}
+
         if (!cancelled) {
           dispatch({
             type: 'SET_INITIAL_DATA',
@@ -108,6 +111,7 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
               blogPosts: blogPostsData,
               orgPositions: orgPositionsData,
               pengumuman: pengumumanData,
+              profileDesc: profileDescData,
             },
           });
 
@@ -738,6 +742,18 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
               showToast('Pengumuman dihapus');
             }
           });
+          break;
+        }
+        case 'UPDATE_PROFILE_DESC': {
+          const { error } = await supabase
+            .from('profil_desa')
+            .upsert({ id: 1, deskripsi: action.payload });
+          if (error) {
+            showToast('Gagal menyimpan profil desa: ' + error.message);
+            return;
+          }
+          dispatch(action);
+          showToast('Profil desa diperbarui');
           break;
         }
         default:

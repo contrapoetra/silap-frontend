@@ -172,6 +172,7 @@ export interface AppState {
   orgPositions: OrgPosition[];
   pengumuman: PengumumanItem[];
   viewingPost: BlogPost | null;
+  profileDesc: string;
 }
 
 export type AppAction =
@@ -238,5 +239,6 @@ export type AppAction =
   | { type: 'ADD_PENGUMUMAN'; payload: PengumumanItem }
   | { type: 'UPDATE_PENGUMUMAN'; payload: PengumumanItem }
   | { type: 'DELETE_PENGUMUMAN'; payload: string | number }
-  | { type: 'SET_TOAST'; payload: string | null };
+  | { type: 'SET_TOAST'; payload: string | null }
+  | { type: 'UPDATE_PROFILE_DESC'; payload: string };
 

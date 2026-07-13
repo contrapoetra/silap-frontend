@@ -525,6 +525,7 @@ export const initialState: AppState = {
   orgPositions: [],
   pengumuman: [],
   viewingPost: null,
+  profileDesc: "",
 };
 
 export type AppAction =
@@ -606,6 +607,7 @@ export type AppAction =
         blogPosts: BlogPost[];
         orgPositions: OrgPosition[];
         pengumuman: PengumumanItem[];
+        profileDesc?: string;
       };
     }
   | { type: "SET_ORG_POSITIONS"; payload: OrgPosition[] }
@@ -633,7 +635,8 @@ export type AppAction =
   | { type: "ADD_PENGUMUMAN"; payload: PengumumanItem }
   | { type: "UPDATE_PENGUMUMAN"; payload: PengumumanItem }
   | { type: "DELETE_PENGUMUMAN"; payload: string | number }
-  | { type: "SET_TOAST"; payload: string | null };
+  | { type: "SET_TOAST"; payload: string | null }
+  | { type: "UPDATE_PROFILE_DESC"; payload: string };
 
 export function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -837,6 +840,7 @@ export function reducer(state: AppState, action: AppAction): AppState {
         blogPosts: action.payload.blogPosts,
         orgPositions: action.payload.orgPositions,
         pengumuman: action.payload.pengumuman.length ? action.payload.pengumuman : state.pengumuman,
+        profileDesc: action.payload.profileDesc ?? state.profileDesc,
       };
     case "SET_ORG_POSITIONS":
       return { ...state, orgPositions: action.payload };
@@ -917,6 +921,8 @@ export function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, pengumuman: (state.pengumuman || []).map(p => p.id === action.payload.id ? action.payload : p) };
     case "DELETE_PENGUMUMAN":
       return { ...state, pengumuman: (state.pengumuman || []).filter(p => p.id !== action.payload) };
+    case "UPDATE_PROFILE_DESC":
+      return { ...state, profileDesc: action.payload };
     case "SET_TOAST":
       return { ...state, toast: action.payload };
     default:

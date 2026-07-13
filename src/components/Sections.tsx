@@ -54,6 +54,13 @@ interface Props {
 export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
   const kepalaDesa = st.pkkMembers.find((m) => m.position === "Pembina");
   const ketuaTPPKK = st.pkkMembers.find((m) => m.position === "Ketua TP. PKK");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descText, setDescText] = useState(st.profileDesc || "Desa Bunutwetan merupakan salah satu desa yang berada di Kecamatan Pakis, Kabupaten Malang, Provinsi Jawa Timur. Desa ini memiliki letak yang strategis dan berada pada wilayah dataran tinggi dengan sebagian besar masyarakatnya bermata pencaharian di sektor pertanian dan pekerjaan informal lainnya. Secara administratif, Desa Bunutwetan berbatasan dengan Kecamatan Jabung di sebelah utara, Desa Pakisjajar dan Pakiskembar di sebelah timur, Desa Ampeldento di sebelah selatan, serta Desa Asrikaton di sebelah barat. Desa ini terdiri atas beberapa dusun dengan jumlah 9 RW dan 70 RT, serta memiliki berbagai potensi di bidang pertanian, pemberdayaan masyarakat, dan pengembangan keluarga melalui program Kampung KB di Dusun Boro Bunut. Dengan dukungan sumber daya manusia dan potensi wilayah yang dimiliki, Desa Bunutwetan terus berupaya meningkatkan kualitas pelayanan dan kesejahteraan masyarakat guna mewujudkan pembangunan desa yang berkelanjutan.");
+  const handleSaveDesc = () => {
+    dispatch({ type: "UPDATE_PROFILE_DESC", payload: descText });
+    setEditingDesc(false);
+  };
+  const showEditDesc = !!(d.u && d.u.role === "admin");
   return (
     <div style={{ animation: "silapFade .3s ease" }}>
       <section style={d.rs.hero}>
@@ -328,30 +335,40 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
           >
             Desa Bunutwetan
           </h2>
-          <p
-            style={{
-              fontSize: 14,
-              lineHeight: 1.65,
-              color: "#475569",
-              marginBottom: 18,
-            }}
-          >
-            Desa Bunutwetan merupakan salah satu desa yang berada di Kecamatan
-            Pakis, Kabupaten Malang, Provinsi Jawa Timur. Desa ini memiliki
-            letak yang strategis dan berada pada wilayah dataran tinggi dengan
-            sebagian besar masyarakatnya bermata pencaharian di sektor pertanian
-            dan pekerjaan informal lainnya. Secara administratif, Desa
-            Bunutwetan berbatasan dengan Kecamatan Jabung di sebelah utara, Desa
-            Pakisjajar dan Pakiskembar di sebelah timur, Desa Ampeldento di
-            sebelah selatan, serta Desa Asrikaton di sebelah barat. Desa ini
-            terdiri atas beberapa dusun dengan jumlah 9 RW dan 70 RT, serta
-            memiliki berbagai potensi di bidang pertanian, pemberdayaan
-            masyarakat, dan pengembangan keluarga melalui program Kampung KB di
-            Dusun Boro Bunut. Dengan dukungan sumber daya manusia dan potensi
-            wilayah yang dimiliki, Desa Bunutwetan terus berupaya meningkatkan
-            kualitas pelayanan dan kesejahteraan masyarakat guna mewujudkan
-            pembangunan desa yang berkelanjutan.
-          </p>
+          {editingDesc ? (
+            <div style={{ marginBottom: 18 }}>
+              <textarea
+                value={descText}
+                onChange={(e) => setDescText(e.target.value)}
+                style={{
+                  width: "100%", minHeight: 120, padding: 10, fontSize: 14, lineHeight: 1.65,
+                  border: "1px solid #cbd5e1", fontFamily: "inherit", resize: "vertical",
+                }}
+              />
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button onClick={() => { setEditingDesc(false); setDescText(st.profileDesc); }} style={{ border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 16px", background: "#fff", color: "#475569" }}>Batal</button>
+                <button onClick={handleSaveDesc} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "8px 16px", background: "#1e3a5f", color: "#fff" }}>Simpan</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ position: "relative", marginBottom: 18 }}>
+              <p style={{ fontSize: 14, lineHeight: 1.65, color: "#475569" }}>
+                {st.profileDesc || descText}
+              </p>
+              {showEditDesc && (
+                <button
+                  onClick={() => setEditingDesc(true)}
+                  style={{
+                    position: "absolute", top: 0, right: 0, border: "none", cursor: "pointer",
+                    fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "6px 12px",
+                    background: "#eef2ff", color: "#1e3a5f",
+                  }}
+                >
+                  ✎ Edit
+                </button>
+              )}
+            </div>
+          )}
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
           >
@@ -4569,6 +4586,22 @@ export function DashboardSection({
   openPokja,
   showToast,
 }: Props) {
+  const [pwdForm, setPwdForm] = useState({ current: "", baru: "", confirm: "" });
+  const handleChangePassword = () => {
+    const u = d.u;
+    if (!u) return;
+    if (!pwdForm.current) { showToast("Masukkan password saat ini"); return; }
+    if (pwdForm.current !== u.password) { showToast("Password saat ini salah"); return; }
+    if (!pwdForm.baru) { showToast("Masukkan password baru"); return; }
+    if (pwdForm.baru.length < 6) { showToast("Password baru minimal 6 karakter"); return; }
+    if (pwdForm.baru !== pwdForm.confirm) { showToast("Konfirmasi password tidak cocok"); return; }
+    dispatch({
+      type: "UPDATE_USER",
+      payload: { ...u, password: pwdForm.baru },
+    });
+    setPwdForm({ current: "", baru: "", confirm: "" });
+    showToast("Password berhasil diubah");
+  };
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
       <div
@@ -5019,6 +5052,18 @@ export function DashboardSection({
             </table>
           </div>
           )}
+        </div>
+      )}
+      {!d.userVals.isAdmin && (
+        <div style={{ marginTop: 18, background: "#fff", border: "1px solid #e2e8f0", padding: 20 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginBottom: 4 }}>Ganti Password</div>
+          <div style={{ fontSize: "12.5px", color: "#94a3b8", marginBottom: 14 }}>Ubah password akun Anda</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320 }}>
+            <input type="password" value={pwdForm.current} onChange={(e) => setPwdForm({ ...pwdForm, current: e.target.value })} placeholder="Password saat ini" style={{ border: "1px solid #cbd5e1", padding: "10px 12px", fontSize: 14, fontFamily: "inherit" }} />
+            <input type="password" value={pwdForm.baru} onChange={(e) => setPwdForm({ ...pwdForm, baru: e.target.value })} placeholder="Password baru" style={{ border: "1px solid #cbd5e1", padding: "10px 12px", fontSize: 14, fontFamily: "inherit" }} />
+            <input type="password" value={pwdForm.confirm} onChange={(e) => setPwdForm({ ...pwdForm, confirm: e.target.value })} placeholder="Konfirmasi password baru" style={{ border: "1px solid #cbd5e1", padding: "10px 12px", fontSize: 14, fontFamily: "inherit" }} />
+            <button onClick={handleChangePassword} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, padding: "10px 18px", background: "#1e3a5f", color: "#fff", alignSelf: "flex-start" }}>Simpan</button>
+          </div>
         </div>
       )}
       {d.userVals.isKetua && (
