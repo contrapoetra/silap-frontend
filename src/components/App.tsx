@@ -805,7 +805,7 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
 
   return (
     <div className="silap-scroll" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f1f5f9', fontFamily: "'Inter', system-ui, sans-serif", color: '#1e293b', WebkitFontSmoothing: 'antialiased' }}>
-      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}@keyframes silapSpin{to{transform:rotate(360deg)}}button{cursor:pointer}button:not(:disabled):hover{opacity:.85}button:not(:disabled):active{opacity:.7}.silap-hover:hover{opacity:.85}.silap-hover:active{opacity:.7}`}</style>
+      <style>{`@keyframes silapShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes silapProgress{0%{width:0%}100%{width:90%}}@keyframes silapSpin{to{transform:rotate(360deg)}}@keyframes invCardIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}button{cursor:pointer}button:not(:disabled):hover{opacity:.85}button:not(:disabled):active{opacity:.7}.silap-hover:hover{opacity:.85}.silap-hover:active{opacity:.7}`}</style>
       {/* HEADER */}
       <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '95%', margin: '0 auto', padding: d.rs.headerPad, display: 'flex', alignItems: 'center', columnGap: 'var(--silap-header-gap)', flexWrap: 'wrap', rowGap: 4 }}>

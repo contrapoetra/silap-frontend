@@ -8333,6 +8333,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
   const [drawerAnim, setDrawerAnim] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openMenu, setOpenMenu] = useState<string | number | null>(null);
+  const [subModal, setSubModal] = useState<{ item: any; depth: number } | null>(null);
   const filteredInventory = searchTree(st.inventory, searchQuery);
 
   useEffect(() => {
@@ -8550,23 +8551,16 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
   function renderTree(
     list: any[],
     depth = 0,
-    parentLasts: boolean[] = [],
+    parentNum = "",
   ): React.ReactNode[] {
-    return list.map((m, idx) => {
+    const nodes: React.ReactNode[] = [];
+    list.forEach((m, idx) => {
       const isE = editingId === m.id;
       const hasKids = m.children && m.children.length > 0;
       const isCol = collapsed.has(m.id);
-      const isLast = idx === list.length - 1;
-      const num = idx + 1;
+      const num = parentNum ? parentNum + "." + (idx + 1) : String(idx + 1);
 
-      // Build tree prefix
-      let prefix = "";
-      for (let i = 0; i < parentLasts.length; i++) {
-        prefix += parentLasts[i] ? "  " : "│ ";
-      }
-      if (depth > 0) prefix += isLast ? "└ " : "├ ";
-
-      const row = d.isMob ? (
+      const card = d.isMob ? (
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ minWidth: 0 }}>
@@ -8589,271 +8583,104 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
           >⋮</button>
         </div>
       ) : isE ? (
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}
-        >
-          <input
-            value={ef.nama_barang}
-            onChange={(e) => setEf({ ...ef, nama_barang: e.target.value })}
-            placeholder="Nama barang"
-            style={ic}
-          />
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}
-          >
-            <input
-              value={ef.asal_barang}
-              onChange={(e) => setEf({ ...ef, asal_barang: e.target.value })}
-              placeholder="Asal"
-              style={ic}
-            />
-            <input
-              type="number"
-              min="0"
-              value={ef.jumlah}
-              onChange={(e) =>
-                setEf({ ...ef, jumlah: parseInt(e.target.value) || 0 })
-              }
-              style={ic}
-              placeholder="Jumlah"
-            />
-          </div>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}
-          >
-            <input
-              value={ef.tempat_penyimpanan}
-              onChange={(e) =>
-                setEf({ ...ef, tempat_penyimpanan: e.target.value })
-              }
-              placeholder="Tempat"
-              style={ic}
-            />
-            <input
-              value={ef.kondisi_barang}
-              onChange={(e) => setEf({ ...ef, kondisi_barang: e.target.value })}
-              placeholder="Kondisi"
-              style={ic}
-            />
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button
-              onClick={() => setEditingId(null)}
-              style={{
-                flex: 1,
-                border: "1px solid #cbd5e1",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                fontSize: 12,
-                fontWeight: 600,
-                padding: "6px 0",
-                background: "#fff",
-                color: "#475569",
-              }}
-            >
-              Batal
-            </button>
-            <button
-              onClick={saveEdit}
-              style={{
-                flex: 1.4,
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                fontSize: 12,
-                fontWeight: 700,
-                padding: "6px 0",
-                background: "#1e3a5f",
-                color: "#fff",
-              }}
-            >
-              Simpan
-            </button>
+          <div style={{
+            display: "flex", flexDirection: "column", gap: 6, flex: 1,
+            border: "1px solid #c7d2fe", borderRadius: 6, padding: "10px 12px",
+            background: "#eef2ff",
+          }}>
+            <input value={ef.nama_barang} onChange={(e) => setEf({ ...ef, nama_barang: e.target.value })} placeholder="Nama barang" style={ic} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              <input value={ef.asal_barang} onChange={(e) => setEf({ ...ef, asal_barang: e.target.value })} placeholder="Asal" style={ic} />
+              <input type="number" min="0" value={ef.jumlah} onChange={(e) => setEf({ ...ef, jumlah: parseInt(e.target.value) || 0 })} style={ic} placeholder="Jumlah" />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              <input value={ef.tempat_penyimpanan} onChange={(e) => setEf({ ...ef, tempat_penyimpanan: e.target.value })} placeholder="Tempat" style={ic} />
+              <input value={ef.kondisi_barang} onChange={(e) => setEf({ ...ef, kondisi_barang: e.target.value })} placeholder="Kondisi" style={ic} />
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button onClick={() => setEditingId(null)} style={{ flex: 1, border: "1px solid #cbd5e1", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 600, padding: "6px 0", background: "#fff", color: "#475569" }}>Batal</button>
+              <button onClick={saveEdit} style={{ flex: 1.4, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 700, padding: "6px 0", background: "#1e3a5f", color: "#fff" }}>Simpan</button>
             </div>
           </div>
         ) : (
           <>
-          <span
-            style={{
-              color: "#64748b",
-              fontSize: "12px",
-              fontFamily: "monospace",
-              flexShrink: 0,
-              whiteSpace: "pre",
-            }}
-          >
-            {prefix}
-          </span>
-          {hasKids && (
-            <button
-              onClick={() => {
-                const n = new Set(collapsed);
-                if (n.has(m.id)) n.delete(m.id);
-                else n.add(m.id);
-                setCollapsed(n);
-              }}
-              style={{
-                border: "none",
-                cursor: "pointer",
-                background: "none",
-                color: "#94a3b8",
-                fontSize: 11,
-                padding: 0,
-                flexShrink: 0,
-                width: 14,
-              }}
-            >
-              {isCol ? "▶" : "▼"}
-            </button>
-          )}
-          {!hasKids && <span style={{ width: 14, flexShrink: 0 }} />}
-          <span
-            style={{
-              color: "#94a3b8",
-              fontSize: "11px",
-              fontWeight: 600,
-              flexShrink: 0,
-              minWidth: 28,
-              textAlign: "right",
-              marginRight: 4,
-            }}
-          >
-            {num}.
-          </span>
-          <span
-            style={{
-              flex: 1,
-              minWidth: 0,
-              fontWeight: depth === 0 ? 700 : 600,
-              color: "#1e293b",
-              fontSize: "12.5px",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {cleanName(m.nama_barang)}
-          </span>
-          <span
-            style={{
-              color: "#1e293b",
-              fontSize: "11px",
-              flexShrink: 0,
-              width: 48,
-              textAlign: "right",
-              fontWeight: 700,
-            }}
-          >
-{hasKids ? totalJumlah(m) : m.jumlah} unit
-          </span>
-          <span
-            style={{
-              fontSize: "10.5px",
-              fontWeight: 600,
-              padding: "2px 8px",
-              background: "#e0f2fe",
-              color: "#0369a1",
-              flexShrink: 0,
-              width: 130,
-              textAlign: "center",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {m.tempat_penyimpanan || "—"}
-          </span>
-          <span
-            style={{
-              fontSize: "10.5px",
-              fontWeight: 600,
-              padding: "2px 8px",
-              background: kndBg(m.kondisi_barang),
-              color: kndCl(m.kondisi_barang),
-              flexShrink: 0,
-              width: 70,
-              textAlign: "center",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {m.kondisi_barang || "—"}
-          </span>
-          <span style={{ position: "relative", flexShrink: 0, width: 76, textAlign: "center" }}>
-            <button
-              onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
-              style={{
-                border: "1px solid #e2e8f0", cursor: "pointer",
-                fontFamily: "inherit", fontSize: 16,
-                padding: "4px 10px", background: "#fff",
-                color: "#475569", borderRadius: 4, lineHeight: 1,
-              }}
-            >⋮</button>
-            {openMenu === m.id && (
-              <div onClick={() => setOpenMenu(null)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
-            )}
-            {openMenu === m.id && (
-              <div
-                style={{
-                  position: "absolute", right: 0, top: "100%", zIndex: 50,
-                  background: "#fff", border: "1px solid #e2e8f0",
-                  boxShadow: "0 4px 12px rgba(0,0,0,.1)",
-                  minWidth: 200, borderRadius: 6, padding: 4,
-                }}
-              >
-                {depth === 0 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(null);
-                      resetSub();
-                      setSubParentId(subParentId === m.id ? null : m.id);
-                      if (collapsed.has(m.id)) {
-                        const n = new Set(collapsed);
-                        n.delete(m.id);
-                        setCollapsed(n);
-                      }
-                      setOpenMenu(null);
-                    }}
-                    style={{
-                      display: "block", width: "100%", textAlign: "left",
-                      border: "none", cursor: "pointer", fontFamily: "inherit",
-                      fontSize: 13, fontWeight: 600,
-                      padding: "8px 12px", background: "transparent",
-                      color: "#059669", borderRadius: 4, whiteSpace: "nowrap",
-                    }}
-                  >Tambah Sub-Barang</button>
-                )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+              {hasKids ? (
                 <button
-                  onClick={(e) => { e.stopPropagation(); startEdit(m); setOpenMenu(null); }}
-                  style={{
-                    display: "block", width: "100%", textAlign: "left",
-                    border: "none", cursor: "pointer", fontFamily: "inherit",
-                    fontSize: 13, fontWeight: 600,
-                    padding: "8px 12px", background: "transparent",
-                    color: "#1e293b", borderRadius: 4, whiteSpace: "nowrap",
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (d.isMob) {
+                      const n = new Set(collapsed);
+                      if (n.has(m.id)) n.delete(m.id);
+                      else n.add(m.id);
+                      setCollapsed(n);
+                    } else {
+                      setSubModal({ item: m, depth });
+                    }
                   }}
-                >Edit</button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDelete(m); setOpenMenu(null); }}
-                  style={{
-                    display: "block", width: "100%", textAlign: "left",
-                    border: "none", cursor: "pointer", fontFamily: "inherit",
-                    fontSize: 13, fontWeight: 600,
-                    padding: "8px 12px", background: "transparent",
-                    color: "#ef4444", borderRadius: 4, whiteSpace: "nowrap",
-                  }}
-                >Hapus</button>
-              </div>
-            )}
-          </span>
+                  style={{ border: "none", cursor: "pointer", background: "none", color: "#94a3b8", fontSize: 12, padding: 0, flexShrink: 0, width: 16 }}
+                >{d.isMob ? (isCol ? "▶" : "▼") : "▶"}</button>
+              ) : (
+                <span style={{ width: 16, flexShrink: 0 }} />
+              )}
+              <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap", marginRight: 2 }}>{num}.</span>
+              <span style={{
+                flex: 1, minWidth: 0,
+                fontWeight: depth === 0 ? 700 : 600,
+                color: "#0f172a",
+                fontSize: "14px",
+                lineHeight: "1.3",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}>{cleanName(m.nama_barang)}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
+                style={{ border: "none", cursor: "pointer", background: "transparent", color: "#94a3b8", fontSize: 15, padding: "2px 4px", lineHeight: 1, flexShrink: 0 }}
+              >⋮</button>
+              {openMenu === m.id && <div onClick={() => setOpenMenu(null)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />}
+              {openMenu === m.id && (
+                <div style={{ position: "absolute", right: 8, top: 30, zIndex: 50, background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,.1)", minWidth: 160, borderRadius: 6, padding: 4 }}>
+                  {depth === 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingId(null);
+                        resetSub();
+                        setSubParentId(subParentId === m.id ? null : m.id);
+                        if (collapsed.has(m.id)) {
+                          const n = new Set(collapsed);
+                          n.delete(m.id);
+                          setCollapsed(n);
+                        }
+                        setOpenMenu(null);
+                      }}
+                      style={{ display: "block", width: "100%", textAlign: "left", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 12px", background: "transparent", color: "#059669", borderRadius: 4, whiteSpace: "nowrap" }}
+                    >Tambah Sub-Barang</button>
+                  )}
+                  <button onClick={(e) => { e.stopPropagation(); startEdit(m); setOpenMenu(null); }} style={{ display: "block", width: "100%", textAlign: "left", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 12px", background: "transparent", color: "#1e293b", borderRadius: 4, whiteSpace: "nowrap" }}>Edit</button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(m); setOpenMenu(null); }} style={{ display: "block", width: "100%", textAlign: "left", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 12px", background: "transparent", color: "#ef4444", borderRadius: 4, whiteSpace: "nowrap" }}>Hapus</button>
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: "12px", color: "#64748b", alignItems: "center", marginTop: 6 }}>
+              <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "13px" }}>
+                {hasKids ? totalJumlah(m) : m.jumlah} unit
+              </span>
+              <span style={{ color: "#cbd5e1" }}>•</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 100 }}>{m.tempat_penyimpanan || "—"}</span>
+              <span style={{ color: "#cbd5e1" }}>•</span>
+              <span style={{ padding: "2px 8px", background: kndBg(m.kondisi_barang), color: kndCl(m.kondisi_barang), fontWeight: 600, fontSize: "11px", borderRadius: 4 }}>{m.kondisi_barang || "—"}</span>
+            </div>
           </>
         )
       ;
 
-      return (
-        <div key={m.id}>
+      nodes.push(
+        <div key={m.id} style={d.isMob ? {} : {
+          marginLeft: depth * 24,
+          animation: depth > 0 ? "invCardIn .25s ease" : undefined,
+        }}>
           <div
             {...(d.isMob ? {} : { onMouseEnter: () => setHoveredId(m.id), onMouseLeave: () => setHoveredId(null) })}
             style={d.isMob ? {
@@ -8867,18 +8694,14 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               WebkitUserSelect: "none",
               cursor: hasKids ? "pointer" : "default",
             } : {
-              padding: "6px 10px",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              borderBottom: "1px solid #f1f5f9",
-              background: isE
-                ? "#eef2ff"
-                : hoveredId === m.id
-                  ? "#f1f5f9"
-                  : hasKids
-                    ? "#fafafa"
-                    : "transparent",
+              border: `1px solid ${isE ? "#c7d2fe" : "#e2e8f0"}`,
+              borderLeft: `${depth === 0 ? 5 : 3}px solid ${depth === 0 ? "#1e3a5f" : depth === 1 ? "#0d9488" : "#94a3b8"}`,
+              borderRadius: 8,
+              padding: "16px",
+              background: isE ? "#eef2ff" : depth > 0 ? "#fafbfc" : "#fff",
+              position: "relative",
+              height: "100%",
+              boxSizing: "border-box",
             }}
             onClick={() => {
               if (!d.isMob) return;
@@ -8906,13 +8729,8 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               setActionMenu(actionMenu?.item?.id === m.id ? null : { item: m, depth });
             } : undefined}
           >
-            {row}
+            {card}
           </div>
-          {hasKids && !isCol && (
-            <div>
-              {renderTree(m.children, depth + 1, [...parentLasts, !isLast])}
-            </div>
-          )}
           {subParentId === m.id && (
             <div
               style={{
@@ -9035,7 +8853,11 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
           )}
         </div>
       );
+      if (hasKids && !isCol && d.isMob) {
+        nodes.push(...renderTree(m.children, depth + 1, num));
+      }
     });
+    return nodes;
   }
 
   return (
@@ -9388,37 +9210,111 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
 
         {/* Tree view */}
         <div
-          style={{
+          style={d.isMob ? {
             border: "1px solid #e2e8f0",
             borderRadius: 6,
             overflow: "hidden",
+          } : {
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 16,
           }}
         >
-          {!d.isMob && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 10px",
-                background: "#1e3a5f",
-                color: "#fff",
-                fontSize: "11px",
-                fontWeight: 700,
-              }}
-            >
-              <span style={{ width: 14, flexShrink: 0 }} />
-              <span style={{ flexShrink: 0, minWidth: 28, textAlign: "right", marginRight: 4 }}>No</span>
-              <span style={{ flex: 1, minWidth: 0 }}>Nama Barang</span>
-              <span style={{ flexShrink: 0, width: 48, textAlign: "right" }}>Jumlah</span>
-              <span style={{ flexShrink: 0, width: 130, textAlign: "center" }}>Tempat</span>
-              <span style={{ flexShrink: 0, width: 70, textAlign: "center" }}>Kondisi</span>
-              <span style={{ flexShrink: 0, width: 76, textAlign: "center" }}>Aksi</span>
-            </div>
-          )}
           {renderTree(filteredInventory)}
         </div>
       </div>
+
+      {subModal && !d.isMob && (
+        <>
+          <div onClick={() => setSubModal(null)} style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,.5)", zIndex: 100, animation: "silapFade .2s ease" }} />
+          <div style={{
+            position: "fixed", top: "5%", left: "5%", right: "5%", bottom: "5%",
+            background: "#fff", borderRadius: 12, zIndex: 101,
+            display: "flex", flexDirection: "column",
+            boxShadow: "0 20px 60px rgba(0,0,0,.2)",
+            animation: "invCardIn .2s ease",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "18px 24px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 }}>
+              <button onClick={() => setSubModal(null)} style={{ border: "none", cursor: "pointer", background: "#f1f5f9", color: "#475569", borderRadius: 6, padding: "6px 12px", fontFamily: "inherit", fontSize: 13, fontWeight: 600, flexShrink: 0 }}>← Kembali</button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {cleanName(subModal.item.nama_barang)}
+                </div>
+                <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                  {subModal.item.children?.length || 0} sub-barang
+                </div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflow: "auto", padding: 20 }}>
+              {(!subModal.item.children || subModal.item.children.length === 0) ? (
+                <div style={{ textAlign: "center", padding: 40, color: "#94a3b8", fontSize: 14 }}>
+                  Tidak ada sub-barang
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                  {subModal.item.children.map((child: any, ci: number) => {
+                    const childHasKids = child.children && child.children.length > 0;
+                    return (
+                      <div key={child.id}>
+                        <div style={{
+                          border: "1px solid #e2e8f0",
+                          borderLeft: "4px solid #0d9488",
+                          borderRadius: 8,
+                          padding: "16px",
+                          background: "#fafbfc",
+                          height: "100%",
+                          boxSizing: "border-box",
+                          position: "relative",
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                            {childHasKids ? (
+                              <button
+                                onClick={() => setSubModal({ item: child, depth: subModal.depth + 1 })}
+                                style={{ border: "none", cursor: "pointer", background: "none", color: "#94a3b8", fontSize: 12, padding: 0, flexShrink: 0, width: 16 }}
+                              >▶</button>
+                            ) : (
+                              <span style={{ width: 16, flexShrink: 0 }} />
+                            )}
+                            <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap", marginRight: 2 }}>{ci + 1}.</span>
+                            <span style={{
+                              flex: 1, minWidth: 0,
+                              fontWeight: 600,
+                              color: "#0f172a",
+                              fontSize: "14px",
+                              lineHeight: "1.3",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}>{cleanName(child.nama_barang)}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === child.id ? null : child.id); }}
+                              style={{ border: "none", cursor: "pointer", background: "transparent", color: "#94a3b8", fontSize: 15, padding: "2px 4px", lineHeight: 1, flexShrink: 0 }}
+                            >⋮</button>
+                            {openMenu === child.id && <div onClick={() => setOpenMenu(null)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />}
+                            {openMenu === child.id && (
+                              <div style={{ position: "absolute", right: 8, top: 30, zIndex: 50, background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,.1)", minWidth: 160, borderRadius: 6, padding: 4 }}>
+                                <button onClick={(e) => { e.stopPropagation(); startEdit(child); setOpenMenu(null); }} style={{ display: "block", width: "100%", textAlign: "left", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 12px", background: "transparent", color: "#1e293b", borderRadius: 4, whiteSpace: "nowrap" }}>Edit</button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(child); setOpenMenu(null); }} style={{ display: "block", width: "100%", textAlign: "left", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "8px 12px", background: "transparent", color: "#ef4444", borderRadius: 4, whiteSpace: "nowrap" }}>Hapus</button>
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: "12px", color: "#64748b", alignItems: "center", marginTop: 6 }}>
+                            <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "13px" }}>{child.jumlah || 0} unit</span>
+                            <span style={{ color: "#cbd5e1" }}>•</span>
+                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 100 }}>{child.tempat_penyimpanan || "—"}</span>
+                            <span style={{ color: "#cbd5e1" }}>•</span>
+                            <span style={{ padding: "2px 8px", background: kndBg(child.kondisi_barang), color: kndCl(child.kondisi_barang), fontWeight: 600, fontSize: "11px", borderRadius: 4 }}>{child.kondisi_barang || "—"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {actionMenu && d.isMob && (
         <>
