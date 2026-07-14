@@ -1273,7 +1273,12 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
             {d.cal.cells.map((c, i) => (
               <div
                 key={i}
-                onClick={() => { if (c.day) setSelectedDay({ day: c.day, events: c.events }); c.onClick(); }}
+                onClick={() => {
+                  if (c.day) {
+                    setSelectedDay({ day: c.day, events: c.events });
+                    if (d.canEditActive && window.matchMedia('(min-width: 768px)').matches) c.onClick();
+                  }
+                }}
                 style={{
                   minHeight: c.minH,
                   border: `1px solid ${c.border}`,
@@ -1371,17 +1376,17 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
             )}
             <div style={{ display: "flex", flexDirection: "column" }}>
               {selectedDay.events.map((ev, idx) => (
-                <div key={ev.id} onClick={d.u && d.u.role === "admin" ? () => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: ev.title, time: ev.time, id: ev.id, pokja: st.activePokja } }); } : undefined} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #e2e8f0", cursor: d.u && d.u.role === "admin" ? "pointer" : "default" }}>
+                <div key={ev.id} onClick={d.canEditActive ? () => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: ev.title, time: ev.time, id: ev.id, pokja: st.activePokja } }); } : undefined} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #e2e8f0", cursor: d.canEditActive ? "pointer" : "default" }}>
                   <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: "#64748b", textAlign: "right", flexShrink: 0 }}>{ev.time || "—"}</div>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: ev.accent, flexShrink: 0 }} />
                   <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#1e293b", minWidth: 0 }}>{ev.title}</div>
-                  {d.u && d.u.role === "admin" && (
+                  {d.canEditActive && (
                     <span onClick={(e) => { e.stopPropagation(); if (confirm("Hapus kegiatan ini?")) { dispatch({ type: "DELETE_EVENT", payload: ev.id }); setSelectedDay({ day: selectedDay.day, events: selectedDay.events.filter(x => x.id !== ev.id) }); } }} style={{ cursor: "pointer", color: "#b08a7a", fontSize: 14, flexShrink: 0 }}>×</span>
                   )}
                 </div>
               ))}
             </div>
-            {d.u && d.u.role === "admin" && (
+            {d.canEditActive && (
               <div style={{ padding: "14px 14px 10px", borderTop: "1px solid #e2e8f0" }}>
                 <div style={{ position: "relative", height: 50, userSelect: "none", marginBottom: 8 }}>
                   <div
