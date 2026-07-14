@@ -42,6 +42,34 @@ import {
 } from "@milkdown/kit/plugin/history";
 import { Milkdown, useEditor } from "@milkdown/react";
 
+function searchItems<T>(items: T[], query: string): T[] {
+  if (!query.trim()) return items;
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return items.filter((item) => {
+    const vals = Object.values(item as Record<string, unknown>).filter(
+      (v) => v != null
+    ).map((v) => String(v).toLowerCase());
+    return words.every((w) => vals.some((v) => v.includes(w)));
+  });
+}
+
+function searchTree(tree: any[], query: string): any[] {
+  if (!query.trim()) return tree;
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  function match(item: any): boolean {
+    const vals = Object.values(item).filter((v) => v != null && !Array.isArray(v)).map((v) => String(v).toLowerCase());
+    return words.every((w) => vals.some((v) => v.includes(w)));
+  }
+  function filterNode(node: any): any | null {
+    const children = (node.children || []).map(filterNode).filter(Boolean);
+    if (match(node) || children.length > 0) {
+      return { ...node, children };
+    }
+    return null;
+  }
+  return tree.map(filterNode).filter(Boolean);
+}
+
 interface Props {
   st: AppState;
   d: DerivedData;
@@ -1613,6 +1641,14 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const isAdmin = !!(d.u && d.u.role === "admin");
   const [fsIdx, setFsIdx] = useState<number | null>(null);
+  const [galSearch, setGalSearch] = useState("");
+
+  const filteredGalSections = d.galSections
+    .map((s: any) => ({
+      ...s,
+      photos: searchItems(s.photos, galSearch),
+    }))
+    .filter((s: any) => s.photos.length > 0);
 
   useEffect(() => {
     if (fsIdx === null) return;
@@ -1799,6 +1835,26 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div style={{ marginBottom: 14 }}>
+        <input
+          value={galSearch}
+          onChange={(e) => setGalSearch(e.target.value)}
+          placeholder="Cari foto…"
+          style={{
+            fontFamily: "inherit",
+            fontSize: 13,
+            padding: "9px 12px",
+            border: "1px solid #d1d5db",
+            background: "#fff",
+            color: "#1e293b",
+            outline: "none",
+            width: "100%",
+            maxWidth: 320,
+            boxSizing: "border-box" as const,
+          }}
+        />
       </div>
 
       {showUpload && (
@@ -2044,8 +2100,13 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
         </div>
       )}
 
+      {filteredGalSections.length === 0 && galSearch ? (
+        <div style={{ padding: "40px 20px", textAlign: "center", color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>
+          Tidak ditemukan
+        </div>
+      ) : (
       <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
-        {d.galSections.map(section => (
+        {filteredGalSections.map(section => (
           <div key={section.label}>
             <div
               style={{
@@ -2065,7 +2126,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
               </span>
             </div>
             <div style={d.rs.galGrid}>
-              {section.photos.map(g => {
+               {section.photos.map((g: any) => {
                 const globalIdx = d.allPhotos.indexOf(g);
                 return (
                   <div
@@ -2262,6 +2323,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
   </div>
 ))}
       </div>
+      )}
 
       {fsIdx !== null && d.allPhotos[fsIdx] && (
         <div
@@ -2812,6 +2874,8 @@ export function BerkasSection({
 }) {
   const isAdmin = !!(d.u && d.u.role === "admin");
   const canUploadBerkas = isAdmin || (!!d.u && d.u.pokja != null && st.fileFilter !== "all" && d.u.pokja === st.fileFilter);
+  const [berkasSearch, setBerkasSearch] = useState("");
+  const filteredFiles = searchItems(d.allFiles, berkasSearch);
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
@@ -2888,9 +2952,31 @@ export function BerkasSection({
             </button>
           ))}
         </div>
+        <input
+          value={berkasSearch}
+          onChange={(e) => setBerkasSearch(e.target.value)}
+          placeholder="Cari berkas…"
+          style={{
+            fontFamily: "inherit",
+            fontSize: 13,
+            padding: "9px 12px",
+            border: "1px solid #d1d5db",
+            background: "#fff",
+            color: "#1e293b",
+            outline: "none",
+            width: "100%",
+            maxWidth: 280,
+            boxSizing: "border-box" as const,
+          }}
+        />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {d.allFiles.map((f, i) => {
+        {berkasSearch && filteredFiles.length === 0 ? (
+          <div style={{ padding: "32px 16px", textAlign: "center", color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>
+            Tidak ditemukan
+          </div>
+        ) : (
+        filteredFiles.map((f, i) => {
           const extColor = /\.xlsx?$/i.test(f.name)
             ? "#16a34a"
             : /\.docx?$/i.test(f.name)
@@ -2999,8 +3085,8 @@ href={f.url}
               )}
             </div>
           );
-        })}
-        {d.allFiles.length === 0 && (
+        }))}
+        {!berkasSearch && d.allFiles.length === 0 && (
           <div
             style={{
               textAlign: "center",
@@ -4160,6 +4246,15 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
 }
 
 export function LaporanSection({ d, st, dispatch, showToast }: Props) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredReportGroups = d.reportGroups
+    .map((g: any) => ({
+      ...g,
+      reports: searchItems(g.reports, searchQuery),
+    }))
+    .filter((g: any) => g.reports.length > 0);
+
   const handleExportExcel = async () => {
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Laporan");
@@ -4444,6 +4539,24 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                     {st.reports.length} laporan
                   </div>
                 </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari laporan…"
+                  style={{
+                    fontFamily: "inherit",
+                    fontSize: 13,
+                    padding: "9px 12px",
+                    border: "1px solid #d1d5db",
+                    background: "#fff",
+                    color: "#1e293b",
+                    outline: "none",
+                    width: "100%",
+                    maxWidth: 220,
+                    boxSizing: "border-box" as const,
+                  }}
+                />
                 <button
                   onClick={handleExportExcel}
                   style={{
@@ -4459,14 +4572,20 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                     alignItems: "center",
                     gap: 7,
                     whiteSpace: "nowrap",
+                    flexShrink: 0,
                   }}
                 >
                   <span>▦</span> Export Excel
           </button>
+          </div>
         </div>
-        {d.isMob ? (
+            {filteredReportGroups.length === 0 && searchQuery ? (
+              <div style={{ padding: "32px 16px", textAlign: "center", color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>
+                Tidak ditemukan
+              </div>
+            ) : d.isMob ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {d.reportGroups.map((g: any, gi: number) => (
+            {filteredReportGroups.map((g: any, gi: number) => (
               <Fragment key={gi}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: "#1e3a5f", padding: "8px 11px", background: "#eef2ff", border: "1px solid #e2e8f0" }}>{g.monthLabel}</div>
                 {g.reports.map((r: any, i: number) => (
@@ -4496,7 +4615,7 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {d.reportGroups.map((g: any, gi: number) => (
+                {filteredReportGroups.map((g: any, gi: number) => (
                   <Fragment key={gi}>
                     <tr style={{ background: "#eef2ff" }}>
                       <td colSpan={6} style={{ fontWeight: 700, fontSize: 13, color: "#1e3a5f", padding: "8px 11px" }}>{g.monthLabel}</td>
@@ -6543,6 +6662,8 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
     membership_status: "Aktif",
   });
   const [editingId, setEditingId] = useState<string | number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const memSearch = searchItems(d.pkkMembers, searchQuery);
   const [ef, setEf] = useState({
     name: "",
     position: "Anggota Pokja I",
@@ -6757,7 +6878,24 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
               {d.pkkMembers.length} anggota
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari anggota…"
+              style={{
+                fontFamily: "inherit",
+                fontSize: 13,
+                padding: "9px 12px",
+                border: "1px solid #d1d5db",
+                background: "#fff",
+                color: "#1e293b",
+                outline: "none",
+                width: "100%",
+                maxWidth: 220,
+                boxSizing: "border-box" as const,
+              }}
+            />
             <button
               onClick={handleExportExcel}
               style={{
@@ -6841,7 +6979,7 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
 
         {d.isMob ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {d.pkkMembers.map((m: any, i: number) => {
+            {memSearch.map((m: any, i: number) => {
               return (
                 <div key={i} style={{ border: "1px solid #e2e8f0", padding: "12px 14px", background: m.rowBg }}
                   onTouchStart={() => { longPressFiredRef.current = false; longPressTimerRef.current = setTimeout(() => { longPressFiredRef.current = true; setActionMenu({ item: m }); }, 1000); }}
@@ -6891,7 +7029,7 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {d.pkkMembers.map((m: any, i: number) => {
+                {memSearch.map((m: any, i: number) => {
                   const isE = editingId === m.id;
                   return (
                     <tr key={i} style={{ borderBottom: "1px solid #f1f5f9", background: isE ? "#eef2ff" : m.rowBg }}>
@@ -7094,6 +7232,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
   const longPressFiredRef = useRef(false);
   const [actionMenu, setActionMenu] = useState<{ item: any } | null>(null);
   const [drawerAnim, setDrawerAnim] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (actionMenu) {
@@ -7129,7 +7268,8 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
     );
   };
 
-  const sortedItems = [...items].sort((a: any, b: any) => {
+  const filteredItems = searchItems(items, searchQuery);
+  const sortedItems = [...filteredItems].sort((a: any, b: any) => {
     if (!sortBy) return 0;
     const va = (a[sortBy.key] || "").toLowerCase();
     const vb = (b[sortBy.key] || "").toLowerCase();
@@ -7287,6 +7427,26 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
         <p style={{ fontSize: "14.5px", color: "#475569" }}>
           Kelola surat menyurat PKK Desa Bunutwetan.
         </p>
+      </div>
+
+      <div style={{ marginBottom: 14 }}>
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Cari surat…"
+          style={{
+            fontFamily: "inherit",
+            fontSize: 13,
+            padding: "9px 12px",
+            border: "1px solid #d1d5db",
+            background: "#fff",
+            color: "#1e293b",
+            outline: "none",
+            width: "100%",
+            maxWidth: 320,
+            boxSizing: "border-box" as const,
+          }}
+        />
       </div>
 
       <div
@@ -7669,7 +7829,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
               <div style={{ width: 64, flexShrink: 0 }} />
             </div>
           )}
-          {items.length === 0 ? (
+          {!searchQuery && items.length === 0 ? (
             <div
               style={{
                 padding: "40px 20px",
@@ -7680,6 +7840,18 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
               }}
             >
               Belum ada surat {currentView === "masuk" ? "masuk" : "keluar"}
+            </div>
+          ) : searchQuery && filteredItems.length === 0 ? (
+            <div
+              style={{
+                padding: "40px 20px",
+                textAlign: "center",
+                color: "#94a3b8",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              Tidak ditemukan
             </div>
           ) : (
             sortedItems.map((m: any) => {
@@ -8102,6 +8274,8 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
   const longPressFiredRef = useRef(false);
   const [actionMenu, setActionMenu] = useState<{ item: any; depth: number } | null>(null);
   const [drawerAnim, setDrawerAnim] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredInventory = searchTree(st.inventory, searchQuery);
 
   useEffect(() => {
     if (actionMenu) {
@@ -8849,7 +9023,24 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               {d.inventory.length} barang
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari barang…"
+              style={{
+                fontFamily: "inherit",
+                fontSize: 13,
+                padding: "9px 12px",
+                border: "1px solid #d1d5db",
+                background: "#fff",
+                color: "#1e293b",
+                outline: "none",
+                width: "100%",
+                maxWidth: 220,
+                boxSizing: "border-box" as const,
+              }}
+            />
             <button
               onClick={handleExportExcel}
               style={{
@@ -9160,7 +9351,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               <span style={{ flexShrink: 0, width: 76, textAlign: "center" }}>Aksi</span>
             </div>
           )}
-          {renderTree(st.inventory)}
+          {renderTree(filteredInventory)}
         </div>
       </div>
 
