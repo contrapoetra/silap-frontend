@@ -8605,25 +8605,27 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-              {hasKids ? (
+              {d.isMob && hasKids && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (d.isMob) {
-                      const n = new Set(collapsed);
-                      if (n.has(m.id)) n.delete(m.id);
-                      else n.add(m.id);
-                      setCollapsed(n);
-                    } else {
-                      setSubModal({ item: m, depth });
-                    }
+                    const n = new Set(collapsed);
+                    if (n.has(m.id)) n.delete(m.id);
+                    else n.add(m.id);
+                    setCollapsed(n);
                   }}
                   style={{ border: "none", cursor: "pointer", background: "none", color: "#94a3b8", fontSize: 12, padding: 0, flexShrink: 0, width: 16 }}
-                >{d.isMob ? (isCol ? "▶" : "▼") : "▶"}</button>
-              ) : (
-                <span style={{ width: 16, flexShrink: 0 }} />
+                >{isCol ? "▶" : "▼"}</button>
               )}
-              <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap", marginRight: 2 }}>{num}.</span>
+              {hasKids && !d.isMob && (
+                <span style={{
+                                  position: "absolute", top: 8, right: 8, zIndex: 2,
+                  background: "#1e3a5f", color: "#fff",
+                  fontSize: "12px", fontWeight: 700,
+                  padding: "2px 7px", borderRadius: 4,
+                  lineHeight: 1.2,
+                }}>{m.children.length}</span>
+              )}
               <span style={{
                 flex: 1, minWidth: 0,
                 fontWeight: depth === 0 ? 700 : 600,
@@ -8694,24 +8696,29 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               WebkitUserSelect: "none",
               cursor: hasKids ? "pointer" : "default",
             } : {
-              border: `1px solid ${isE ? "#c7d2fe" : "#e2e8f0"}`,
+              border: `1px solid ${isE ? "#c7d2fe" : hoveredId === m.id && hasKids ? "#94a3b8" : "#e2e8f0"}`,
               borderLeft: `${depth === 0 ? 5 : 3}px solid ${depth === 0 ? "#1e3a5f" : depth === 1 ? "#0d9488" : "#94a3b8"}`,
               borderRadius: 8,
               padding: "16px",
-              background: isE ? "#eef2ff" : depth > 0 ? "#fafbfc" : "#fff",
+              background: isE ? "#eef2ff" : hoveredId === m.id && hasKids ? "#f1f5f9" : depth > 0 ? "#fafbfc" : "#fff",
               position: "relative",
               height: "100%",
               boxSizing: "border-box",
+              cursor: hasKids ? "pointer" : "default",
+              boxShadow: hasKids ? (hoveredId === m.id ? "3px 3px 0 #cbd5e1, 6px 6px 0 #e2e8f0" : "3px 3px 0 #e2e8f0, 6px 6px 0 #f1f5f9") : undefined,
             }}
             onClick={() => {
-              if (!d.isMob) return;
-              if (actionMenu) { setActionMenu(null); return; }
-              if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
-              if (hasKids) {
-                const n = new Set(collapsed);
-                if (n.has(m.id)) n.delete(m.id);
-                else n.add(m.id);
-                setCollapsed(n);
+              if (d.isMob) {
+                if (actionMenu) { setActionMenu(null); return; }
+                if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
+                if (hasKids) {
+                  const n = new Set(collapsed);
+                  if (n.has(m.id)) n.delete(m.id);
+                  else n.add(m.id);
+                  setCollapsed(n);
+                }
+              } else if (hasKids) {
+                setSubModal({ item: m, depth });
               }
             }}
             onTouchStart={d.isMob ? () => {
@@ -9256,26 +9263,28 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
                     const childHasKids = child.children && child.children.length > 0;
                     return (
                       <div key={child.id}>
-                        <div style={{
-                          border: "1px solid #e2e8f0",
-                          borderLeft: "4px solid #0d9488",
-                          borderRadius: 8,
-                          padding: "16px",
-                          background: "#fafbfc",
-                          height: "100%",
-                          boxSizing: "border-box",
-                          position: "relative",
-                        }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                            {childHasKids ? (
-                              <button
-                                onClick={() => setSubModal({ item: child, depth: subModal.depth + 1 })}
-                                style={{ border: "none", cursor: "pointer", background: "none", color: "#94a3b8", fontSize: 12, padding: 0, flexShrink: 0, width: 16 }}
-                              >▶</button>
-                            ) : (
-                              <span style={{ width: 16, flexShrink: 0 }} />
-                            )}
-                            <span style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap", marginRight: 2 }}>{ci + 1}.</span>
+                            <div style={{
+                              border: "1px solid #e2e8f0",
+                              borderLeft: "4px solid #0d9488",
+                              borderRadius: 8,
+                              padding: "16px",
+                              background: "#fafbfc",
+                              height: "100%",
+                              boxSizing: "border-box",
+                              position: "relative",
+                              cursor: childHasKids ? "pointer" : "default",
+                              boxShadow: childHasKids ? "3px 3px 0 #e2e8f0, 6px 6px 0 #f1f5f9" : undefined,
+                            }} onClick={childHasKids ? () => setSubModal({ item: child, depth: subModal.depth + 1 }) : undefined}>
+                              {childHasKids && (
+                                <span style={{
+                  position: "absolute", top: 8, right: 8, zIndex: 2,
+                                  background: "#1e3a5f", color: "#fff",
+                                  fontSize: "12px", fontWeight: 700,
+                                  padding: "2px 7px", borderRadius: 4,
+                                  lineHeight: 1.2,
+                                }}>{child.children.length}</span>
+                              )}
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
                             <span style={{
                               flex: 1, minWidth: 0,
                               fontWeight: 600,
