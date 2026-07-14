@@ -2905,12 +2905,53 @@ export function KalenderSection({
               ))}
             </div>
             {isAdmin && (
-              <div style={{ padding: "14px", borderTop: "1px solid #e2e8f0" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8, textAlign: "center" }}>
-                  {String(Math.floor(seekMin / 60)).padStart(2, "0")}:{String(seekMin % 60).padStart(2, "0")}
+              <div style={{ padding: "14px 14px 10px", borderTop: "1px solid #e2e8f0" }}>
+                <div style={{ position: "relative", height: 50, userSelect: "none", marginBottom: 8 }}>
+                  {/* timeline track */}
+                  <div
+                    style={{ position: "absolute", top: 18, left: 0, right: 0, height: 2, background: "#e2e8f0", borderRadius: 1 }}
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                      setSeekMin(Math.round(pct * 1410 / 30) * 30);
+                    }}
+                  />
+                  {/* hour marks */}
+                  {[0,2,4,6,8,10,12,14,16,18,20,22].map(h => {
+                    const pct = (h / 24) * 100;
+                    return (
+                      <div key={h} style={{ position: "absolute", top: 10, left: `${pct}%`, transform: "translateX(-50%)" }}>
+                        <div style={{ width: 1, height: 10, background: "#cbd5e1", margin: "0 auto" }} />
+                        <div style={{ fontSize: 9, color: "#94a3b8", textAlign: "center", marginTop: 2, fontWeight: 500 }}>{String(h).padStart(2,"0")}</div>
+                      </div>
+                    );
+                  })}
+                  {/* event keyframes (diamond shape) */}
+                  {selectedDay.events.map(ev => {
+                    const [eh, em] = (ev.time || "00:00").split(":").map(Number);
+                    const pct = ((eh * 60 + em) / 1440) * 100;
+                    return (
+                      <div
+                        key={ev.id}
+                        style={{ position: "absolute", top: 16, left: `${pct}%`, transform: "translate(-50%,-50%)", cursor: "pointer", zIndex: 2 }}
+                        onClick={(e) => { e.stopPropagation(); const [hh,mm] = (ev.time||"00:00").split(":").map(Number); setSeekMin(hh*60+mm); }}
+                        title={ev.title}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12">
+                          <rect x="0" y="0" width="12" height="12" rx="2" transform="rotate(45 6 6)" fill={ev.accent} />
+                        </svg>
+                      </div>
+                    );
+                  })}
+                  {/* playhead / scrubber */}
+                  <div style={{ position: "absolute", top: 0, left: `${(seekMin/1440)*100}%`, transform: "translateX(-50%)", zIndex: 3, pointerEvents: "none" }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", margin: "0 auto 1px" }} />
+                    <div style={{ width: 2, height: 40, background: "#ef4444", borderRadius: 1 }} />
+                  </div>
                 </div>
-                <input type="range" min={0} max={1410} step={30} value={seekMin} onChange={e => setSeekMin(Number(e.target.value))} style={{ width: "100%", height: 6, accentColor: "#1e3a5f" }} />
-                <button onClick={() => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: `${String(Math.floor(seekMin / 60)).padStart(2, "0")}:${String(seekMin % 60).padStart(2, "0")}`, pokja: st.activePokja } }); }} style={{ width: "100%", marginTop: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 0", background: "#1e3a5f", color: "#fff" }}>Tambah Kegiatan</button>
+                <button onClick={() => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: `${String(Math.floor(seekMin / 60)).padStart(2, "0")}:${String(seekMin % 60).padStart(2, "0")}`, pokja: st.activePokja } }); }} style={{ width: "100%", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px 0", background: "#1e3a5f", color: "#fff", borderRadius: 6 }}>
+                  + Tambah di {String(Math.floor(seekMin / 60)).padStart(2, "0")}:{String(seekMin % 60).padStart(2, "0")}
+                </button>
               </div>
             )}
           </div>
