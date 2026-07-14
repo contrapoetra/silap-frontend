@@ -11,6 +11,8 @@ import {
 } from "@/lib/constants";
 import { AnalogTimePicker } from "./Modals";
 import { Dispatch, Fragment, useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import "leaflet/dist/leaflet.css";
 import ExcelJS from "exceljs/dist/exceljs.min.js";
 import MDEditor from "@uiw/react-md-editor";
 import {
@@ -77,6 +79,65 @@ interface Props {
   go: (r: string) => void;
   openPokja: (p: { pokja: number; tab?: string }) => void;
   showToast: (msg: string) => void;
+}
+
+const BUNUTWETAN_CENTER: [number, number] = [-7.9546, 112.7050];
+
+const DynamicMapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const DynamicTileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const DynamicMarker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const DynamicCircle = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Circle),
+  { ssr: false }
+);
+const DynamicPopup = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Popup),
+  { ssr: false }
+);
+
+function DesaMap() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) {
+    return (
+      <div style={{ width: "100%", height: 300, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 12, color: "#94a3b8" }}>Memuat peta...</span>
+      </div>
+    );
+  }
+  return (
+    <DynamicMapContainer
+      center={BUNUTWETAN_CENTER}
+      zoom={14}
+      style={{ height: 300, width: "100%" }}
+      scrollWheelZoom={false}
+    >
+      <DynamicTileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <DynamicCircle
+        center={BUNUTWETAN_CENTER}
+        radius={2000}
+        pathOptions={{ color: "#2563eb", fillColor: "#2563eb", fillOpacity: 0.08, weight: 2 }}
+      />
+      <DynamicMarker position={BUNUTWETAN_CENTER}>
+        <DynamicPopup>
+          <strong>Desa Bunutwetan</strong><br />
+          Kec. Pakis, Kab. Malang, Jawa Timur
+        </DynamicPopup>
+      </DynamicMarker>
+    </DynamicMapContainer>
+  );
 }
 
 export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
@@ -448,25 +509,11 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
           style={{
             position: "relative",
             overflow: "hidden",
-            background:
-              "repeating-linear-gradient(135deg,#e2e8f0,#e2e8f0 11px,#eef2f6 11px,#eef2f6 22px)",
             border: "1px solid #e2e8f0",
             minHeight: 220,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
-          <span
-            style={{
-              fontFamily: "ui-monospace,monospace",
-              fontSize: "11.5px",
-              color: "#64748b",
-              letterSpacing: ".04em",
-            }}
-          >
-            [ peta / foto wilayah desa ]
-          </span>
+          <DesaMap />
         </div>
       </section>
       <section style={{ marginTop: d.rs.sectionGap }}>
