@@ -10,6 +10,7 @@ body{background:#f1f5f9}
 ::selection{background:#dbeafe}
 .silap-scroll::-webkit-scrollbar{height:6px;width:6px}
 .silap-scroll::-webkit-scrollbar-thumb{background:#cbd5e1}
+.leaflet-control-attribution{display:none!important}
 
 :root {
   --silap-header-pad: 12px 20px;

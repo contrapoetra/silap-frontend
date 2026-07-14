@@ -510,11 +510,14 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
             position: "relative",
             overflow: "hidden",
             border: "1px solid #e2e8f0",
-            minHeight: 220,
           }}
         >
           <DesaMap />
         </div>
+        <div />
+        <span style={{ gridColumn: 2, justifySelf: "end", alignSelf: "start", fontSize: 10, color: "#94a3b8", lineHeight: 1 }}>
+          Map viewer powered by OpenStreetMap and Leaflet
+        </span>
       </section>
       <section style={{ marginTop: d.rs.sectionGap }}>
         <h2
