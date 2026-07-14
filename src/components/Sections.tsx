@@ -8696,7 +8696,9 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               WebkitUserSelect: "none",
               cursor: hasKids ? "pointer" : "default",
             } : {
-              border: `1px solid ${isE ? "#c7d2fe" : hoveredId === m.id && hasKids ? "#94a3b8" : "#e2e8f0"}`,
+              borderTop: `1px solid ${isE ? "#c7d2fe" : hoveredId === m.id && hasKids ? "#94a3b8" : "#e2e8f0"}`,
+              borderRight: `1px solid ${isE ? "#c7d2fe" : hoveredId === m.id && hasKids ? "#94a3b8" : "#e2e8f0"}`,
+              borderBottom: `1px solid ${isE ? "#c7d2fe" : hoveredId === m.id && hasKids ? "#94a3b8" : "#e2e8f0"}`,
               borderLeft: `${depth === 0 ? 5 : 3}px solid ${depth === 0 ? "#1e3a5f" : depth === 1 ? "#0d9488" : "#94a3b8"}`,
               borderRadius: 8,
               padding: "16px",
@@ -8705,7 +8707,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               height: "100%",
               boxSizing: "border-box",
               cursor: hasKids ? "pointer" : "default",
-              boxShadow: hasKids ? (hoveredId === m.id ? "3px 3px 0 #cbd5e1, 6px 6px 0 #e2e8f0" : "3px 3px 0 #e2e8f0, 6px 6px 0 #f1f5f9") : undefined,
+              boxShadow: hasKids ? (hoveredId === m.id ? "4px 4px 0 #cbd5e1, 8px 8px 0 #e2e8f0" : "4px 4px 0 #e2e8f0, 8px 8px 0 #f1f5f9") : undefined,
             }}
             onClick={() => {
               if (d.isMob) {
@@ -9273,7 +9275,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
                               boxSizing: "border-box",
                               position: "relative",
                               cursor: childHasKids ? "pointer" : "default",
-                              boxShadow: childHasKids ? "3px 3px 0 #e2e8f0, 6px 6px 0 #f1f5f9" : undefined,
+                              boxShadow: childHasKids ? "4px 4px 0 #e2e8f0, 8px 8px 0 #f1f5f9" : undefined,
                             }} onClick={childHasKids ? () => setSubModal({ item: child, depth: subModal.depth + 1 }) : undefined}>
                               {childHasKids && (
                                 <span style={{
