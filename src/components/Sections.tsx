@@ -245,10 +245,10 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
                     cursor: "pointer",
                   }}
                 />
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
+      </div>
+    </div>
       </section>
       <section style={{ marginTop: d.rs.sectionGap }}>
         <div
@@ -2319,59 +2319,9 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
           </div>
         );
       })}
-      </div>
-      <div className="sc-tl">
-        {selectedDay && (
-          <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #e2e8f0" }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedDay.day} {d.cal.monthLabel}</div>
-              <button onClick={() => setSelectedDay(null)} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}>✕</button>
-            </div>
-            {selectedDay.events.length === 0 && (
-              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>
-                {isAdmin ? "Tidak ada kegiatan — klik + untuk menambah" : "Tidak ada kegiatan"}
-              </div>
-            )}
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {[
-                ...(isAdmin ? [{ id: '__top', time: "", title: null, accent: "#94a3b8", tint: "" }] : []),
-                ...selectedDay.events,
-                ...(isAdmin ? [{ id: '__bot', time: "23:00", title: null, accent: "#94a3b8", tint: "" }] : []),
-              ].flatMap((ev, idx, arr) => {
-                const isPlaceholder = ev.id === '__top' || ev.id === '__bot';
-                const next = idx < arr.length - 1 ? arr[idx + 1] : null;
-                const suggestTime = ev.id === '__top' ? (arr.length > 1 && arr[1].time ? (() => { const t = arr[1].time.split(":").map(Number); return `${String(Math.max(0, t[0] - 1)).padStart(2, "0")}:00`; })() : "07:00") : (ev.time || "12:00");
-                return [
-                  ...(isAdmin && isPlaceholder ? [(
-                    <div key={ev.id} onClick={() => { setSelectedDay(null); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: suggestTime, pokja: st.activePokja } }); }} style={{ padding: "10px 14px", borderBottom: "1px dashed #e2e8f0", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#94a3b8" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>{suggestTime}</span>
-                    </div>
-                  )] : []),
-                  ...(!isPlaceholder ? [(
-                    <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #e2e8f0" }}>
-                      <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: "#64748b", textAlign: "right", flexShrink: 0 }}>{ev.time || "—"}</div>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: ev.accent, flexShrink: 0 }} />
-                      <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#1e293b", minWidth: 0 }}>{ev.title}</div>
-                      {isAdmin && (
-                        <span onClick={(e) => { e.stopPropagation(); if (confirm("Hapus kegiatan ini?")) { dispatch({ type: "DELETE_EVENT", payload: ev.id }); setSelectedDay({ day: selectedDay.day, events: selectedDay.events.filter(x => x.id !== ev.id) }); } }} style={{ cursor: "pointer", color: "#b08a7a", fontSize: 14, flexShrink: 0 }}>×</span>
-                      )}
-                    </div>
-                  )] : []),
-                  ...(isAdmin && next && next.id !== '__bot' && idx < arr.length - 2 ? [(
-                    <div key={`btw-${ev.id}-${next.id}`} onClick={() => { setSelectedDay(null); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: (() => { const t1 = (ev.time || "00:00").split(":").map(Number); const t2 = (next.time || "23:00").split(":").map(Number); const m = Math.floor((t1[0] * 60 + t1[1] + t2[0] * 60 + t2[1]) / 2); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(Math.round(m % 60 / 30) * 30).padStart(2, "0")}`; })(), pokja: st.activePokja } }); }} style={{ padding: "6px 14px", borderBottom: "1px dashed #e2e8f0", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#94a3b8" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>{(() => { const t1 = (ev.time || "00:00").split(":").map(Number); const t2 = (next.time || "23:00").split(":").map(Number); const m = Math.floor((t1[0] * 60 + t1[1] + t2[0] * 60 + t2[1]) / 2); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(Math.round(m % 60 / 30) * 30).padStart(2, "0")}`; })()}</span>
-                    </div>
-                  )] : []),
-                ];
-              })}
             </div>
           </div>
-        )}
-      </div>
-    </div>
-))}
+        ))}
       </div>
       )}
 
@@ -2598,6 +2548,7 @@ export function KalenderSection({
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ day: number; events: any[] } | null>(null);
+  const [seekMin, setSeekMin] = useState(480);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2820,9 +2771,8 @@ export function KalenderSection({
               onClick={
                 c.day
                   ? () => {
-                      if (window.innerWidth < 768) {
-                        setSelectedDay({ day: c.day!, events: c.events });
-                      } else if (isAdmin) {
+                      setSelectedDay({ day: c.day!, events: c.events });
+                      if (isAdmin && window.matchMedia('(min-width: 768px)').matches) {
                         dispatch({ type: "SET_EVENT_MODAL", payload: { day: c.day, title: "", time: "", pokja: 1 } });
                       }
                     }
@@ -2838,16 +2788,26 @@ export function KalenderSection({
                 minHeight: "var(--silap-cal-cell-min-h)",
                 padding: 3,
                 position: "relative",
-                cursor: isAdmin && c.day ? "pointer" : "default",
+                cursor: "pointer",
               }}
             >
               {c.day && (
                 <div
+                  onClick={() => {
+                    setSelectedDay({ day: c.day!, events: c.events });
+                    if (isAdmin && window.matchMedia('(min-width: 768px)').matches) {
+                      dispatch({
+                        type: "SET_EVENT_MODAL",
+                        payload: { day: c.day, title: "", time: "", pokja: 1 },
+                      });
+                    }
+                  }}
                   style={{
                     fontSize: "11px",
                     fontWeight: 700,
                     color: c.isToday ? "#2563eb" : "#334155",
                     marginBottom: 2,
+                    cursor: "pointer",
                   }}
                 >
                   {c.day}
@@ -2862,7 +2822,7 @@ export function KalenderSection({
                     isAdmin
                       ? (e) => {
                           e.stopPropagation();
-                          if (window.innerWidth >= 768) {
+                          if (window.matchMedia('(min-width: 768px)').matches) {
                             dispatch({
                               type: "SET_EVENT_MODAL",
                               payload: {
@@ -2922,6 +2882,44 @@ export function KalenderSection({
             </div>
           ))}
         </div>
+      <div className="sc-tl">
+        {selectedDay ? (
+          <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedDay.day} {d.cal.monthLabel}</div>
+              <button onClick={() => { setSelectedDay(null); setSeekMin(480); }} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}>✕</button>
+            </div>
+            {selectedDay.events.length === 0 && (
+              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>Tidak ada kegiatan</div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {selectedDay.events.map((ev, idx) => (
+                <div key={ev.id} onClick={isAdmin ? () => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: ev.title, time: ev.time, id: ev.id, pokja: st.activePokja } }); } : undefined} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #e2e8f0", cursor: isAdmin ? "pointer" : "default" }}>
+                  <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: "#64748b", textAlign: "right", flexShrink: 0 }}>{ev.time || "—"}</div>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: ev.accent, flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#1e293b", minWidth: 0 }}>{ev.title}</div>
+                  {isAdmin && (
+                    <span onClick={(e) => { e.stopPropagation(); if (confirm("Hapus kegiatan ini?")) { dispatch({ type: "DELETE_EVENT", payload: ev.id }); setSelectedDay({ day: selectedDay.day, events: selectedDay.events.filter(x => x.id !== ev.id) }); } }} style={{ cursor: "pointer", color: "#b08a7a", fontSize: 14, flexShrink: 0 }}>×</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            {isAdmin && (
+              <div style={{ padding: "14px", borderTop: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 8, textAlign: "center" }}>
+                  {String(Math.floor(seekMin / 60)).padStart(2, "0")}:{String(seekMin % 60).padStart(2, "0")}
+                </div>
+                <input type="range" min={0} max={1410} step={30} value={seekMin} onChange={e => setSeekMin(Number(e.target.value))} style={{ width: "100%", height: 6, accentColor: "#1e3a5f" }} />
+                <button onClick={() => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: `${String(Math.floor(seekMin / 60)).padStart(2, "0")}:${String(seekMin % 60).padStart(2, "0")}`, pokja: st.activePokja } }); }} style={{ width: "100%", marginTop: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 0", background: "#1e3a5f", color: "#fff" }}>Tambah Kegiatan</button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0", padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>
+            Klik tanggal untuk melihat kegiatan
+          </div>
+        )}
+      </div>
       </div>
     </div>
   );
