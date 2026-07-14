@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "PENDESA-P3S — Sistem Informasi Penguatan Desa Modul P3S Bunutwetan",
   description: "Sistem Informasi Penguatan Desa Modul P3S Bunutwetan",
+  icons: [{ rel: "icon", url: "/pkk.png", type: "image/png" }],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
