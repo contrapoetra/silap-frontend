@@ -874,8 +874,44 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
   const pokjaKetua = st.pkkMembers.find(
     (m) => m.position === "Ketua Pokja " + d.active.rom,
   );
+  const [selectedDay, setSelectedDay] = useState<{ day: number; events: any[] } | null>(null);
+  const [seekMin, setSeekMin] = useState(480);
+  const draggingRef = useRef(false);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onMove = (clientX: number) => {
+      if (!draggingRef.current || !timelineRef.current) return;
+      const rect = timelineRef.current.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      setSeekMin(Math.round(pct * 1439));
+    };
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
+    const onMouseUp = () => { draggingRef.current = false; };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!draggingRef.current) return;
+      e.preventDefault();
+      onMove(e.touches[0].clientX);
+    };
+    const onTouchEnd = () => { draggingRef.current = false; };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
+
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 22 }}>
+      <style>{`
+@media(max-width:767px){.sc-dot{display:inline-block!important}.sc-ev{display:none!important}.sc-nav{flex-direction:column!important}.sc-nav-btn{width:40px!important;height:40px!important}.sc-tl{display:block!important}.sc-hint{display:none!important}}
+@media(min-width:768px){.sc-dot{display:none!important}.sc-ev{display:flex!important}.sc-tl{display:none!important}}
+`}</style>
       <button
         onClick={() => go("pokja")}
         style={{
@@ -1131,13 +1167,13 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
           }}
         >
           <div
+            className="sc-nav"
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               marginBottom: 16,
-              flexWrap: "wrap",
-              gap: 8,
+              gap: 10,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1151,6 +1187,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   }
                   dispatch({ type: "SET_CAL_MONTH", payload: { m, y } });
                 }}
+                className="sc-nav-btn"
                 style={{
                   border: "1px solid #e2e8f0",
                   background: "#fff",
@@ -1159,6 +1196,9 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   height: 34,
                   fontSize: 16,
                   color: "#475569",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 ‹
@@ -1184,6 +1224,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   }
                   dispatch({ type: "SET_CAL_MONTH", payload: { m, y } });
                 }}
+                className="sc-nav-btn"
                 style={{
                   border: "1px solid #e2e8f0",
                   background: "#fff",
@@ -1192,13 +1233,16 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                   height: 34,
                   fontSize: 16,
                   color: "#475569",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 ›
               </button>
             </div>
-          {!d.isMob && d.canEditActive && (
-              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>
+          {d.canEditActive && (
+              <span className="sc-hint" style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>
                 Klik tanggal untuk tambah
               </span>
             )}
@@ -1229,7 +1273,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
             {d.cal.cells.map((c, i) => (
               <div
                 key={i}
-                onClick={c.onClick}
+                onClick={() => { if (c.day) setSelectedDay({ day: c.day, events: c.events }); c.onClick(); }}
                 style={{
                   minHeight: c.minH,
                   border: `1px solid ${c.border}`,
@@ -1242,17 +1286,21 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                 }}
               >
                 <div
+                  onClick={c.day ? () => setSelectedDay({ day: c.day, events: c.events }) : undefined}
                   style={{
                     fontSize: d.rs.calNumFont,
                     fontWeight: 700,
                     color: c.numColor,
+                    cursor: c.day ? "pointer" : undefined,
                   }}
                 >
                   {c.day}
                 </div>
                 {c.events.map((e: any, j: number) => (
-                  <div
-                    key={j}
+                  <div key={j} style={{ position: "relative" }}>
+                    <div className="sc-dot" style={{ width: 6, height: 6, background: e.accent, borderRadius: "50%", display: "inline-block", margin: "0 1px" }} />
+                    <div
+                    className="sc-ev"
                     onClick={e.onClick}
                     style={{
                       background: e.tint,
@@ -1306,10 +1354,97 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                       </button>
                     )}
                   </div>
+                  </div>
                 ))}
               </div>
             ))}
           </div>
+          <div className="sc-tl">
+        {selectedDay ? (
+          <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedDay.day} {d.cal.monthLabel}</div>
+              <button onClick={() => { setSelectedDay(null); setSeekMin(480); }} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}>✕</button>
+            </div>
+            {selectedDay.events.length === 0 && (
+              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>Tidak ada kegiatan</div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {selectedDay.events.map((ev, idx) => (
+                <div key={ev.id} onClick={d.u && d.u.role === "admin" ? () => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: ev.title, time: ev.time, id: ev.id, pokja: st.activePokja } }); } : undefined} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #e2e8f0", cursor: d.u && d.u.role === "admin" ? "pointer" : "default" }}>
+                  <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: "#64748b", textAlign: "right", flexShrink: 0 }}>{ev.time || "—"}</div>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: ev.accent, flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#1e293b", minWidth: 0 }}>{ev.title}</div>
+                  {d.u && d.u.role === "admin" && (
+                    <span onClick={(e) => { e.stopPropagation(); if (confirm("Hapus kegiatan ini?")) { dispatch({ type: "DELETE_EVENT", payload: ev.id }); setSelectedDay({ day: selectedDay.day, events: selectedDay.events.filter(x => x.id !== ev.id) }); } }} style={{ cursor: "pointer", color: "#b08a7a", fontSize: 14, flexShrink: 0 }}>×</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            {d.u && d.u.role === "admin" && (
+              <div style={{ padding: "14px 14px 10px", borderTop: "1px solid #e2e8f0" }}>
+                <div style={{ position: "relative", height: 50, userSelect: "none", marginBottom: 8 }}>
+                  <div
+                    ref={timelineRef}
+                    style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "pointer", touchAction: "none" }}
+                    onMouseDown={(e) => {
+                      draggingRef.current = true;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                      setSeekMin(Math.round(pct * 1439));
+                    }}
+                    onTouchStart={(e) => {
+                      draggingRef.current = true;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pct = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
+                      setSeekMin(Math.round(pct * 1439));
+                    }}
+                  />
+                  <div style={{ position: "absolute", top: 18, left: 0, right: 0, height: 2, background: "#e2e8f0", borderRadius: 1, pointerEvents: "none" }} />
+                  {[0,2,4,6,8,10,12,14,16,18,20,22].map(h => {
+                    const pct = (h / 24) * 100;
+                    return (
+                      <div key={h} style={{ position: "absolute", top: 10, left: `${pct}%`, transform: "translateX(-50%)", pointerEvents: "none" }}>
+                        <div style={{ width: 1, height: 10, background: "#cbd5e1", margin: "0 auto" }} />
+                        <div style={{ fontSize: 9, color: "#94a3b8", textAlign: "center", marginTop: 2, fontWeight: 500 }}>{String(h).padStart(2,"0")}</div>
+                      </div>
+                    );
+                  })}
+                  {selectedDay.events.map(ev => {
+                    const [eh, em] = (ev.time || "00:00").split(":").map(Number);
+                    const pct = ((eh * 60 + em) / 1440) * 100;
+                    return (
+                      <div
+                        key={ev.id}
+                        style={{ position: "absolute", top: 17, left: `${pct}%`, transform: "translate(-50%,-50%)", cursor: "pointer", zIndex: 12 }}
+                        onClick={(e) => { e.stopPropagation(); const [hh,mm] = (ev.time||"00:00").split(":").map(Number); setSeekMin(hh*60+mm); }}
+                        title={ev.title}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12">
+                          <rect x="0" y="0" width="12" height="12" rx="2" transform="rotate(45 6 6)" fill={ev.accent} />
+                        </svg>
+                      </div>
+                    );
+                  })}
+                  <div style={{ position: "absolute", top: 0, left: `${(seekMin/1440)*100}%`, transform: "translateX(-50%)", zIndex: 11, pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <svg width="10" height="7" viewBox="0 0 10 7">
+                      <polygon points="0,0 10,0 5,7" fill="#ef4444" />
+                    </svg>
+                    <div style={{ width: 2, flex: 1, background: "#ef4444", minHeight: 38 }} />
+                  </div>
+                </div>
+                <button onClick={() => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: `${String(Math.floor(seekMin / 60)).padStart(2, "0")}:${String(seekMin % 60).padStart(2, "0")}`, pokja: st.activePokja } }); }} style={{ width: "100%", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px 0", background: "#1e3a5f", color: "#fff", borderRadius: 6 }}>
+                  + Tambah di jam {String(Math.floor(seekMin / 60)).padStart(2, "0")}:{String(seekMin % 60).padStart(2, "0")}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0", padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>
+            Klik tanggal untuk melihat kegiatan
+          </div>
+        )}
+      </div>
         </div>
       )}
       {st.tab === "galeri" && (
