@@ -4557,25 +4557,25 @@ export function LaporanSection({ d, st, dispatch, showToast }: Props) {
                     boxSizing: "border-box" as const,
                   }}
                 />
-                <button
-                  onClick={handleExportExcel}
-                  style={{
-                    border: "1px solid #1e3a5f",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: "#1e3a5f",
-                    background: "#eef2ff",
-                    padding: "9px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 7,
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
-                  }}
-                >
-                  <span>▦</span> Export Excel
+            <button
+              onClick={handleExportExcel}
+              style={{
+                border: "1px solid #1e3a5f",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#1e3a5f",
+                background: "#eef2ff",
+                padding: "9px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              <span>▦</span> Export Excel
           </button>
           </div>
         </div>
@@ -6202,21 +6202,21 @@ export function EditorSection({
           marginBottom: 40,
         }}
       >
-        <button
-          onClick={() => go("inovasi")}
-          style={{
-            border: "1px solid #e2e8f0",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            fontSize: 14,
-            fontWeight: 700,
-            padding: "11px 22px",
-            background: "#fff",
-            color: "#475569",
-          }}
-        >
-          Batal
-        </button>
+            <button
+              onClick={() => go("laporan")}
+              style={{
+                border: "1px solid #e2e8f0",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: d.rs.btnFont,
+                fontWeight: 700,
+                padding: d.rs.btnPad,
+                background: "#fff",
+                color: "#334155",
+              }}
+            >
+              Kirim Laporan
+            </button>
         <button
           onClick={handleSave}
           style={{
@@ -8576,7 +8576,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               {hasKids && <span style={{ color: "#64748b", fontSize: "11px", fontWeight: 600, marginLeft: 4 }}>({m.children.length} item)</span>}
             </div>
             <div style={{ display: "flex", gap: 10, fontSize: "11.5px", color: "#64748b", flexWrap: "wrap", marginTop: 4 }}>
-              <span>Jumlah: <strong style={{color:"#1e293b"}}>{hasKids ? totalJumlah(m) : m.jumlah}</strong></span>
+              <span>Jumlah: <strong style={{color:"#1e293b"}}>{hasKids ? totalJumlah(m) : m.jumlah} unit</strong></span>
               <span>Tempat: {m.tempat_penyimpanan || "—"}</span>
               <span style={{ padding: "2px 8px", background: kndBg(m.kondisi_barang), color: kndCl(m.kondisi_barang), fontWeight: 600, fontSize: "10.5px" }}>{m.kondisi_barang || "—"}</span>
             </div>
@@ -8744,7 +8744,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               fontWeight: 700,
             }}
           >
-            {hasKids ? totalJumlah(m) : m.jumlah}
+{hasKids ? totalJumlah(m) : m.jumlah} unit
           </span>
           <span
             style={{
@@ -8780,7 +8780,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
           >
             {m.kondisi_barang || "—"}
           </span>
-          <span style={{ position: "relative", flexShrink: 0 }}>
+          <span style={{ position: "relative", flexShrink: 0, width: 76, textAlign: "center" }}>
             <button
               onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
               style={{
@@ -9124,17 +9124,22 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             <button
               onClick={handleExportExcel}
               style={{
-                border: "1px solid #e2e8f0",
+                border: "1px solid #1e3a5f",
                 cursor: "pointer",
                 fontFamily: "inherit",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 700,
-                padding: "7px 14px",
-                background: "#fff",
-                color: "#475569",
+                padding: "9px 16px",
+                background: "#eef2ff",
+                color: "#1e3a5f",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
               }}
             >
-              Export Excel
+              <span>▦</span> Export Excel
             </button>
           </div>
         </div>
@@ -9405,7 +9410,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
               <span style={{ width: 14, flexShrink: 0 }} />
               <span style={{ flexShrink: 0, minWidth: 28, textAlign: "right", marginRight: 4 }}>No</span>
               <span style={{ flex: 1, minWidth: 0 }}>Nama Barang</span>
-              <span style={{ flexShrink: 0, width: 48, textAlign: "right" }}>Jml</span>
+              <span style={{ flexShrink: 0, width: 48, textAlign: "right" }}>Jumlah</span>
               <span style={{ flexShrink: 0, width: 130, textAlign: "center" }}>Tempat</span>
               <span style={{ flexShrink: 0, width: 70, textAlign: "center" }}>Kondisi</span>
               <span style={{ flexShrink: 0, width: 76, textAlign: "center" }}>Aksi</span>
