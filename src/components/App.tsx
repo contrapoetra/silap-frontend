@@ -40,169 +40,121 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
     window.scrollTo(0, 0);
   }, []);
 
-  // Load initial data and restore session on mount (once)
+  const fetchedRef = useRef(new Set<string>());
+
+  const loadTables = useCallback(async (tables: string[], results: Record<string, any>) => {
+    const toFetch = tables.filter(t => !fetchedRef.current.has(t));
+    if (toFetch.length === 0) return;
+    for (const table of toFetch) {
+      fetchedRef.current.add(table);
+      try {
+        switch (table) {
+          case 'events': {
+            const { data } = await supabase.from('events').select('*');
+            results.events = (data || []).map((e: any) => ({ id: e.id, pokja: e.pokja, y: e.year, m: e.month, d: e.day, title: e.title, time: e.time }));
+            break;
+          }
+          case 'gallery': {
+            const { data } = await supabase.from('gallery').select('*').order('id', { ascending: false });
+            results.gallery = data || [];
+            break;
+          }
+          case 'files': {
+            const { data } = await supabase.from('files').select('*');
+            results.files = data || [];
+            break;
+          }
+          case 'reports': {
+            const { data } = await supabase.from('reports').select('*');
+            results.reports = data || [];
+            break;
+          }
+          case 'org_positions': {
+            const { data } = await supabase.from('org_positions').select('*').order('sort_order');
+            results.orgPositions = data || [];
+            break;
+          }
+          case 'blog_posts': {
+            const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
+            results.blogPosts = (data || []).map((p: any) => ({ ...p, date: p.created_at }));
+            break;
+          }
+          case 'pkk_members': {
+            const { data } = await supabase.from('pkk_members').select('*');
+            results.pkkMembers = data || [];
+            break;
+          }
+          case 'surat': {
+            const { data } = await supabase.from('surat').select('*');
+            results.surat = data || [];
+            break;
+          }
+          case 'pengumuman': {
+            const { data } = await supabase.from('pengumuman').select('*').order('created_at', { ascending: false });
+            results.pengumuman = data || [];
+            break;
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to load ${table}:`, err);
+        fetchedRef.current.delete(table);
+      }
+    }
+  }, []);
+
+  const ROUTE_TABLES: Record<string, string[]> = {
+    beranda: ['gallery', 'events', 'reports', 'pengumuman'],
+    pokja: ['org_positions'],
+    detail: ['events', 'gallery', 'files', 'blog_posts'],
+    galeri: ['gallery'],
+    pengumuman: ['pengumuman'],
+    kalender: ['events'],
+    berkas: ['files'],
+    inovasi: ['blog_posts'],
+    post: ['blog_posts'],
+    laporan: ['reports'],
+    dashboard: ['events', 'gallery', 'files', 'reports'],
+    'anggota-pkk': ['pkk_members'],
+    inventaris: ['pkk_members'],
+    surat: ['surat'],
+  };
+
+  // Load minimal data on mount: users + profileDesc
   useEffect(() => {
     let cancelled = false;
-
     async function initApp() {
       try {
-        const [
-          { data: users, error: errUsers },
-          { data: events, error: errEvents },
-          { data: gallery, error: errGallery },
-          { data: files, error: errFiles },
-          { data: reports, error: errReports },
-        ] = await Promise.all([
-          supabase.from('users').select('*'),
-          supabase.from('events').select('*'),
-          supabase.from('gallery').select('*').order('id', { ascending: false }),
-          supabase.from('files').select('*'),
-          supabase.from('reports').select('*'),
-        ]);
-
+        const { data: users, error: errUsers } = await supabase.from('users').select('*');
         if (cancelled) return;
-
-        let orgPositionsData: any[] = [];
-        try { const { data } = await supabase.from('org_positions').select('*').order('sort_order'); orgPositionsData = data || []; } catch (_) {}
-
-        let blogPostsData: any[] = [];
-        try { const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false }); blogPostsData = (data || []).map((p: any) => ({ ...p, date: p.created_at })); } catch (_) {}
-
-        if (errUsers || errEvents || errGallery || errFiles || errReports) {
-          console.error({ errUsers, errEvents, errGallery, errFiles, errReports });
-          showToast('Koneksi ke Supabase gagal atau tabel tidak ditemukan');
-        }
-
-        // Map events from DB format (year, month, day) to frontend format (y, m, d)
-        const mappedEvents = (events || []).map((e: any) => ({
-          id: e.id,
-          pokja: e.pokja,
-          y: e.year,
-          m: e.month,
-          d: e.day,
-          title: e.title,
-          time: e.time,
-        }));
-
-        let pkkMembersData: any[] = [];
-        try { const { data } = await supabase.from('pkk_members').select('*'); pkkMembersData = data || []; } catch (_) {}
-
-        let suratData: any[] = [];
-        try { const { data } = await supabase.from('surat').select('*'); suratData = data || []; } catch (_) {}
-
-        let pengumumanData: any[] = [];
-        try { const { data } = await supabase.from('pengumuman').select('*').order('created_at', { ascending: false }); pengumumanData = data || []; } catch (_) {}
-
         let profileDescData = "";
         try { const { data } = await supabase.from('profil_desa').select('deskripsi').eq('id', 1).single(); profileDescData = data?.deskripsi || ""; } catch (_) {}
+        if (cancelled) return;
 
-        if (!cancelled) {
-          dispatch({
-            type: 'SET_INITIAL_DATA',
-            payload: {
-              users: users || [],
-              events: mappedEvents,
-              gallery: gallery || [],
-              files: files || [],
-              reports: reports || [],
-              pkkMembers: pkkMembersData,
-              inventory: [],
-              surat: suratData,
-              blogPosts: blogPostsData,
-              orgPositions: orgPositionsData,
-              pengumuman: pengumumanData,
-              profileDesc: profileDescData,
-            },
-          });
-
-          // Navigate to dashboard if session was restored via cookie
-          if (initialUserId && users?.some((u: any) => u.id === initialUserId)) {
-            dispatch({ type: 'DO_LOGIN', payload: initialUserId });
-          } else if (st.currentUserId && !users?.some((u: any) => u.id === st.currentUserId)) {
-            dispatch({ type: 'LOGOUT' });
-          }
-          setLoading(false);
+        dispatch({ type: 'SET_INITIAL_DATA', payload: { users: users || [], profileDesc: profileDescData } });
+        if (initialUserId && users?.some((u: any) => u.id === initialUserId)) {
+          dispatch({ type: 'DO_LOGIN', payload: initialUserId });
         }
+        setLoading(false);
       } catch (err) {
         console.error('Failed to load data:', err);
         showToast('Terjadi kesalahan saat menghubungkan ke database');
         setLoading(false);
       }
     }
-    
     initApp();
     return () => { cancelled = true; };
   }, [dispatch, showToast]);
 
-  // Keep data in sync when returning to the tab
+  // Lazy-load data needed for the current route
   useEffect(() => {
-    async function refreshData() {
-      try {
-        const [
-          { data: users },
-          { data: events },
-          { data: gallery },
-          { data: files },
-          { data: reports },
-        ] = await Promise.all([
-          supabase.from('users').select('*'),
-          supabase.from('events').select('*'),
-          supabase.from('gallery').select('*').order('id', { ascending: false }),
-          supabase.from('files').select('*'),
-          supabase.from('reports').select('*'),
-        ]);
-
-        let orgPositionsData: any[] = [];
-        try { const { data } = await supabase.from('org_positions').select('*').order('sort_order'); orgPositionsData = data || []; } catch (_) {}
-
-        let blogPostsData: any[] = [];
-        try { const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false }); blogPostsData = (data || []).map((p: any) => ({ ...p, date: p.created_at })); } catch (_) {}
-
-        let pkkMembersData: any[] = [];
-        try { const { data } = await supabase.from('pkk_members').select('*'); pkkMembersData = data || []; } catch (_) {}
-
-        const mappedEvents = (events || []).map((e: any) => ({
-          id: e.id,
-          pokja: e.pokja,
-          y: e.year,
-          m: e.month,
-          d: e.day,
-          title: e.title,
-          time: e.time,
-        }));
-
-        let suratData: any[] = [];
-        try { const { data } = await supabase.from('surat').select('*'); suratData = data || []; } catch (_) {}
-
-        let pengumumanData: any[] = [];
-        try { const { data } = await supabase.from('pengumuman').select('*').order('created_at', { ascending: false }); pengumumanData = data || []; } catch (_) {}
-
-        dispatch({
-          type: 'SET_INITIAL_DATA',
-          payload: {
-            users: users || [],
-            events: mappedEvents,
-            gallery: gallery || [],
-            files: files || [],
-            reports: reports || [],
-            pkkMembers: pkkMembersData,
-            inventory: [],
-            surat: suratData,
-            blogPosts: blogPostsData,
-            orgPositions: orgPositionsData,
-            pengumuman: pengumumanData,
-          },
-        });
-      } catch (err) {
-        console.warn('Failed to refresh data on window focus:', err);
+    const results: Record<string, any> = {};
+    const tables = ROUTE_TABLES[st.route] || [];
+    loadTables(tables, results).then(() => {
+      if (Object.keys(results).length > 0) {
+        dispatch({ type: 'SET_INITIAL_DATA', payload: results });
       }
-    }
-
-    window.addEventListener('focus', refreshData);
-    return () => {
-      window.removeEventListener('focus', refreshData);
-    };
-  }, [dispatch]);
+    });
+  }, [st.route, loadTables]);
 
   // Read sync result from Google Calendar OAuth redirect
   useEffect(() => {
@@ -775,13 +727,17 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
     };
   }, []);
 
+  const heroIdxRef = useRef(st.heroIdx);
+  heroIdxRef.current = st.heroIdx;
+
   useEffect(() => {
+    if (st.gallery.length === 0) return;
+    const n = Math.min(3, st.gallery.length);
     const hero = setInterval(() => {
-      const n = Math.min(3, st.gallery.length);
-      dispatch({ type: 'SET_HERO_IDX', payload: n ? (st.heroIdx + 1) % n : 0 });
+      dispatch({ type: 'SET_HERO_IDX', payload: (heroIdxRef.current + 1) % n });
     }, 3800);
     return () => clearInterval(hero);
-  }, [st.gallery.length, st.heroIdx]);
+  }, [st.gallery.length]);
 
   const d = computeDerived(st, go, openPokja, asyncDispatch);
 

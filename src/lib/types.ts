@@ -218,7 +218,7 @@ export type AppAction =
   | { type: 'ADD_REPORT'; payload: ReportItem }
   | { type: 'UPDATE_REPORT_STATUS'; payload: string | number }
   | { type: 'SET_NEXT_ID'; payload: number }
-  | { type: 'SET_INITIAL_DATA'; payload: { users: User[]; events: CalendarEvent[]; gallery: GalleryItem[]; files: FileItem[]; reports: ReportItem[]; pkkMembers: PKKMember[]; inventory: InventoryItem[]; blogPosts: BlogPost[]; orgPositions: OrgPosition[]; pengumuman: PengumumanItem[] } }
+  | { type: 'SET_INITIAL_DATA'; payload: Partial<{ users: User[]; events: CalendarEvent[]; gallery: GalleryItem[]; files: FileItem[]; reports: ReportItem[]; pkkMembers: PKKMember[]; inventory: InventoryItem[]; surat: SuratItem[]; blogPosts: BlogPost[]; orgPositions: OrgPosition[]; pengumuman: PengumumanItem[]; profileDesc: string }> }
   | { type: 'SET_ORG_POSITIONS'; payload: OrgPosition[] }
   | { type: 'SET_POST_MODAL'; payload: AppState['postModal'] }
   | { type: 'SET_POST_FORM'; payload: Partial<{ title: string; excerpt: string; content: string; category: string }> }

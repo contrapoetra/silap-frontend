@@ -478,6 +478,7 @@ export interface AppState {
   orgPositions: OrgPosition[];
   pengumuman: PengumumanItem[];
   viewingPost: BlogPost | null;
+  profileDesc: string;
 }
 
 export const initialState: AppState = {
@@ -595,7 +596,7 @@ export type AppAction =
   | { type: "UPDATE_REPORT_STATUS"; payload: string | number }
   | {
       type: "SET_INITIAL_DATA";
-      payload: {
+      payload: Partial<{
         users: User[];
         events: CalendarEvent[];
         gallery: GalleryItem[];
@@ -607,8 +608,8 @@ export type AppAction =
         blogPosts: BlogPost[];
         orgPositions: OrgPosition[];
         pengumuman: PengumumanItem[];
-        profileDesc?: string;
-      };
+        profileDesc: string;
+      }>;
     }
   | { type: "SET_ORG_POSITIONS"; payload: OrgPosition[] }
   | { type: "SET_POST_MODAL"; payload: AppState["postModal"] }
@@ -829,17 +830,17 @@ export function reducer(state: AppState, action: AppAction): AppState {
     case "SET_INITIAL_DATA":
       return {
         ...state,
-        users: action.payload.users,
-        events: action.payload.events,
-        gallery: action.payload.gallery,
-        files: action.payload.files,
-        reports: action.payload.reports,
-        pkkMembers: action.payload.pkkMembers.length ? action.payload.pkkMembers : state.pkkMembers,
-        surat: action.payload.surat.length ? action.payload.surat : state.surat,
-        inventory: action.payload.inventory.length ? action.payload.inventory : state.inventory,
-        blogPosts: action.payload.blogPosts,
-        orgPositions: action.payload.orgPositions,
-        pengumuman: action.payload.pengumuman.length ? action.payload.pengumuman : state.pengumuman,
+        users: action.payload.users ?? state.users,
+        events: action.payload.events ?? state.events,
+        gallery: action.payload.gallery ?? state.gallery,
+        files: action.payload.files ?? state.files,
+        reports: action.payload.reports ?? state.reports,
+        pkkMembers: action.payload.pkkMembers?.length ? action.payload.pkkMembers : state.pkkMembers,
+        surat: action.payload.surat?.length ? action.payload.surat : state.surat,
+        inventory: action.payload.inventory?.length ? action.payload.inventory : state.inventory,
+        blogPosts: action.payload.blogPosts ?? state.blogPosts,
+        orgPositions: action.payload.orgPositions ?? state.orgPositions,
+        pengumuman: action.payload.pengumuman?.length ? action.payload.pengumuman : state.pengumuman,
         profileDesc: action.payload.profileDesc ?? state.profileDesc,
       };
     case "SET_ORG_POSITIONS":
