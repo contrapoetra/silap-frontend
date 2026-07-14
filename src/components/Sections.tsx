@@ -5566,6 +5566,7 @@ export function InovasiSection({
         style={{
           marginBottom: 20,
           display: "flex",
+          flexWrap: d.isMob ? "wrap" : undefined,
           alignItems: "flex-start",
           justifyContent: "space-between",
           gap: 16,
@@ -5647,6 +5648,7 @@ export function InovasiSection({
               }}
               style={{
                 display: "flex",
+                flexDirection: d.isMob ? "column" : "row",
                 background: "#fff",
                 border: "1px solid #e2e8f0",
                 overflow: "hidden",
@@ -5663,9 +5665,9 @@ export function InovasiSection({
             >
               <div
                 style={{
-                  width: 240,
-                  minWidth: 240,
-                  height: 150,
+                  width: d.isMob ? "100%" : 240,
+                  minWidth: d.isMob ? "100%" : 240,
+                  height: d.isMob ? 180 : 150,
                   background: firstImageUrl(post.content)
                     ? `#eef2ff center/cover no-repeat url(${firstImageUrl(post.content)})`
                     : "repeating-linear-gradient(135deg,#f1f5f9,#f1f5f9 10px,#f8fafc 10px,#f8fafc 20px)",
