@@ -122,12 +122,12 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const heroDots = heroPhotos.map((_, i) => ({ w: i === hIdx ? '22px' : '7px', bg: i === hIdx ? '#fff' : 'rgba(255,255,255,.5)', onClick: () => dispatch({ type: 'SET_HERO_IDX', payload: i }) }));
 
   const userVals = u ? {
-    name: u.name, initial: rinit(u), roleLabel: rlabel(u), chipColor: raccent(u),
+    name: u.name, initial: rinit(u), roleLabel: u.role === 'admin' ? rlabel(u) : (u.role === 'ketua' ? 'Ketua' : 'Anggota'), chipColor: raccent(u),
     avatarStyleSm: makeAvatarStyle(u.avatar, raccent(u), '30px', '12px', rinit(u)),
     avatarInitialSm: u.avatar ? '' : rinit(u),
     avatarStyleLg: u.avatar ? { width: '62px', height: '62px', borderRadius: '50%', backgroundImage: `url('${u.avatar}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : { width: '62px', height: '62px', borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: '800', color: '#fff' },
     avatarInitialLg: u.avatar ? '' : rinit(u),
-    scope: u.role === 'admin' ? 'Seluruh Pokja' : rlabel(u), isAdmin: u.role === 'admin', isKetua: u.role === 'ketua',
+    scope: u.role === 'admin' ? 'Seluruh Pokja' : (POKJA.find(p => p.id === u.pokja)?.name || ''), isAdmin: u.role === 'admin', isKetua: u.role === 'ketua',
     accessNote: u.role === 'admin' ? 'Sebagai Admin Desa Anda dapat mengelola semua akun, kalender, galeri, berkas, dan status laporan.' : `Anda dapat mengedit kalender, galeri, dan berkas untuk ${rlabel(u).replace('Ketua ', '').replace('Anggota ', '')}. Pokja lain hanya dapat dilihat.`,
   } : {
     name: '', initial: '', roleLabel: '', chipColor: '#0f172a',
