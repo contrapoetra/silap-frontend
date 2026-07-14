@@ -2549,6 +2549,35 @@ export function KalenderSection({
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ day: number; events: any[] } | null>(null);
   const [seekMin, setSeekMin] = useState(480);
+  const draggingRef = useRef(false);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onMove = (clientX: number) => {
+      if (!draggingRef.current || !timelineRef.current) return;
+      const rect = timelineRef.current.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      setSeekMin(Math.round(pct * 1410 / 30) * 30);
+    };
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
+    const onMouseUp = () => { draggingRef.current = false; };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!draggingRef.current) return;
+      e.preventDefault();
+      onMove(e.touches[0].clientX);
+    };
+    const onTouchEnd = () => { draggingRef.current = false; };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2909,10 +2938,18 @@ export function KalenderSection({
                 <div style={{ position: "relative", height: 50, userSelect: "none", marginBottom: 8 }}>
                   {/* clickable overlay — full height so the whole area is interactive */}
                   <div
-                    style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "pointer" }}
-                    onClick={(e) => {
+                    ref={timelineRef}
+                    style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "pointer", touchAction: "none" }}
+                    onMouseDown={(e) => {
+                      draggingRef.current = true;
                       const rect = e.currentTarget.getBoundingClientRect();
                       const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                      setSeekMin(Math.round(pct * 1410 / 30) * 30);
+                    }}
+                    onTouchStart={(e) => {
+                      draggingRef.current = true;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pct = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
                       setSeekMin(Math.round(pct * 1410 / 30) * 30);
                     }}
                   />
