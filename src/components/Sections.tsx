@@ -2319,8 +2319,58 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
           </div>
         );
       })}
+      </div>
+      <div className="sc-tl">
+        {selectedDay && (
+          <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedDay.day} {d.cal.monthLabel}</div>
+              <button onClick={() => setSelectedDay(null)} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}>✕</button>
+            </div>
+            {selectedDay.events.length === 0 && (
+              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>
+                {isAdmin ? "Tidak ada kegiatan — klik + untuk menambah" : "Tidak ada kegiatan"}
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {[
+                ...(isAdmin ? [{ id: '__top', time: "", title: null, accent: "#94a3b8", tint: "" }] : []),
+                ...selectedDay.events,
+                ...(isAdmin ? [{ id: '__bot', time: "23:00", title: null, accent: "#94a3b8", tint: "" }] : []),
+              ].flatMap((ev, idx, arr) => {
+                const isPlaceholder = ev.id === '__top' || ev.id === '__bot';
+                const next = idx < arr.length - 1 ? arr[idx + 1] : null;
+                const suggestTime = ev.id === '__top' ? (arr.length > 1 && arr[1].time ? (() => { const t = arr[1].time.split(":").map(Number); return `${String(Math.max(0, t[0] - 1)).padStart(2, "0")}:00`; })() : "07:00") : (ev.time || "12:00");
+                return [
+                  ...(isAdmin && isPlaceholder ? [(
+                    <div key={ev.id} onClick={() => { setSelectedDay(null); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: suggestTime, pokja: st.activePokja } }); }} style={{ padding: "10px 14px", borderBottom: "1px dashed #e2e8f0", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#94a3b8" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>{suggestTime}</span>
+                    </div>
+                  )] : []),
+                  ...(!isPlaceholder ? [(
+                    <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #e2e8f0" }}>
+                      <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: "#64748b", textAlign: "right", flexShrink: 0 }}>{ev.time || "—"}</div>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: ev.accent, flexShrink: 0 }} />
+                      <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#1e293b", minWidth: 0 }}>{ev.title}</div>
+                      {isAdmin && (
+                        <span onClick={(e) => { e.stopPropagation(); if (confirm("Hapus kegiatan ini?")) { dispatch({ type: "DELETE_EVENT", payload: ev.id }); setSelectedDay({ day: selectedDay.day, events: selectedDay.events.filter(x => x.id !== ev.id) }); } }} style={{ cursor: "pointer", color: "#b08a7a", fontSize: 14, flexShrink: 0 }}>×</span>
+                      )}
+                    </div>
+                  )] : []),
+                  ...(isAdmin && next && next.id !== '__bot' && idx < arr.length - 2 ? [(
+                    <div key={`btw-${ev.id}-${next.id}`} onClick={() => { setSelectedDay(null); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: (() => { const t1 = (ev.time || "00:00").split(":").map(Number); const t2 = (next.time || "23:00").split(":").map(Number); const m = Math.floor((t1[0] * 60 + t1[1] + t2[0] * 60 + t2[1]) / 2); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(Math.round(m % 60 / 30) * 30).padStart(2, "0")}`; })(), pokja: st.activePokja } }); }} style={{ padding: "6px 14px", borderBottom: "1px dashed #e2e8f0", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#94a3b8" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>{(() => { const t1 = (ev.time || "00:00").split(":").map(Number); const t2 = (next.time || "23:00").split(":").map(Number); const m = Math.floor((t1[0] * 60 + t1[1] + t2[0] * 60 + t2[1]) / 2); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(Math.round(m % 60 / 30) * 30).padStart(2, "0")}`; })()}</span>
+                    </div>
+                  )] : []),
+                ];
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
 ))}
       </div>
       )}
@@ -2547,6 +2597,7 @@ export function KalenderSection({
 
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ day: number; events: any[] } | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2590,6 +2641,10 @@ export function KalenderSection({
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
+      <style>{`
+@media(max-width:767px){.sc-dot{display:inline-block!important}.sc-ev{display:none!important}.sc-nav{flex-direction:column!important}.sc-nav-btn{width:40px!important;height:40px!important}.sc-sync{width:100%!important}.sc-tl{display:block!important}.sc-hint{display:none!important}}
+@media(min-width:768px){.sc-dot{display:none!important}.sc-ev{display:flex!important}.sc-tl{display:none!important}}
+`}</style>
       <div style={{ marginBottom: 20 }}>
         <h1
           style={{
@@ -2628,14 +2683,13 @@ export function KalenderSection({
           padding: d.rs.calPad,
         }}
       >
-        <div
+        <div className="sc-nav"
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             marginBottom: 16,
-            flexWrap: "wrap",
-            gap: 8,
+            gap: 10,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -2649,6 +2703,7 @@ export function KalenderSection({
                 }
                 dispatch({ type: "SET_CAL_MONTH", payload: { m, y } });
               }}
+              className="sc-nav-btn"
               style={{
                 border: "1px solid #e2e8f0",
                 background: "#fff",
@@ -2657,6 +2712,9 @@ export function KalenderSection({
                 height: 34,
                 fontSize: 16,
                 color: "#475569",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               ‹
@@ -2682,6 +2740,7 @@ export function KalenderSection({
                 }
                 dispatch({ type: "SET_CAL_MONTH", payload: { m, y } });
               }}
+              className="sc-nav-btn"
               style={{
                 border: "1px solid #e2e8f0",
                 background: "#fff",
@@ -2690,6 +2749,9 @@ export function KalenderSection({
                 height: 34,
                 fontSize: 16,
                 color: "#475569",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               ›
@@ -2698,6 +2760,7 @@ export function KalenderSection({
           <button
             onClick={handleSync}
             disabled={syncing}
+            className="sc-sync"
             style={{
               border: "1px solid #e2e8f0",
               background: "#fff",
@@ -2709,6 +2772,7 @@ export function KalenderSection({
               color: "#1e3a5f",
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: 6,
               opacity: syncing ? 0.6 : 1,
             }}
@@ -2717,7 +2781,7 @@ export function KalenderSection({
           </button>
         </div>
         {isAdmin && (
-          <div
+          <div className="sc-hint"
             style={{
               fontSize: 12,
               color: "#94a3b8",
@@ -2754,17 +2818,14 @@ export function KalenderSection({
             <div
               key={i}
               onClick={
-                isAdmin && c.day
-                  ? () =>
-                      dispatch({
-                        type: "SET_EVENT_MODAL",
-                        payload: {
-                          day: c.day,
-                          title: "",
-                          time: "",
-                          pokja: 1,
-                        },
-                      })
+                c.day
+                  ? () => {
+                      if (window.innerWidth < 768) {
+                        setSelectedDay({ day: c.day!, events: c.events });
+                      } else if (isAdmin) {
+                        dispatch({ type: "SET_EVENT_MODAL", payload: { day: c.day, title: "", time: "", pokja: 1 } });
+                      }
+                    }
                   : undefined
               }
               style={{
@@ -2774,7 +2835,7 @@ export function KalenderSection({
                     : "#fff"
                   : "#f8fafc",
                 border: `1px solid ${c.day ? (c.isToday ? "#2563eb" : "#e2e8f0") : "#f1f5f9"}`,
-                minHeight: d.isMob ? "48px" : "96px",
+                minHeight: "var(--silap-cal-cell-min-h)",
                 padding: 3,
                 position: "relative",
                 cursor: isAdmin && c.day ? "pointer" : "default",
@@ -2793,22 +2854,26 @@ export function KalenderSection({
                 </div>
               )}
               {c.events.map((ev, j) => (
-                <div
-                  key={j}
+                <div key={j} style={{ position: "relative" }}>
+                  <div className="sc-dot" style={{ width: 6, height: 6, background: ev.accent, borderRadius: "50%", display: "inline-block", margin: "0 1px" }} />
+                  <div
+                  className="sc-ev"
                   onClick={
                     isAdmin
                       ? (e) => {
                           e.stopPropagation();
-                          dispatch({
-                            type: "SET_EVENT_MODAL",
-                            payload: {
-                              day: c.day!,
-                              title: ev.title,
-                              time: ev.time,
-                              id: ev.id,
-                              pokja: ev.pokja,
-                            },
-                          });
+                          if (window.innerWidth >= 768) {
+                            dispatch({
+                              type: "SET_EVENT_MODAL",
+                              payload: {
+                                day: c.day!,
+                                title: ev.title,
+                                time: ev.time,
+                                id: ev.id,
+                                pokja: ev.pokja,
+                              },
+                            });
+                          }
                         }
                       : undefined
                   }
@@ -2851,6 +2916,7 @@ export function KalenderSection({
                       ×
                     </span>
                   )}
+                </div>
                 </div>
               ))}
             </div>
