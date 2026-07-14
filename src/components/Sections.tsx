@@ -4706,6 +4706,7 @@ export function DashboardSection({
   showToast,
 }: Props) {
   const [pwdForm, setPwdForm] = useState({ current: "", baru: "", confirm: "" });
+  const [avatarHover, setAvatarHover] = useState(false);
   const handleChangePassword = () => {
     const u = d.u;
     if (!u) return;
@@ -4737,6 +4738,8 @@ export function DashboardSection({
       >
         <div
           onClick={() => dispatch({ type: "SET_AVATAR_MODAL", payload: true })}
+          onMouseEnter={() => setAvatarHover(true)}
+          onMouseLeave={() => setAvatarHover(false)}
           title="Edit foto profil"
           style={{
             cursor: "pointer",
@@ -4752,23 +4755,16 @@ export function DashboardSection({
           <div style={d.userVals.avatarStyleLg}>
             {d.userVals.avatarInitialLg}
           </div>
-          <div
-            style={{
-              position: "absolute",
-              bottom: 1,
-              right: 1,
-              width: 18,
-              height: 18,
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 9,
-              color: "#1e3a5f",
-              fontWeight: 800,
-            }}
-          >
-            ✎
+          <div style={{
+            position: "absolute", inset: 0, borderRadius: "50%",
+            background: avatarHover ? "rgba(0,0,0,.45)" : "transparent",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "background .2s",
+          }}>
+            <svg style={{ opacity: avatarHover ? 1 : 0, transition: "opacity .2s" }} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
           </div>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>

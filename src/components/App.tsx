@@ -792,10 +792,10 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
               </>
             )}
             {d.u && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #e2e8f0', padding: '4px 5px 4px 12px' }}>
+              <div onClick={() => go('dashboard')} style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #e2e8f0', padding: '4px 5px 4px 12px', cursor: 'pointer' }}>
                 <div style={{ textAlign: 'right', lineHeight: 1.15 }}><div style={{ fontSize: 13, fontWeight: 700 }}>{d.userVals.name}</div><div style={{ fontSize: '10.5px', fontWeight: 600, color: d.userVals.chipColor }}>{d.userVals.roleLabel}</div></div>
-                <div onClick={() => dispatch({ type: 'SET_AVATAR_MODAL', payload: true })} className="silap-hover" title="Edit foto profil" style={{ cursor: 'pointer', width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>
-                <button onClick={handleLogout} title="Keluar" onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}} style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⏻</button>
+                <div style={{ width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>
+                <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} title="Keluar" onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}} style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⏻</button>
               </div>
             )}
           </div>
@@ -814,7 +814,7 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
             ))}
             {d.u && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f8fafc', padding: '12px 14px', marginTop: 6, marginBottom: 8 }}>
+                <div onClick={() => { go('dashboard'); }} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f8fafc', padding: '12px 14px', marginTop: 6, marginBottom: 8, cursor: 'pointer' }}>
                   <div style={{ width: 38, height: 38, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>
                   <div><div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{d.userVals.name}</div><div style={{ fontSize: 12, color: d.userVals.chipColor, fontWeight: 600 }}>{d.userVals.roleLabel}</div></div>
                 </div>
