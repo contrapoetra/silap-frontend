@@ -103,7 +103,7 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
   }, []);
 
   const ROUTE_TABLES: Record<string, string[]> = {
-    beranda: ['gallery', 'events', 'reports', 'pengumuman'],
+    beranda: ['gallery', 'events', 'reports', 'pengumuman', 'pkk_members'],
     pokja: ['org_positions', 'pkk_members'],
     detail: ['events', 'gallery', 'files', 'blog_posts'],
     galeri: ['gallery'],

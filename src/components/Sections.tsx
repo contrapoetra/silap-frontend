@@ -118,7 +118,7 @@ function DesaMap() {
     <DynamicMapContainer
       center={BUNUTWETAN_CENTER}
       zoom={14}
-      style={{ height: 300, width: "100%" }}
+      style={{ height: "100%", minHeight: 300, width: "100%" }}
       scrollWheelZoom={false}
     >
       <DynamicTileLayer
