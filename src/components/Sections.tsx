@@ -2557,7 +2557,7 @@ export function KalenderSection({
       if (!draggingRef.current || !timelineRef.current) return;
       const rect = timelineRef.current.getBoundingClientRect();
       const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      setSeekMin(Math.round(pct * 1410 / 30) * 30);
+      setSeekMin(Math.round(pct * 1439));
     };
     const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
     const onMouseUp = () => { draggingRef.current = false; };
@@ -2944,13 +2944,13 @@ export function KalenderSection({
                       draggingRef.current = true;
                       const rect = e.currentTarget.getBoundingClientRect();
                       const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                      setSeekMin(Math.round(pct * 1410 / 30) * 30);
+                      setSeekMin(Math.round(pct * 1439));
                     }}
                     onTouchStart={(e) => {
                       draggingRef.current = true;
                       const rect = e.currentTarget.getBoundingClientRect();
                       const pct = Math.max(0, Math.min(1, (e.touches[0].clientX - rect.left) / rect.width));
-                      setSeekMin(Math.round(pct * 1410 / 30) * 30);
+                      setSeekMin(Math.round(pct * 1439));
                     }}
                   />
                   {/* timeline track */}
@@ -2991,7 +2991,7 @@ export function KalenderSection({
                   </div>
                 </div>
                 <button onClick={() => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: `${String(Math.floor(seekMin / 60)).padStart(2, "0")}:${String(seekMin % 60).padStart(2, "0")}`, pokja: st.activePokja } }); }} style={{ width: "100%", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px 0", background: "#1e3a5f", color: "#fff", borderRadius: 6 }}>
-                  + Tambah di {String(Math.floor(seekMin / 60)).padStart(2, "0")}:{String(seekMin % 60).padStart(2, "0")}
+                  + Tambah di jam {String(Math.floor(seekMin / 60)).padStart(2, "0")}:{String(seekMin % 60).padStart(2, "0")}
                 </button>
               </div>
             )}
