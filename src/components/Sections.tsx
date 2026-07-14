@@ -6663,6 +6663,7 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
   });
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openMenu, setOpenMenu] = useState<string | number | null>(null);
   const memSearch = searchItems(d.pkkMembers, searchQuery);
   const [ef, setEf] = useState({
     name: "",
@@ -6836,21 +6837,42 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1
-          style={{
-            fontSize: d.rs.pageH1,
-            fontWeight: 800,
-            letterSpacing: "-.025em",
-            color: "#0f172a",
-            marginBottom: 7,
-          }}
-        >
-          Anggota PKK
-        </h1>
-        <p style={{ fontSize: "14.5px", color: "#475569" }}>
-          Daftar anggota PKK Desa Bunutwetan.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
+        <div>
+          <h1
+            style={{
+              fontSize: d.rs.pageH1,
+              fontWeight: 800,
+              letterSpacing: "-.025em",
+              color: "#0f172a",
+              marginBottom: 7,
+            }}
+          >
+            Anggota PKK
+          </h1>
+          <p style={{ fontSize: "14.5px", color: "#475569" }}>
+            Daftar anggota PKK Desa Bunutwetan.
+          </p>
+        </div>
+        {!d.isMob && !showForm && (
+          <button
+            onClick={() => { resetAdd(); setShowForm(true); }}
+            style={{
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: 13,
+              fontWeight: 700,
+              padding: "9px 18px",
+              background: "#1e3a5f",
+              color: "#fff",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            + Tambah Anggota
+          </button>
+        )}
       </div>
       <div
         style={{
@@ -6915,26 +6937,6 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
             >
               <span>▦</span> Export Excel
             </button>
-            {!d.isMob && !showForm && (
-            <button
-              onClick={() => {
-                resetAdd();
-                setShowForm(true);
-              }}
-              style={{
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                fontSize: 13,
-                fontWeight: 700,
-                padding: "9px 18px",
-                background: "#1e3a5f",
-                color: "#fff",
-              }}
-            >
-              + Tambah Anggota
-            </button>
-          )}
         </div>
       </div>
 
@@ -7084,9 +7086,55 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
                           <td style={{ padding: "8px 10px" }}>
                             <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", background: m.membership_status === "Aktif" ? "#f0fdf4" : "#fef2f2", color: m.membership_status === "Aktif" ? "#16a34a" : "#ef4444" }}>{m.membership_status || "—"}</span>
                           </td>
-                          <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>
-                            <button onClick={() => startEdit(m)} title="Edit" style={{ border: "none", cursor: "pointer", background: "#eef2ff", color: "#1e3a5f", fontSize: 13, padding: "6px 10px", borderRadius: 5 }}>✎</button>
-                            <button onClick={() => handleDelete(m.id, m.name)} title="Hapus" style={{ border: "none", cursor: "pointer", background: "#fef2f2", color: "#ef4444", fontSize: 13, padding: "6px 10px", borderRadius: 5 }}>✕</button>
+                          <td style={{ padding: "8px 10px", whiteSpace: "nowrap", position: "relative" }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
+                              style={{
+                                border: "1px solid #e2e8f0", cursor: "pointer",
+                                fontFamily: "inherit", fontSize: 16,
+                                padding: "4px 10px", background: "#fff",
+                                color: "#475569", borderRadius: 4, lineHeight: 1,
+                              }}
+                            >⋮</button>
+                            {openMenu === m.id && (
+                              <div
+                                onClick={() => setOpenMenu(null)}
+                                style={{
+                                  position: "fixed", inset: 0, zIndex: 49,
+                                }}
+                              />
+                            )}
+                            {openMenu === m.id && (
+                              <div
+                                style={{
+                                  position: "absolute", right: 0, top: "100%", zIndex: 50,
+                                  background: "#fff", border: "1px solid #e2e8f0",
+                                  boxShadow: "0 4px 12px rgba(0,0,0,.1)",
+                                  minWidth: 160, borderRadius: 6, padding: 4,
+                                }}
+                              >
+                                <button
+                                  onClick={() => { startEdit(m); setOpenMenu(null); }}
+                                  style={{
+                                    display: "block", width: "100%", textAlign: "left",
+                                    border: "none", cursor: "pointer", fontFamily: "inherit",
+                                    fontSize: 13, fontWeight: 600,
+                                    padding: "8px 12px", background: "transparent",
+                                    color: "#1e293b", borderRadius: 4, whiteSpace: "nowrap",
+                                  }}
+                                >Edit</button>
+                                <button
+                                  onClick={() => { handleDelete(m.id, m.name); setOpenMenu(null); }}
+                                  style={{
+                                    display: "block", width: "100%", textAlign: "left",
+                                    border: "none", cursor: "pointer", fontFamily: "inherit",
+                                    fontSize: 13, fontWeight: 600,
+                                    padding: "8px 12px", background: "transparent",
+                                    color: "#ef4444", borderRadius: 4, whiteSpace: "nowrap",
+                                  }}
+                                >Hapus</button>
+                              </div>
+                            )}
                           </td>
                         </>
                       )}
@@ -7125,8 +7173,8 @@ export function PKKMembersSection({ d, st, dispatch, showToast }: Props) {
             </div>
             <div style={{ fontSize: "11.5px", color: "#64748b", marginBottom: 14 }}>#{actionMenu.item.position}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>✎ Edit</button>
-              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item.id, actionMenu.item.name); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>✕ Hapus</button>
+              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>Edit</button>
+              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item.id, actionMenu.item.name); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>Hapus</button>
               <button onClick={() => setActionMenu(null)} style={{ border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px 14px", background: "#fff", color: "#475569", borderRadius: 8, textAlign: "center" }}>Batal</button>
             </div>
           </div>
@@ -7233,6 +7281,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
   const [actionMenu, setActionMenu] = useState<{ item: any } | null>(null);
   const [drawerAnim, setDrawerAnim] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openMenu, setOpenMenu] = useState<string | number | null>(null);
 
   useEffect(() => {
     if (actionMenu) {
@@ -7412,21 +7461,42 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1
-          style={{
-            fontSize: d.rs.pageH1,
-            fontWeight: 800,
-            letterSpacing: "-.025em",
-            color: "#0f172a",
-            marginBottom: 7,
-          }}
-        >
-          Surat {currentView === "masuk" ? "Masuk" : "Keluar"}
-        </h1>
-        <p style={{ fontSize: "14.5px", color: "#475569" }}>
-          Kelola surat menyurat PKK Desa Bunutwetan.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
+        <div>
+          <h1
+            style={{
+              fontSize: d.rs.pageH1,
+              fontWeight: 800,
+              letterSpacing: "-.025em",
+              color: "#0f172a",
+              marginBottom: 7,
+            }}
+          >
+            Surat {currentView === "masuk" ? "Masuk" : "Keluar"}
+          </h1>
+          <p style={{ fontSize: "14.5px", color: "#475569" }}>
+            Kelola surat menyurat PKK Desa Bunutwetan.
+          </p>
+        </div>
+        {!d.isMob && !showForm && (
+          <button
+            onClick={() => { resetAdd(); setShowForm(true); }}
+            style={{
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: 13,
+              fontWeight: 700,
+              padding: "9px 18px",
+              background: "#1e3a5f",
+              color: "#fff",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            + Surat Baru
+          </button>
+        )}
       </div>
 
       <div style={{ marginBottom: 14 }}>
@@ -7518,26 +7588,6 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
             >
               Export Excel
             </button>
-            {!d.isMob && !showForm && (
-              <button
-                onClick={() => {
-                  resetAdd();
-                  setShowForm(true);
-                }}
-                style={{
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: "7px 14px",
-                  background: "#1e3a5f",
-                  color: "#fff",
-                }}
-              >
-                + Surat Baru
-              </button>
-            )}
           </div>
         </div>
 
@@ -8096,43 +8146,50 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
                             {m.nomor_surat}
                           </div>
                         </div>
-                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <div style={{ position: "relative", flexShrink: 0 }}>
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              startEdit(m);
-                            }}
-                            title="Edit"
+                            onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
                             style={{
-                              border: "none",
-                              cursor: "pointer",
-                              background: "#eef2ff",
-                              color: "#1e3a5f",
-                              fontSize: 14,
-                              padding: "7px 11px",
-                              borderRadius: 6,
+                              border: "1px solid #e2e8f0", cursor: "pointer",
+                              fontFamily: "inherit", fontSize: 16,
+                              padding: "4px 10px", background: "#fff",
+                              color: "#475569", borderRadius: 4, lineHeight: 1,
                             }}
-                          >
-                            ✎ Edit
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(m.id, m.perihal);
-                            }}
-                            title="Hapus"
-                            style={{
-                              border: "none",
-                              cursor: "pointer",
-                              background: "#fef2f2",
-                              color: "#ef4444",
-                              fontSize: 14,
-                              padding: "7px 11px",
-                              borderRadius: 6,
-                            }}
-                          >
-                            ✕ Hapus
-                          </button>
+                          >⋮</button>
+                          {openMenu === m.id && (
+                            <div onClick={() => setOpenMenu(null)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
+                          )}
+                          {openMenu === m.id && (
+                            <div
+                              style={{
+                                position: "absolute", right: 0, top: "100%", zIndex: 50,
+                                background: "#fff", border: "1px solid #e2e8f0",
+                                boxShadow: "0 4px 12px rgba(0,0,0,.1)",
+                                minWidth: 160, borderRadius: 6, padding: 4,
+                              }}
+                            >
+                              <button
+                                onClick={(e) => { e.stopPropagation(); startEdit(m); setOpenMenu(null); }}
+                                style={{
+                                  display: "block", width: "100%", textAlign: "left",
+                                  border: "none", cursor: "pointer", fontFamily: "inherit",
+                                  fontSize: 13, fontWeight: 600,
+                                  padding: "8px 12px", background: "transparent",
+                                  color: "#1e293b", borderRadius: 4, whiteSpace: "nowrap",
+                                }}
+                              >Edit</button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDelete(m.id, m.perihal); setOpenMenu(null); }}
+                                style={{
+                                  display: "block", width: "100%", textAlign: "left",
+                                  border: "none", cursor: "pointer", fontFamily: "inherit",
+                                  fontSize: 13, fontWeight: 600,
+                                  padding: "8px 12px", background: "transparent",
+                                  color: "#ef4444", borderRadius: 4, whiteSpace: "nowrap",
+                                }}
+                              >Hapus</button>
+                            </div>
+                          )}
                         </div>
                       </div>
                       {isExpanded && (
@@ -8191,8 +8248,8 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
             </div>
             <div style={{ fontSize: "11.5px", color: "#64748b", marginBottom: 14 }}>{actionMenu.item.perihal}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>✎ Edit</button>
-              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item.id, actionMenu.item.perihal); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>✕ Hapus</button>
+              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>Edit</button>
+              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item.id, actionMenu.item.perihal); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>Hapus</button>
               <button onClick={() => setActionMenu(null)} style={{ border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px 14px", background: "#fff", color: "#475569", borderRadius: 8, textAlign: "center" }}>Batal</button>
             </div>
           </div>
@@ -8275,6 +8332,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
   const [actionMenu, setActionMenu] = useState<{ item: any; depth: number } | null>(null);
   const [drawerAnim, setDrawerAnim] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openMenu, setOpenMenu] = useState<string | number | null>(null);
   const filteredInventory = searchTree(st.inventory, searchQuery);
 
   useEffect(() => {
@@ -8722,72 +8780,73 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
           >
             {m.kondisi_barang || "—"}
           </span>
-          <span style={{ flexShrink: 0, whiteSpace: "nowrap" }}>
+          <span style={{ position: "relative", flexShrink: 0 }}>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingId(null);
-                resetSub();
-                if (subParentId === m.id) {
-                  setSubParentId(null);
-                } else {
-                  setSubParentId(m.id);
-                  if (collapsed.has(m.id)) {
-                    const n = new Set(collapsed);
-                    n.delete(m.id);
-                    setCollapsed(n);
-                  }
-                }
-              }}
-              title="Tambah sub-barang"
+              onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
               style={{
-                border: "none",
-                cursor: "pointer",
-                background: "none",
-                color: "#059669",
-                fontSize: 13,
-                padding: "2px 4px",
-                fontWeight: 700,
+                border: "1px solid #e2e8f0", cursor: "pointer",
+                fontFamily: "inherit", fontSize: 16,
+                padding: "4px 10px", background: "#fff",
+                color: "#475569", borderRadius: 4, lineHeight: 1,
               }}
-            >
-              ＋
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                startEdit(m);
-              }}
-              title="Edit"
-              style={{
-                border: "none",
-                cursor: "pointer",
-                background: "#eef2ff",
-                color: "#1e3a5f",
-                fontSize: 14,
-                padding: "7px 11px",
-                borderRadius: 6,
-              }}
-            >
-              ✎ Edit
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(m);
-              }}
-              title="Hapus"
-              style={{
-                border: "none",
-                cursor: "pointer",
-                background: "#fef2f2",
-                color: "#ef4444",
-                fontSize: 14,
-                padding: "7px 11px",
-                borderRadius: 6,
-              }}
-            >
-              ✕ Hapus
-            </button>
+            >⋮</button>
+            {openMenu === m.id && (
+              <div onClick={() => setOpenMenu(null)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
+            )}
+            {openMenu === m.id && (
+              <div
+                style={{
+                  position: "absolute", right: 0, top: "100%", zIndex: 50,
+                  background: "#fff", border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 12px rgba(0,0,0,.1)",
+                  minWidth: 200, borderRadius: 6, padding: 4,
+                }}
+              >
+                {depth === 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(null);
+                      resetSub();
+                      setSubParentId(subParentId === m.id ? null : m.id);
+                      if (collapsed.has(m.id)) {
+                        const n = new Set(collapsed);
+                        n.delete(m.id);
+                        setCollapsed(n);
+                      }
+                      setOpenMenu(null);
+                    }}
+                    style={{
+                      display: "block", width: "100%", textAlign: "left",
+                      border: "none", cursor: "pointer", fontFamily: "inherit",
+                      fontSize: 13, fontWeight: 600,
+                      padding: "8px 12px", background: "transparent",
+                      color: "#059669", borderRadius: 4, whiteSpace: "nowrap",
+                    }}
+                  >Tambah Sub-Barang</button>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); startEdit(m); setOpenMenu(null); }}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left",
+                    border: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 13, fontWeight: 600,
+                    padding: "8px 12px", background: "transparent",
+                    color: "#1e293b", borderRadius: 4, whiteSpace: "nowrap",
+                  }}
+                >Edit</button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(m); setOpenMenu(null); }}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left",
+                    border: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 13, fontWeight: 600,
+                    padding: "8px 12px", background: "transparent",
+                    color: "#ef4444", borderRadius: 4, whiteSpace: "nowrap",
+                  }}
+                >Hapus</button>
+              </div>
+            )}
           </span>
           </>
         )
@@ -8981,21 +9040,42 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
 
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>
-      <div style={{ marginBottom: 20 }}>
-        <h1
-          style={{
-            fontSize: d.rs.pageH1,
-            fontWeight: 800,
-            letterSpacing: "-.025em",
-            color: "#0f172a",
-            marginBottom: 7,
-          }}
-        >
-          Inventaris PKK
-        </h1>
-        <p style={{ fontSize: "14.5px", color: "#475569" }}>
-          Data barang inventaris PKK Desa Bunutwetan.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
+        <div>
+          <h1
+            style={{
+              fontSize: d.rs.pageH1,
+              fontWeight: 800,
+              letterSpacing: "-.025em",
+              color: "#0f172a",
+              marginBottom: 7,
+            }}
+          >
+            Inventaris PKK
+          </h1>
+          <p style={{ fontSize: "14.5px", color: "#475569" }}>
+            Data barang inventaris PKK Desa Bunutwetan.
+          </p>
+        </div>
+        {!d.isMob && !showForm && (
+          <button
+            onClick={() => { resetAdd(); setShowForm(true); }}
+            style={{
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: 13,
+              fontWeight: 700,
+              padding: "9px 18px",
+              background: "#1e3a5f",
+              color: "#fff",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            + Tambah Barang
+          </button>
+        )}
       </div>
       <div
         style={{
@@ -9056,26 +9136,6 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             >
               Export Excel
             </button>
-            {!d.isMob && !showForm && (
-              <button
-                onClick={() => {
-                  resetAdd();
-                  setShowForm(true);
-                }}
-                style={{
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  padding: "9px 18px",
-                  background: "#1e3a5f",
-                  color: "#fff",
-                }}
-              >
-                + Tambah Barang
-              </button>
-            )}
           </div>
         </div>
 
@@ -9366,10 +9426,10 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             <div style={{ fontSize: "11.5px", color: "#64748b", marginBottom: 14 }}>#{actionMenu.item.id}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {actionMenu.depth === 0 && (
-                <button onClick={() => { setActionMenu(null); setEditingId(null); resetSub(); setSubParentId(subParentId === actionMenu.item.id ? null : actionMenu.item.id); if (collapsed.has(actionMenu.item.id)) { const n = new Set(collapsed); n.delete(actionMenu.item.id); setCollapsed(n); } }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#f0fdf4", color: "#059669", borderRadius: 8, textAlign: "left" }}>＋ Tambah Sub-Barang</button>
+                <button onClick={() => { setActionMenu(null); setEditingId(null); resetSub(); setSubParentId(subParentId === actionMenu.item.id ? null : actionMenu.item.id); if (collapsed.has(actionMenu.item.id)) { const n = new Set(collapsed); n.delete(actionMenu.item.id); setCollapsed(n); } }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#f0fdf4", color: "#059669", borderRadius: 8, textAlign: "left" }}>Tambah Sub-Barang</button>
               )}
-              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>✎ Edit</button>
-              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>✕ Hapus</button>
+              <button onClick={() => { setActionMenu(null); startEdit(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#eef2ff", color: "#1e3a5f", borderRadius: 8, textAlign: "left" }}>Edit</button>
+              <button onClick={() => { setActionMenu(null); handleDelete(actionMenu.item); }} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "12px 14px", background: "#fef2f2", color: "#ef4444", borderRadius: 8, textAlign: "left" }}>Hapus</button>
               <button onClick={() => setActionMenu(null)} style={{ border: "1px solid #e2e8f0", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 600, padding: "12px 14px", background: "#fff", color: "#475569", borderRadius: 8, textAlign: "center" }}>Batal</button>
             </div>
           </div>
