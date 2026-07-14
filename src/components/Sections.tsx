@@ -2907,20 +2907,22 @@ export function KalenderSection({
             {isAdmin && (
               <div style={{ padding: "14px 14px 10px", borderTop: "1px solid #e2e8f0" }}>
                 <div style={{ position: "relative", height: 50, userSelect: "none", marginBottom: 8 }}>
-                  {/* timeline track */}
+                  {/* clickable overlay — full height so the whole area is interactive */}
                   <div
-                    style={{ position: "absolute", top: 18, left: 0, right: 0, height: 2, background: "#e2e8f0", borderRadius: 1 }}
+                    style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "pointer" }}
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                       setSeekMin(Math.round(pct * 1410 / 30) * 30);
                     }}
                   />
+                  {/* timeline track */}
+                  <div style={{ position: "absolute", top: 18, left: 0, right: 0, height: 2, background: "#e2e8f0", borderRadius: 1, pointerEvents: "none" }} />
                   {/* hour marks */}
                   {[0,2,4,6,8,10,12,14,16,18,20,22].map(h => {
                     const pct = (h / 24) * 100;
                     return (
-                      <div key={h} style={{ position: "absolute", top: 10, left: `${pct}%`, transform: "translateX(-50%)" }}>
+                      <div key={h} style={{ position: "absolute", top: 10, left: `${pct}%`, transform: "translateX(-50%)", pointerEvents: "none" }}>
                         <div style={{ width: 1, height: 10, background: "#cbd5e1", margin: "0 auto" }} />
                         <div style={{ fontSize: 9, color: "#94a3b8", textAlign: "center", marginTop: 2, fontWeight: 500 }}>{String(h).padStart(2,"0")}</div>
                       </div>
@@ -2933,7 +2935,7 @@ export function KalenderSection({
                     return (
                       <div
                         key={ev.id}
-                        style={{ position: "absolute", top: 16, left: `${pct}%`, transform: "translate(-50%,-50%)", cursor: "pointer", zIndex: 2 }}
+                        style={{ position: "absolute", top: 17, left: `${pct}%`, transform: "translate(-50%,-50%)", cursor: "pointer", zIndex: 12 }}
                         onClick={(e) => { e.stopPropagation(); const [hh,mm] = (ev.time||"00:00").split(":").map(Number); setSeekMin(hh*60+mm); }}
                         title={ev.title}
                       >
@@ -2944,9 +2946,11 @@ export function KalenderSection({
                     );
                   })}
                   {/* playhead / scrubber */}
-                  <div style={{ position: "absolute", top: 0, left: `${(seekMin/1440)*100}%`, transform: "translateX(-50%)", zIndex: 3, pointerEvents: "none" }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", margin: "0 auto 1px" }} />
-                    <div style={{ width: 2, height: 40, background: "#ef4444", borderRadius: 1 }} />
+                  <div style={{ position: "absolute", top: 0, left: `${(seekMin/1440)*100}%`, transform: "translateX(-50%)", zIndex: 11, pointerEvents: "none", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <svg width="10" height="7" viewBox="0 0 10 7">
+                      <polygon points="0,0 10,0 5,7" fill="#ef4444" />
+                    </svg>
+                    <div style={{ width: 2, flex: 1, background: "#ef4444", minHeight: 38 }} />
                   </div>
                 </div>
                 <button onClick={() => { setSelectedDay(null); setSeekMin(480); dispatch({ type: "SET_EVENT_MODAL", payload: { day: selectedDay.day, title: "", time: `${String(Math.floor(seekMin / 60)).padStart(2, "0")}:${String(seekMin % 60).padStart(2, "0")}`, pokja: st.activePokja } }); }} style={{ width: "100%", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, padding: "10px 0", background: "#1e3a5f", color: "#fff", borderRadius: 6 }}>
