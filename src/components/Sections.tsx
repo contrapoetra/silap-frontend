@@ -510,6 +510,7 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
             position: "relative",
             overflow: "hidden",
             border: "1px solid #e2e8f0",
+            zIndex: 0,
           }}
         >
           <DesaMap />
