@@ -514,8 +514,8 @@ export function BerandaSection({ d, st, dispatch, go, openPokja }: Props) {
         >
           <DesaMap />
         </div>
-        <div style={{ height: 0 }} />
-        <span style={{ gridColumn: 2, justifySelf: "end", alignSelf: "start", fontSize: 9, lineHeight: 1, color: "#94a3b8", marginTop: d.isMob ? -10 : -16, marginBottom: d.isMob ? -16 : -24 }}>
+        {!d.isMob && <div style={{ height: 0 }} />}
+        <span style={{ gridColumn: d.isMob ? 1 : 2, justifySelf: "end", alignSelf: "start", fontSize: 9, lineHeight: 1, color: "#94a3b8", marginTop: d.isMob ? 4 : -16, marginBottom: d.isMob ? 0 : -24 }}>
           Map viewer powered by OpenStreetMap and Leaflet
         </span>
       </section>
