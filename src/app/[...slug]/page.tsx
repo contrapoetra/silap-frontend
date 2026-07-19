@@ -2,7 +2,10 @@ import App from "@/components/App";
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
-export default async function Home() {
+export default async function CatchAllPage({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug } = await params;
+  const initialPath = '/' + slug.join('/');
+
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('silap_session');
 
@@ -26,5 +29,5 @@ export default async function Home() {
     }
   }
 
-  return <App initialUserId={initialUserId} initialUsers={initialUsers} initialPath="/" />;
+  return <App initialUserId={initialUserId} initialUsers={initialUsers} initialPath={initialPath} />;
 }

@@ -173,6 +173,8 @@ export interface AppState {
   pengumuman: PengumumanItem[];
   viewingPost: BlogPost | null;
   profileDesc: string;
+  blogDate: string | null;
+  blogSlug: string | null;
 }
 
 export type AppAction =
@@ -227,6 +229,7 @@ export type AppAction =
   | { type: 'UPDATE_BLOG_POST'; payload: BlogPost }
   | { type: 'DELETE_BLOG_POST'; payload: string | number }
   | { type: 'SET_VIEWING_POST'; payload: BlogPost | null }
+  | { type: 'SET_BLOG_SLUG'; payload: { blogDate: string; blogSlug: string } }
   | { type: 'ADD_PKK_MEMBER'; payload: PKKMember }
   | { type: 'UPDATE_PKK_MEMBER'; payload: PKKMember }
   | { type: 'DELETE_PKK_MEMBER'; payload: string | number }

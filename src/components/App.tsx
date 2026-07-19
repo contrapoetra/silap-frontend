@@ -7,12 +7,21 @@ import { MilkdownProvider } from '@milkdown/react';
 import { BerandaSection, PokjaOverviewSection, PokjaDetailSection, GaleriSection, KalenderSection, BerkasSection, PengumumanSection, LaporanSection, DashboardSection, PKKMembersSection, InovasiSection, EditorSection, BlogPostSection, InventarisSection, SuratSection } from './Sections';
 import { LoginModal, EventModal, GalModal, FileUploadModal, AvatarModal, UserModal, ConfirmDeleteModal } from './Modals';
 import { supabase } from '@/lib/supabase';
+import { pathToState, stateToPath, findBlogPostBySlug } from '@/lib/routes';
 
-export default function App({ initialUserId, initialUsers }: { initialUserId?: string | null; initialUsers?: any[] }) {
+export default function App({ initialUserId, initialUsers, initialPath }: { initialUserId?: string | null; initialUsers?: any[]; initialPath?: string }) {
+  const parsed = pathToState(initialPath || '/home', typeof window !== 'undefined' ? window.location.search : '');
   const [st, dispatch] = useReducer<AppState, [AppAction]>(reducer, {
     ...initialState,
     currentUserId: initialUserId ?? null,
     users: initialUsers ?? [],
+    route: parsed.route,
+    activePokja: parsed.activePokja ?? initialState.activePokja,
+    tab: parsed.tab ?? initialState.tab,
+    galFilter: parsed.galFilter ?? initialState.galFilter,
+    fileFilter: parsed.fileFilter ?? initialState.fileFilter,
+    blogDate: parsed.blogDate ?? null,
+    blogSlug: parsed.blogSlug ?? null,
   });
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
@@ -726,6 +735,65 @@ export default function App({ initialUserId, initialUsers }: { initialUserId?: s
       try { mql.removeEventListener('change', onMql); } catch (_) {}
     };
   }, []);
+
+  // Sync URL to current route state
+  const isInitialMount = useRef(true);
+  const prevUrlRef = useRef('');
+  const fromPopState = useRef(false);
+  useEffect(() => {
+    const newPath = stateToPath(st.route, { activePokja: st.activePokja, galFilter: st.galFilter, fileFilter: st.fileFilter, viewingPost: st.viewingPost });
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevUrlRef.current = newPath;
+      window.history.replaceState({ route: st.route }, '', newPath);
+      return;
+    }
+    if (fromPopState.current) {
+      fromPopState.current = false;
+      prevUrlRef.current = newPath;
+      return;
+    }
+    if (prevUrlRef.current !== newPath) {
+      prevUrlRef.current = newPath;
+      window.history.pushState({ route: st.route }, '', newPath);
+      window.scrollTo(0, 0);
+    }
+  }, [st.route, st.activePokja, st.galFilter, st.fileFilter, st.viewingPost]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const onPopState = () => {
+      fromPopState.current = true;
+      const parsed = pathToState(window.location.pathname, window.location.search);
+      if (parsed.route === 'detail' && parsed.activePokja !== undefined) {
+        dispatch({ type: 'OPEN_POKJA', payload: { pokja: parsed.activePokja, tab: parsed.tab ?? 'profil' } });
+      } else {
+        dispatch({ type: 'SET_ROUTE', payload: parsed.route });
+      }
+      if (parsed.galFilter !== undefined) {
+        dispatch({ type: 'SET_GAL_FILTER', payload: parsed.galFilter });
+      }
+      if (parsed.fileFilter !== undefined) {
+        dispatch({ type: 'SET_FILE_FILTER', payload: parsed.fileFilter });
+      }
+      if (parsed.blogDate && parsed.blogSlug) {
+        dispatch({ type: 'SET_BLOG_SLUG', payload: { blogDate: parsed.blogDate, blogSlug: parsed.blogSlug } });
+      }
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  // Resolve blogSlug to viewingPost once blogPosts are loaded
+  useEffect(() => {
+    if (st.route === 'post' && st.blogDate && st.blogSlug && !st.viewingPost && st.blogPosts.length > 0) {
+      const post = findBlogPostBySlug(st.blogDate, st.blogSlug, st.blogPosts);
+      if (post) {
+        dispatch({ type: 'SET_VIEWING_POST', payload: post });
+      }
+    }
+  }, [st.route, st.blogDate, st.blogSlug, st.viewingPost, st.blogPosts]);
 
   const heroIdxRef = useRef(st.heroIdx);
   heroIdxRef.current = st.heroIdx;

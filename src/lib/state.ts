@@ -479,6 +479,8 @@ export interface AppState {
   pengumuman: PengumumanItem[];
   viewingPost: BlogPost | null;
   profileDesc: string;
+  blogDate: string | null;
+  blogSlug: string | null;
 }
 
 export const initialState: AppState = {
@@ -526,6 +528,8 @@ export const initialState: AppState = {
   orgPositions: [],
   pengumuman: [],
   viewingPost: null,
+  blogDate: null,
+  blogSlug: null,
   profileDesc: "",
 };
 
@@ -619,6 +623,7 @@ export type AppAction =
   | { type: "UPDATE_BLOG_POST"; payload: BlogPost }
   | { type: "DELETE_BLOG_POST"; payload: string | number }
   | { type: "SET_VIEWING_POST"; payload: BlogPost | null }
+  | { type: "SET_BLOG_SLUG"; payload: { blogDate: string; blogSlug: string } }
   | { type: "ADD_PKK_MEMBER"; payload: PKKMember }
   | { type: "UPDATE_PKK_MEMBER"; payload: PKKMember }
   | { type: "DELETE_PKK_MEMBER"; payload: string | number }
@@ -651,6 +656,8 @@ export function reducer(state: AppState, action: AppAction): AppState {
         route: action.payload,
         showLogin: false,
         menuOpen: false,
+        blogSlug: action.payload !== 'post' ? null : state.blogSlug,
+        blogDate: action.payload !== 'post' ? null : state.blogDate,
       };
     case "OPEN_POKJA":
       return {
@@ -859,6 +866,8 @@ export function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, blogPosts: state.blogPosts.filter(p => p.id !== action.payload) };
     case "SET_VIEWING_POST":
       return { ...state, viewingPost: action.payload };
+    case "SET_BLOG_SLUG":
+      return { ...state, blogDate: action.payload.blogDate, blogSlug: action.payload.blogSlug };
     case "ADD_PKK_MEMBER":
       return { ...state, pkkMembers: [...state.pkkMembers, action.payload], nextId: state.nextId + 1 };
     case "UPDATE_PKK_MEMBER":

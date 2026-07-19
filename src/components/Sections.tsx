@@ -2,6 +2,7 @@
 
 import { DerivedData } from "@/lib/derived";
 import { AppState, AppAction } from "@/lib/state";
+import { blogPostPath, findBlogPostBySlug } from "@/lib/routes";
 
 import {
   MONTH_NAMES_SHORT,
@@ -5623,7 +5624,7 @@ export function BlogPostSection({
   dispatch: Dispatch<AppAction>;
   go: (route: string) => void;
 }) {
-  const post = st.viewingPost || (st.route === "post" ? d.blogPosts[0] : null);
+  const post = st.viewingPost || (st.route === "post" && st.blogDate && st.blogSlug ? findBlogPostBySlug(st.blogDate, st.blogSlug, d.blogPosts) : null) || (st.route === "post" ? d.blogPosts[0] : null);
   if (!post) {
     return (
       <div
