@@ -3,10 +3,11 @@ import { MONTH_ABBR } from './constants';
 
 const ROUTE_MAP: Record<string, string> = {
   '/home': 'beranda',
-  '/pokja': 'pokja',
+  '/pkk': 'pokja',
   '/galeri': 'galeri',
   '/pengumuman': 'pengumuman',
   '/inovasi': 'inovasi',
+  '/inovasi/editor': 'editor',
   '/kalender': 'kalender',
   '/laporan': 'laporan',
   '/anggota': 'anggota-pkk',
@@ -14,13 +15,12 @@ const ROUTE_MAP: Record<string, string> = {
   '/surat': 'surat',
   '/arsip': 'berkas',
   '/dasbor': 'dashboard',
-  '/editor': 'editor',
 };
 
 const STATE_TO_PATH: Record<string, string> = {
   beranda: '/home',
-  pokja: '/pokja',
-  detail: '/pokja',
+  pokja: '/pkk',
+  detail: '/pkk',
   galeri: '/galeri',
   pengumuman: '/pengumuman',
   inovasi: '/inovasi',
@@ -120,14 +120,7 @@ export interface ParsedRoute {
 export function pathToState(pathname: string, search: string): ParsedRoute {
   const path = pathname.replace(/\/+$/, '') || '/';
 
-  if (path === '/pokja') {
-    const segments = path.split('/');
-    if (segments.length >= 3 && segments[2]?.startsWith('pokja-')) {
-      const n = parseInt(segments[2].replace('pokja-', ''), 10);
-      if (n >= 1 && n <= 4) {
-        return { route: 'detail', activePokja: n, tab: 'profil' };
-      }
-    }
+  if (path === '/pkk') {
     return { route: 'pokja' };
   }
 
@@ -140,6 +133,10 @@ export function pathToState(pathname: string, search: string): ParsedRoute {
       result.fileFilter = parsePokjaFilter(search);
     }
     return result;
+  }
+
+  if (path.startsWith('/inovasi/editor')) {
+    return { route: 'editor' };
   }
 
   if (path.startsWith('/inovasi/')) {
@@ -159,8 +156,8 @@ export function pathToState(pathname: string, search: string): ParsedRoute {
     return { route: 'inovasi' };
   }
 
-  if (path.startsWith('/pokja/pokja-')) {
-    const n = parseInt(path.replace('/pokja/pokja-', ''), 10);
+  if (path.startsWith('/pkk/pokja-')) {
+    const n = parseInt(path.replace('/pkk/pokja-', ''), 10);
     if (n >= 1 && n <= 4) {
       return { route: 'detail', activePokja: n, tab: 'profil' };
     }
@@ -179,7 +176,7 @@ export function stateToPath(route: string, state: {
 
   if (route === 'detail') {
     const n = state.activePokja || 1;
-    return `/pokja/pokja-${n}`;
+    return `/pkk/pokja-${n}`;
   }
 
   if (route === 'post' && state.viewingPost) {
