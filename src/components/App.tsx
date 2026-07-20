@@ -142,6 +142,21 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
         dispatch({ type: 'SET_INITIAL_DATA', payload: { users: users || [], profileDesc: profileDescData } });
         if (initialUserId && users?.some((u: any) => u.id === initialUserId)) {
           dispatch({ type: 'DO_LOGIN', payload: initialUserId });
+          if (parsed.route !== 'beranda' && parsed.route !== 'dashboard') {
+            dispatch({ type: 'SET_ROUTE', payload: parsed.route });
+            if (parsed.blogDate && parsed.blogSlug) {
+              dispatch({ type: 'SET_BLOG_SLUG', payload: { blogDate: parsed.blogDate, blogSlug: parsed.blogSlug } });
+            }
+            if (parsed.activePokja !== undefined) {
+              dispatch({ type: 'OPEN_POKJA', payload: { pokja: parsed.activePokja, tab: parsed.tab ?? 'profil' } });
+            }
+            if (parsed.galFilter !== undefined) {
+              dispatch({ type: 'SET_GAL_FILTER', payload: parsed.galFilter });
+            }
+            if (parsed.fileFilter !== undefined) {
+              dispatch({ type: 'SET_FILE_FILTER', payload: parsed.fileFilter });
+            }
+          }
         }
         setLoading(false);
       } catch (err) {
