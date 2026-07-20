@@ -831,8 +831,8 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
       <header style={{ position: 'sticky', top: 0, zIndex: 40, background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '95%', margin: '0 auto', padding: d.rs.headerPad, display: 'flex', alignItems: 'center', columnGap: 'var(--silap-header-gap)', flexWrap: 'wrap', rowGap: 4 }}>
           <div onClick={() => go('beranda')} className="silap-hover" style={{ display: 'flex', alignItems: 'center', gap: 'var(--silap-logo-gap)', cursor: 'pointer', minWidth: 0 }}>
-            <img src="./Logo1.png" alt="Logo Desa Bunutwetan" style={{ width: d.rs.logoSize, height: d.rs.logoSize, objectFit: 'contain' }} />
-            <img src="./pkk.png" alt="Logo PKK" style={{ width: d.rs.logoSize, height: d.rs.logoSize, objectFit: 'contain' }} />
+            <img src="/Logo1.png" alt="Logo Desa Bunutwetan" style={{ width: d.rs.logoSize, height: d.rs.logoSize, objectFit: 'contain' }} />
+            <img src="/pkk.png" alt="Logo PKK" style={{ width: d.rs.logoSize, height: d.rs.logoSize, objectFit: 'contain' }} />
             <div style={{ lineHeight: 1.05 }}>
               <div style={{ fontSize: d.rs.logoFont, fontWeight: 800, letterSpacing: '-.02em', color: '#0f172a' }}>PENDESA-P3S</div>
               <div style={{ display: 'var(--silap-subtitle-display)' }}>
@@ -970,7 +970,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
       <footer style={{ borderTop: '1px solid #e2e8f0', background: '#fff' }}>
         <div style={{ maxWidth: '95%', margin: '0 auto', padding: '22px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="./Logo1.png" alt="Logo Desa Bunutwetan" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+            <img src="/Logo1.png" alt="Logo Desa Bunutwetan" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             <div style={{ fontSize: '12.5px', color: '#64748b' }}>
               <strong style={{ color: '#334155' }}>Desa Bunutwetan</strong><br />Kecamatan Pakis · Kabupaten Malang
             </div>
