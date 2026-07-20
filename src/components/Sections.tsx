@@ -1,8 +1,10 @@
 "use client";
 
+import React from "react";
 import { DerivedData } from "@/lib/derived";
 import { AppState, AppAction } from "@/lib/state";
 import { blogPostPath, findBlogPostBySlug } from "@/lib/routes";
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, X, Play, ArrowUp, ArrowDown, Undo, Redo, Image, Upload } from '@/lib/icons';
 
 import {
   MONTH_NAMES_SHORT,
@@ -980,7 +982,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
           gap: 6,
         }}
       >
-        ← Semua Pokja
+        <ChevronLeft size={14} /> Semua Pokja
       </button>
       <div
         style={{
@@ -1421,7 +1423,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
           <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #e2e8f0" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedDay.day} {d.cal.monthLabel}</div>
-              <button onClick={() => { setSelectedDay(null); setSeekMin(480); }} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}>✕</button>
+              <button onClick={() => { setSelectedDay(null); setSeekMin(480); }} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}><X size={16} /></button>
             </div>
             {selectedDay.events.length === 0 && (
               <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>Tidak ada kegiatan</div>
@@ -1622,7 +1624,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                         pointerEvents: "none",
                       }}
                     >
-                      ▶
+                      <Play size={36} color="#fff" />
                     </div>
                   )}
                   {g.canDelete && (
@@ -1727,7 +1729,7 @@ export function PokjaDetailSection({ d, st, dispatch, go, showToast }: Props) {
                 gap: 8,
               }}
             >
-              ⬆ Unggah Berkas Baru
+              <Upload size={14} /> Unggah Berkas Baru
             </button>
           )}
           {d.pokjaFiles.map((fl, i) => (
@@ -2150,7 +2152,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                       gap: 6,
                     }}
                   >
-                    ▶ {uploadFile?.name}
+                    <Play size={12} /> {uploadFile?.name}
                   </div>
                 ) : uploadPreview ? (
                   <div
@@ -2188,7 +2190,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                   </div>
                 ) : (
                   <>
-                    <div style={{ fontSize: 20, marginBottom: 4 }}>🖼</div>
+                    <div style={{ marginBottom: 4 }}><Image size={20} /></div>
                     <div
                       style={{
                         fontSize: "12px",
@@ -2431,13 +2433,12 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                     alignItems: "center",
                     justifyContent: "center",
                     background: "rgba(0,0,0,0.25)",
-                    fontSize: 36,
                     color: "#fff",
                     zIndex: 5,
                     pointerEvents: "none",
                   }}
                 >
-                  ▶
+                  <Play size={36} color="#fff" />
                 </div>
               )}
               {isAdmin && g.id && (
@@ -2466,7 +2467,7 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                     zIndex: 10,
                   }}
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -2543,12 +2544,11 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
               cursor: "pointer",
               background: "none",
               color: "#fff",
-              fontSize: 28,
               fontFamily: "inherit",
               lineHeight: 1,
             }}
           >
-            ✕
+            <X size={28} color="#fff" />
           </button>
           {fsIdx > 0 && (
             <button
@@ -2569,14 +2569,13 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 color: "#fff",
                 width: 44,
                 height: 44,
-                fontSize: 22,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontFamily: "inherit",
               }}
             >
-              ←
+              <ChevronLeft size={22} color="#fff" />
             </button>
           )}
           {fsIdx < d.allPhotos.length - 1 && (
@@ -2598,14 +2597,13 @@ export function GaleriSection({ d, st, dispatch, showToast }: Props) {
                 color: "#fff",
                 width: 44,
                 height: 44,
-                fontSize: 22,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontFamily: "inherit",
               }}
             >
-              →
+              <ChevronRight size={22} color="#fff" />
             </button>
           )}
           <div style={{ position: "relative", maxWidth: "90vw", maxHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -3108,7 +3106,7 @@ export function KalenderSection({
           <div style={{ marginTop: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #e2e8f0" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedDay.day} {d.cal.monthLabel}</div>
-              <button onClick={() => { setSelectedDay(null); setSeekMin(480); }} style={{ border: "none", background: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", padding: 4 }}>✕</button>
+              <button onClick={() => { setSelectedDay(null); setSeekMin(480); }} style={{ border: "none", background: "none", cursor: "pointer", color: "#94a3b8", padding: 4 }}><X size={16} /></button>
             </div>
             {selectedDay.events.length === 0 && (
               <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 13, color: "#94a3b8" }}>Tidak ada kegiatan</div>
@@ -3418,7 +3416,7 @@ href={f.url}
                     flexShrink: 0,
                   }}
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -3660,14 +3658,13 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
             borderRadius: "50%",
             width: 36,
             height: 36,
-            fontSize: 16,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: 0,
           }}
         >
-          ✕
+          <X size={20} color="#fff" />
         </button>
         {hasNav && (
           <button
@@ -4245,19 +4242,18 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                           zIndex: 10,
                           border: "none",
                           cursor: "pointer",
-                          background: "rgba(255,255,255,0.25)",
-                          color: "#fff",
-                          borderRadius: "50%",
-                          width: 26,
-                          height: 26,
-                          fontSize: 12,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: 0,
-                        }}
-                      >
-                        ✕
+                           background: "rgba(255,255,255,0.25)",
+                           color: "#fff",
+                           borderRadius: "50%",
+                           width: 26,
+                           height: 26,
+                           display: "flex",
+                           alignItems: "center",
+                           justifyContent: "center",
+                           padding: 0,
+                         }}
+                       >
+                         <X size={12} color="#fff" />
                       </button>
                     )}
                   </div>
@@ -4400,11 +4396,10 @@ export function PengumumanSection({ d, st, dispatch, showToast }: Props) {
                   cursor: "pointer",
                   background: "none",
                   color: "#475569",
-                  fontSize: 16,
                   padding: 0,
                 }}
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -5668,7 +5663,7 @@ export function BlogPostSection({
             marginTop: 12,
           }}
         >
-          ← Kembali
+          <ChevronLeft size={14} /> Kembali
         </button>
       </div>
     );
@@ -5703,7 +5698,7 @@ export function BlogPostSection({
           gap: 4,
         }}
       >
-        ← Kembali ke Inovasi Desa
+        <ChevronLeft size={14} /> Kembali ke Inovasi Desa
       </button>
 
       <div style={{ marginBottom: 28 }}>
@@ -6167,7 +6162,7 @@ function RichEditor({
     }
   }, [value, get]);
 
-  const tbBtn = (label: string, onAct: () => void, active?: boolean) => (
+  const tbBtn = (label: React.ReactNode, onAct: () => void, active?: boolean) => (
     <button
       type="button"
       onMouseDown={(e) => e.preventDefault()}
@@ -6290,10 +6285,10 @@ function RichEditor({
         {tbBtn("•", () => get()?.action(() => wrapInBulletListCommand.run()))}
         {tbBtn("1.", () => get()?.action(() => wrapInOrderedListCommand.run()))}
         {tbSep()}
-        {tbBtn("🖼", insertImage)}
+        {tbBtn(<Image size={14} />, insertImage)}
         {tbSep()}
-        {tbBtn("↩", () => get()?.action(() => undoCommand.run()))}
-        {tbBtn("↪", () => get()?.action(() => redoCommand.run()))}
+        {tbBtn(<Undo size={14} />, () => get()?.action(() => undoCommand.run()))}
+        {tbBtn(<Redo size={14} />, () => get()?.action(() => redoCommand.run()))}
         {tbSep()}
         {tbBtn(sourceMode ? "Rendered" : "Source", toggleSource, sourceMode)}
       </div>
@@ -6413,7 +6408,7 @@ export function EditorSection({
             gap: 4,
           }}
         >
-          ← Kembali ke Inovasi Desa
+          <ChevronLeft size={14} /> Kembali ke Inovasi Desa
         </button>
         <h1
           style={{
@@ -7678,7 +7673,7 @@ export function SuratSection({ d, st, dispatch, showToast }: Props) {
   });
 
   const sortArrow = (key: string) =>
-    sortBy?.key === key ? (sortBy.dir === "asc" ? " ▲" : " ▼") : "";
+    sortBy?.key === key ? (sortBy.dir === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : null;
 
   const handleAdd = () => {
     if (!addForm.perihal.trim()) {
@@ -8967,7 +8962,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
                     setCollapsed(n);
                   }}
                   style={{ border: "none", cursor: "pointer", background: "none", color: "#94a3b8", fontSize: 12, padding: 0, flexShrink: 0, width: 16 }}
-                >{isCol ? "▶" : "▼"}</button>
+                >{isCol ? <ChevronRight size={12} /> : <ChevronDown size={12} />}</button>
               )}
               {hasKids && !d.isMob && (
                 <span style={{
@@ -9596,7 +9591,7 @@ export function InventarisSection({ d, st, dispatch, showToast }: Props) {
             animation: "invCardIn .2s ease",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "18px 24px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 }}>
-              <button onClick={() => setSubModal(null)} style={{ border: "none", cursor: "pointer", background: "#f1f5f9", color: "#475569", borderRadius: 6, padding: "6px 12px", fontFamily: "inherit", fontSize: 13, fontWeight: 600, flexShrink: 0 }}>← Kembali</button>
+              <button onClick={() => setSubModal(null)} style={{ border: "none", cursor: "pointer", background: "#f1f5f9", color: "#475569", borderRadius: 6, padding: "6px 12px", fontFamily: "inherit", fontSize: 13, fontWeight: 600, flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}><ChevronLeft size={14} /> Kembali</button>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {cleanName(subModal.item.nama_barang)}

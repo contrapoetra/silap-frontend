@@ -8,6 +8,7 @@ import { BerandaSection, PokjaOverviewSection, PokjaDetailSection, GaleriSection
 import { LoginModal, EventModal, GalModal, FileUploadModal, AvatarModal, UserModal, ConfirmDeleteModal } from './Modals';
 import { supabase } from '@/lib/supabase';
 import { pathToState, stateToPath, findBlogPostBySlug } from '@/lib/routes';
+import { Menu, X, Power, Check, Warning } from '@/lib/icons';
 
 export default function App({ initialUserId, initialUsers, initialPath }: { initialUserId?: string | null; initialUsers?: any[]; initialPath?: string }) {
   const parsed = pathToState(initialPath || '/home', typeof window !== 'undefined' ? window.location.search : '');
@@ -860,7 +861,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
               <div onClick={() => go('dashboard')} style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #e2e8f0', padding: '4px 5px 4px 12px', cursor: 'pointer' }}>
                 <div style={{ textAlign: 'right', lineHeight: 1.15 }}><div style={{ fontSize: 13, fontWeight: 700 }}>{d.userVals.name}</div><div style={{ fontSize: '10.5px', fontWeight: 600, color: d.userVals.chipColor }}>{d.userVals.roleLabel}</div></div>
                 <div style={{ width: 32, height: 32, overflow: 'hidden', flexShrink: 0, border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>
-                <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} title="Keluar" onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}} style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>⏻</button>
+                <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} title="Keluar" onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#f8fafc'}} style={{ border: 'none', cursor: 'pointer', background: '#f8fafc', color: '#475569', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Power size={16} /></button>
               </div>
             )}
           </div>
@@ -868,7 +869,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
           <div style={{ display: 'var(--silap-m-nav-display)', marginLeft: 'auto', alignItems: 'center', gap: 8 }}>
             {d.u && <div onClick={() => go('dashboard')} className="silap-hover" style={{ cursor: 'pointer', width: 34, height: 34, overflow: 'hidden', border: `2px solid ${d.userVals.chipColor}`, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{loading ? <span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid #cbd5e1', borderTopColor: '#64748b', borderRadius: '50%', animation: 'silapSpin .6s linear infinite' }}></span> : <div style={d.userVals.avatarStyleSm}>{d.userVals.avatarInitialSm}</div>}</div>}
             {!d.u && <button onClick={() => dispatch({ type: 'SET_SHOW_LOGIN', payload: true })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#152e4a'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#1e3a5f'}} style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, padding: '8px 14px', background: '#1e3a5f', color: '#fff' }}>Masuk</button>}
-            <button onClick={() => dispatch({ type: 'TOGGLE_MENU' })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 38, height: 38, fontSize: 18, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.menuOpen ? '✕' : '☰'}</button>
+            <button onClick={() => dispatch({ type: 'TOGGLE_MENU' })} onMouseEnter={(e)=>{(e.currentTarget as HTMLElement).style.background='#e2e8f0'}} onMouseLeave={(e)=>{(e.currentTarget as HTMLElement).style.background='#fff'}} style={{ border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', width: 38, height: 38, color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{st.menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
           </div>
         </div>
 
@@ -991,8 +992,8 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
       {confirmModal && (
         <div onClick={() => setConfirmModal(null)} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(15,23,42,.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'silapFade .2s ease' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', maxWidth: 350, width: '100%', padding: 26, animation: 'silapPop .25s ease', textAlign: 'center' }}>
-            <div style={{ width: 52, height: 52, background: confirmModal.isDanger ? '#fef2f2' : '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: confirmModal.isDanger ? '#ef4444' : '#1e3a5f', margin: '0 auto 14px' }}>
-              {confirmModal.isDanger ? '⚠' : '⏻'}
+            <div style={{ width: 52, height: 52, background: confirmModal.isDanger ? '#fef2f2' : '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: confirmModal.isDanger ? '#ef4444' : '#1e3a5f', margin: '0 auto 14px' }}>
+              {confirmModal.isDanger ? <Warning size={24} /> : <Power size={24} />}
             </div>
             <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>{confirmModal.title}</div>
             <div style={{ fontSize: '13.5px', color: '#94a3b8', marginBottom: 22, lineHeight: 1.5 }}>{confirmModal.description}</div>
@@ -1009,7 +1010,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
       {/* TOAST */}
       {st.toast && (
         <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 99999, background: '#0f172a', color: '#fff', fontSize: '13.5px', fontWeight: 600, padding: '12px 20px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', animation: 'silapToast .25s ease', display: 'flex', alignItems: 'center', gap: 9, whiteSpace: 'nowrap' }}>
-          <span style={{ color: '#22c55e' }}>✓</span>{st.toast}
+          <Check size={16} color="#22c55e" />{st.toast}
         </div>
       )}
     </div>

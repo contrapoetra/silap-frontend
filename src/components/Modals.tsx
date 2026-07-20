@@ -3,6 +3,7 @@
 import { DerivedData } from "@/lib/derived";
 import { AppState, AppAction } from "@/lib/state";
 import { POKJA } from "@/lib/constants";
+import { Warning, Check, X, Upload, Download, Image } from "@/lib/icons";
 import { Dispatch, useState, useRef, useEffect } from "react";
 
 interface Props {
@@ -232,7 +233,7 @@ export function LoginModal({ st, d, dispatch, showToast }: Props) {
                 gap: 7,
               }}
             >
-              <span>⚠</span>
+              <Warning size={16} color="#ef4444" />
               {st.loginForm.error}
             </div>
           )}
@@ -961,7 +962,7 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
                 gap: 8,
               }}
             >
-              ▶ {selectedFile?.name}
+              <Upload size={14} /> {selectedFile?.name}
             </div>
           ) : imagePreview ? (
             <div
@@ -995,7 +996,7 @@ export function GalModal({ st, d, dispatch, showToast }: Props) {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 24, marginBottom: 6 }}>🖼</div>
+              <div style={{ marginBottom: 6 }}><Image size={24} /></div>
               <div
                 style={{ fontSize: "13px", color: "#1e3a5f", fontWeight: 700 }}
               >
@@ -1268,12 +1269,12 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
           />
           {selectedFiles.length > 0 ? (
             <div style={{ fontSize: 13, fontWeight: 700, color: "#1e3a5f" }}>
-              ✓ {selectedFiles.length} berkas dipilih
+              <Check size={14} color="#22c55e" /> {selectedFiles.length} berkas dipilih
             </div>
           ) : (
             <>
               <div style={{ fontSize: 24, marginBottom: 5, color: isDragOver ? "#1e3a5f" : "#1e3a5f" }}>
-                {isDragOver ? "📥" : "⬆"}
+                {isDragOver ? <Download size={20} /> : <Upload size={20} />}
               </div>
               <div style={{ fontSize: "13.5px", color: "#1e3a5f", fontWeight: 700 }}>
                 {isDragOver ? "Lepaskan berkas di sini" : "Klik atau seret berkas ke sini"}
@@ -1341,7 +1342,7 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ color: "#1e3a5f", fontSize: 13 }}>✓</span>
+                  <Check size={13} color="#1e3a5f" />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
@@ -1370,7 +1371,7 @@ export function FileUploadModal({ st, d, dispatch, showToast }: Props) {
                         padding: "2px 6px",
                       }}
                     >
-                      ✕
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -1523,7 +1524,7 @@ export function AvatarModal({ st, d, dispatch, showToast }: Props) {
             }}
             style={{ display: "none" }}
           />
-          ⬆ Pilih foto
+          <Upload size={14} /> Pilih foto
         </label>
         {d.avM.hasPreview && (
           <div
@@ -1812,7 +1813,7 @@ export function UserModal({ st, d, dispatch, showToast }: Props) {
               gap: 7,
             }}
           >
-            <span>⚠</span>
+            <Warning size={16} color="#ef4444" />
             {d.umV.error}
           </div>
         )}
@@ -1971,11 +1972,10 @@ export function ConfirmDeleteModal({ st, d, dispatch, showToast }: Props) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 22,
             margin: "0 auto 14px",
           }}
         >
-          ⚠
+          <Warning size={24} />
         </div>
         <div
           style={{
