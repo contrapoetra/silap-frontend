@@ -5045,20 +5045,29 @@ export function DashboardSection({
 }: Props) {
   const [pwdForm, setPwdForm] = useState({ current: "", baru: "", confirm: "" });
   const [avatarHover, setAvatarHover] = useState(false);
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     const u = d.u;
     if (!u) return;
     if (!pwdForm.current) { showToast("Masukkan password saat ini"); return; }
-    if (pwdForm.current !== u.password) { showToast("Password saat ini salah"); return; }
     if (!pwdForm.baru) { showToast("Masukkan password baru"); return; }
     if (pwdForm.baru.length < 6) { showToast("Password baru minimal 6 karakter"); return; }
     if (pwdForm.baru !== pwdForm.confirm) { showToast("Konfirmasi password tidak cocok"); return; }
-    dispatch({
-      type: "UPDATE_USER",
-      payload: { ...u, password: pwdForm.baru },
-    });
-    setPwdForm({ current: "", baru: "", confirm: "" });
-    showToast("Password berhasil diubah");
+    try {
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: pwdForm.current, newPassword: pwdForm.baru }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "Gagal mengubah password");
+        return;
+      }
+      setPwdForm({ current: "", baru: "", confirm: "" });
+      showToast("Password berhasil diubah");
+    } catch {
+      showToast("Gagal terhubung ke server");
+    }
   };
   return (
     <div style={{ animation: "silapFade .3s ease", paddingTop: 28 }}>

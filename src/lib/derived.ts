@@ -431,7 +431,11 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
   const cdU = st.confirmDelete ? st.users.find(x => x.id === st.confirmDelete!.userId) : null;
   const cdUser = { name: cdU ? cdU.name : '' };
   const lf = { ...st.loginForm, hasError: !!(st.loginForm.error), demoLabel: st.loginForm.showDemo ? 'Sembunyikan akun demo' : 'Lihat akun demo' };
-  const demoAccounts = st.users.map(usr => ({ name: usr.name, nik: usr.nik, password: usr.password, roleLabel: rlabel(usr), initial: rinit(usr), accent: raccent(usr) }));
+  const demoAccounts = [
+    { name: 'Sutrisno', nik: '3271010101010001', password: 'admin123', roleLabel: 'Sekretaris', initial: 'S', accent: '#0f172a' },
+    { name: 'Sri Wahyuni', nik: '3271010101010002', password: 'ketua1', roleLabel: 'Ketua', initial: 'S', accent: '#7c3aed' },
+    { name: 'Rina Hayati', nik: '3271010101010006', password: 'anggota2', roleLabel: 'Anggota', initial: 'R', accent: '#f59e0b' },
+  ];
 
   const fmRaw = st.fileModal;
   const fmExt = fmRaw && fmRaw.name ? (/\.xlsx?$/i.test(fmRaw.name) ? 'XLS' : /\.docx?$/i.test(fmRaw.name) ? 'DOC' : 'PDF') : 'PDF';

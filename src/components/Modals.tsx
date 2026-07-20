@@ -24,22 +24,35 @@ const btnHover = {
 };
 
 export function LoginModal({ st, d, dispatch, showToast }: Props) {
-  const doLogin = () => {
+  const [loggingIn, setLoggingIn] = useState(false);
+  const doLogin = async () => {
     const nik = st.loginForm.nik.trim();
     const password = st.loginForm.password.trim();
-    const found = st.users.find(
-      (x) => x.nik === nik && x.password === password,
-    );
-    if (!found) {
-      dispatch({
-        type: "SET_LOGIN_ERROR",
-        payload: "NIK atau password salah. Coba lagi.",
-      });
+    if (!nik || !password) {
+      dispatch({ type: "SET_LOGIN_ERROR", payload: "NIK dan password harus diisi." });
       return;
     }
-    dispatch({ type: "DO_LOGIN", payload: found.id });
-    showToast("Selamat datang, " + found.name + "!");
-    window.scrollTo(0, 0);
+    setLoggingIn(true);
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nik, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        dispatch({ type: "SET_LOGIN_ERROR", payload: data.error || "NIK atau password salah. Coba lagi." });
+        return;
+      }
+      dispatch({ type: "SET_INITIAL_DATA", payload: { users: [data.user] } });
+      dispatch({ type: "DO_LOGIN", payload: data.user.id });
+      showToast("Selamat datang, " + data.user.name + "!");
+      window.scrollTo(0, 0);
+    } catch {
+      dispatch({ type: "SET_LOGIN_ERROR", payload: "Gagal terhubung ke server." });
+    } finally {
+      setLoggingIn(false);
+    }
   };
   const loginKey = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") doLogin();
@@ -225,12 +238,13 @@ export function LoginModal({ st, d, dispatch, showToast }: Props) {
           )}
           <button
             onClick={doLogin}
+            disabled={loggingIn}
             onMouseEnter={btnHover.primary}
             onMouseLeave={btnHover.primaryL}
             style={{
               width: "100%",
               border: "none",
-              cursor: "pointer",
+              cursor: loggingIn ? "wait" : "pointer",
               fontFamily: "inherit",
               fontSize: 15,
               fontWeight: 700,
@@ -239,9 +253,10 @@ export function LoginModal({ st, d, dispatch, showToast }: Props) {
               color: "#fff",
               marginTop: 8,
               boxShadow: "0 2px 8px rgba(30,58,95,0.15)",
+              opacity: loggingIn ? 0.7 : 1,
             }}
           >
-            Masuk
+            {loggingIn ? "Memproses..." : "Masuk"}
           </button>
           <button
             onClick={() => dispatch({ type: "SET_SHOW_LOGIN", payload: false })}
@@ -1998,7 +2013,7 @@ export function UserModal({ st, d, dispatch, showToast }: Props) {
                     ...existing,
                     nik: fm.form.nik.trim(),
                     name: fm.form.name.trim(),
-                    password: fm.form.password.trim() || existing.password,
+                    password: fm.form.password.trim(),
                     role,
                     pokja,
                   },

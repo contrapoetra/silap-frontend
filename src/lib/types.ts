@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   nik: string;
-  password: string;
+  password?: string;
   role: 'admin' | 'ketua' | 'anggota';
   name: string;
   pokja: number | null;

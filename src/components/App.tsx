@@ -133,7 +133,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
     let cancelled = false;
     async function initApp() {
       try {
-        const { data: users, error: errUsers } = await supabase.from('users').select('*');
+        const { data: users, error: errUsers } = await supabase.from('users').select('id, nik, role, name, pokja, avatar');
         if (cancelled) return;
         let profileDescData = "";
         try { const { data } = await supabase.from('profil_desa').select('deskripsi').eq('id', 1).single(); profileDescData = data?.deskripsi || ""; } catch (_) {}
@@ -200,12 +200,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
     }
   }, []);
 
-  // Synchronize currentUserId with cookie
-  useEffect(() => {
-    if (st.currentUserId) {
-      document.cookie = `silap_session=${st.currentUserId}; path=/; max-age=2592000; SameSite=Lax`;
-    }
-  }, [st.currentUserId]);
+  // Cookie is managed server-side by /api/login and /api/logout
 
   const asyncDispatch = useCallback((action: AppAction) => {
     (async () => {
@@ -431,16 +426,19 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
           break;
         }
         case 'UPDATE_USER': {
+          const updatePayload: Record<string, any> = {
+            nik: action.payload.nik,
+            role: action.payload.role,
+            name: action.payload.name,
+            pokja: action.payload.pokja,
+            avatar: action.payload.avatar,
+          };
+          if (action.payload.password) {
+            updatePayload.password = action.payload.password;
+          }
           const { error } = await supabase
             .from('users')
-            .update({
-              nik: action.payload.nik,
-              password: action.payload.password,
-              role: action.payload.role,
-              name: action.payload.name,
-              pokja: action.payload.pokja,
-              avatar: action.payload.avatar,
-            })
+            .update(updatePayload)
             .eq('id', action.payload.id);
 
           if (error) {
@@ -830,9 +828,9 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
       description: 'Apakah Anda yakin ingin keluar dari akun Anda?',
       confirmLabel: 'Keluar',
       isDanger: false,
-      onConfirm: () => {
+      onConfirm: async () => {
+        await fetch('/api/logout', { method: 'POST' });
         showToast('Anda telah keluar');
-        document.cookie = 'silap_session=; path=/; max-age=0';
         dispatch({ type: 'LOGOUT' });
         setConfirmModal(null);
         window.scrollTo(0, 0);
