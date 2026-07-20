@@ -5637,7 +5637,7 @@ export function BlogPostSection({
   if (!post) {
     if (st.blogPosts.length === 0) {
       return (
-        <div style={{ animation: "silapFade .3s ease", paddingTop: 28, textAlign: "center", padding: "60px 20px" }}>
+        <div style={{ animation: "silapFade .3s ease", paddingTop: 60, paddingBottom: 60, paddingLeft: 20, paddingRight: 20, textAlign: "center" }}>
           <div style={{ width: 32, height: 32, border: "3px solid #e2e8f0", borderTopColor: "#1e3a5f", borderRadius: "50%", animation: "silapSpin .6s linear infinite", margin: "0 auto 16px" }} />
           <div style={{ fontSize: 14, fontWeight: 600, color: "#94a3b8" }}>Memuat artikel...</div>
         </div>
@@ -5647,7 +5647,6 @@ export function BlogPostSection({
       <div
         style={{
           animation: "silapFade .3s ease",
-          paddingTop: 28,
           textAlign: "center",
           padding: "60px 20px",
         }}
