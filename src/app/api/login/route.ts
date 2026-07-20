@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createSessionToken, sessionCookieName, sessionCookieMaxAge } from '@/lib/session';
+import { verifyPassword } from '@/lib/password';
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const user = users[0];
 
-    if (user.password !== password.trim()) {
+    if (!verifyPassword(password.trim(), user.password)) {
       return NextResponse.json({ error: 'NIK atau password salah. Coba lagi.' }, { status: 401 });
     }
 

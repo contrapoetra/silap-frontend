@@ -405,44 +405,28 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
           break;
         }
         case 'ADD_USER': {
-          const { error, data } = await supabase
-            .from('users')
-            .insert({
-              nik: action.payload.nik,
-              password: action.payload.password,
-              role: action.payload.role,
-              name: action.payload.name,
-              pokja: action.payload.pokja,
-              avatar: action.payload.avatar,
-            })
-            .select()
-            .single();
-
-          if (error) {
-            showToast('Gagal membuat akun: ' + error.message);
+          const res = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action.payload),
+          });
+          const result = await res.json();
+          if (!res.ok) {
+            showToast('Gagal membuat akun: ' + (result.error || 'Unknown error'));
             return;
           }
-          dispatch({ type: 'ADD_USER', payload: { ...action.payload, id: data.id } });
+          dispatch({ type: 'ADD_USER', payload: { ...action.payload, id: result.user.id } });
           break;
         }
         case 'UPDATE_USER': {
-          const updatePayload: Record<string, any> = {
-            nik: action.payload.nik,
-            role: action.payload.role,
-            name: action.payload.name,
-            pokja: action.payload.pokja,
-            avatar: action.payload.avatar,
-          };
-          if (action.payload.password) {
-            updatePayload.password = action.payload.password;
-          }
-          const { error } = await supabase
-            .from('users')
-            .update(updatePayload)
-            .eq('id', action.payload.id);
-
-          if (error) {
-            showToast('Gagal memperbarui akun: ' + error.message);
+          const res = await fetch('/api/admin/users', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action.payload),
+          });
+          const result = await res.json();
+          if (!res.ok) {
+            showToast('Gagal memperbarui akun: ' + (result.error || 'Unknown error'));
             return;
           }
           dispatch({ type: 'UPDATE_USER', payload: action.payload });

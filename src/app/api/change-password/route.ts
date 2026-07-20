@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifySessionToken, sessionCookieName, createSessionToken, sessionCookieMaxAge } from '@/lib/session';
+import { hashPassword, verifyPassword } from '@/lib/password';
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,13 +48,13 @@ export async function POST(req: NextRequest) {
 
     const user = users[0];
 
-    if (user.password !== currentPassword.trim()) {
+    if (!verifyPassword(currentPassword.trim(), user.password)) {
       return NextResponse.json({ error: 'Password saat ini salah.' }, { status: 401 });
     }
 
     const { error: updateErr } = await supabase
       .from('users')
-      .update({ password: newPassword.trim() })
+      .update({ password: hashPassword(newPassword.trim()) })
       .eq('id', userId);
 
     if (updateErr) {

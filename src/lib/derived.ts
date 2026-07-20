@@ -59,7 +59,6 @@ export interface DerivedData {
   avM: { hasPreview: boolean; displayStyle: React.CSSProperties; displayInitial: string };
   cdUser: { name: string };
   lf: Record<string, any>;
-  demoAccounts: any[];
   fileModalV: { name: string; size: string; ext: string; tint: string; accent: string };
   eventModal: { title: string; time: string; dateLabel: string };
 }
@@ -430,12 +429,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
 
   const cdU = st.confirmDelete ? st.users.find(x => x.id === st.confirmDelete!.userId) : null;
   const cdUser = { name: cdU ? cdU.name : '' };
-  const lf = { ...st.loginForm, hasError: !!(st.loginForm.error), demoLabel: st.loginForm.showDemo ? 'Sembunyikan akun demo' : 'Lihat akun demo' };
-  const demoAccounts = [
-    { name: 'Sutrisno', nik: '3271010101010001', password: 'admin123', roleLabel: 'Sekretaris', initial: 'S', accent: '#0f172a' },
-    { name: 'Sri Wahyuni', nik: '3271010101010002', password: 'ketua1', roleLabel: 'Ketua', initial: 'S', accent: '#7c3aed' },
-    { name: 'Rina Hayati', nik: '3271010101010006', password: 'anggota2', roleLabel: 'Anggota', initial: 'R', accent: '#f59e0b' },
-  ];
+  const lf = { ...st.loginForm, hasError: !!(st.loginForm.error) };
 
   const fmRaw = st.fileModal;
   const fmExt = fmRaw && fmRaw.name ? (/\.xlsx?$/i.test(fmRaw.name) ? 'XLS' : /\.docx?$/i.test(fmRaw.name) ? 'DOC' : 'PDF') : 'PDF';
@@ -446,6 +440,6 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     u, active, canEditActive, isMob, isDesktop, rs,
     heroCurrent, heroDots, userVals, nav, pokjas, features, tabs, cal,
     pokjaPhotos, pokjaFiles, galFilters, galSortOptions, allPhotos, galSections, berkasFilters, allFiles, reportGroups,
-    dashStats, quickActions, allUsers, pokjaMemberList, pkkMembers, inventory, suratMasuk, suratKeluar, suratView: st.suratView, blogPosts: st.blogPosts, orgPositions: st.orgPositions, pengumuman: st.pengumuman, umV, avM, cdUser, lf, demoAccounts, fileModalV, eventModal,
+    dashStats, quickActions, allUsers, pokjaMemberList, pkkMembers, inventory, suratMasuk, suratKeluar, suratView: st.suratView, blogPosts: st.blogPosts, orgPositions: st.orgPositions, pengumuman: st.pengumuman, umV, avM, cdUser, lf, fileModalV, eventModal,
   };
 }

@@ -429,7 +429,6 @@ export interface AppState {
     nik: string;
     password: string;
     error: string;
-    showDemo: boolean;
   };
   eventModal: {
     day: number;
@@ -496,7 +495,7 @@ export const initialState: AppState = {
   calY: 2026,
   calM: 5,
   showLogin: false,
-  loginForm: { nik: "", password: "", error: "", showDemo: false },
+        loginForm: { nik: "", password: "", error: "" },
   eventModal: null,
   galModal: null,
   fileModal: null,
@@ -548,7 +547,6 @@ export type AppAction =
         nik: string;
         password: string;
         error: string;
-        showDemo: boolean;
       }>;
     }
   | { type: "SET_LOGIN_ERROR"; payload: string }
@@ -695,7 +693,7 @@ export function reducer(state: AppState, action: AppAction): AppState {
         currentUserId: action.payload,
         showLogin: false,
         route: "dashboard",
-        loginForm: { nik: "", password: "", error: "", showDemo: false },
+  loginForm: { nik: "", password: "", error: "" },
       };
     case "LOGOUT":
       return {
