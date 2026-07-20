@@ -5742,7 +5742,7 @@ export function BlogPostSection({
 
       <div style={{ height: 1, background: "#e2e8f0", marginBottom: 28 }} />
 
-      <style>{`.wmde-markdown { background: transparent !important; } .wmde-markdown h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin: 28px 0 12px; letter-spacing: -.01em; } .wmde-markdown h3 { font-size: 18px; font-weight: 700; color: #1e293b; margin: 22px 0 10px; } .wmde-markdown p { margin: 0 0 12px; } .wmde-markdown ul, .wmde-markdown ol { padding-left: 22px; margin: 8px 0 14px; } .wmde-markdown li { margin-bottom: 4px; } .wmde-markdown img { display: block; margin: 16px auto; max-width: 100%; min-width: 70%; height: auto; }`}</style>
+      <style>{`.wmde-markdown { background: transparent !important; color: #334155 !important; } .wmde-markdown h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin: 28px 0 12px; letter-spacing: -.01em; } .wmde-markdown h3 { font-size: 18px; font-weight: 700; color: #1e293b; margin: 22px 0 10px; } .wmde-markdown p { margin: 0 0 12px; } .wmde-markdown ul, .wmde-markdown ol { padding-left: 22px; margin: 8px 0 14px; } .wmde-markdown li { margin-bottom: 4px; } .wmde-markdown img { display: block; margin: 16px auto; max-width: 100%; min-width: 70%; height: auto; }`}</style>
       <div style={{ fontSize: 15, lineHeight: 1.85, color: "#334155" }}>
         <MDEditor.Markdown source={post.content} />
       </div>
