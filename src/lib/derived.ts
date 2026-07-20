@@ -128,7 +128,7 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     avatarStyleLg: u.avatar ? { width: '62px', height: '62px', borderRadius: '50%', backgroundImage: `url('${u.avatar}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : { width: '62px', height: '62px', borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: '800', color: '#fff' },
     avatarInitialLg: u.avatar ? '' : rinit(u),
     scope: u.role === 'admin' ? 'Seluruh Pokja' : (POKJA.find(p => p.id === u.pokja)?.name || ''), isAdmin: u.role === 'admin', isKetua: u.role === 'ketua',
-    accessNote: u.role === 'admin' ? 'Sebagai Admin Desa Anda dapat mengelola semua akun, kalender, galeri, berkas, dan status laporan.' : `Anda dapat mengedit kalender, galeri, dan berkas untuk ${rlabel(u).replace('Ketua ', '').replace('Anggota ', '')}. Pokja lain hanya dapat dilihat.`,
+    accessNote: u.role === 'admin' ? 'Sebagai Admin Desa Anda dapat mengelola semua akun, kalender, galeri, berkas, inventaris, surat, dan status laporan.' : u.role === 'ketua' ? `Anda dapat mengedit kalender, galeri, dan berkas untuk ${rlabel(u).replace('Ketua ', '')}, serta mengubah status laporan yang masuk.` : `Anda dapat mengedit kalender, galeri, dan berkas untuk ${rlabel(u).replace('Anggota ', '')}. Pokja lain hanya dapat dilihat.`,
   } : {
     name: '', initial: '', roleLabel: '', chipColor: '#0f172a',
     avatarStyleSm: makeAvatarStyle(null, '#0f172a', '30px', '12px', ''),
@@ -317,13 +317,16 @@ export function computeDerived(st: AppState, go: (r: string) => void, openPokja:
     { value: visibleReports.filter(r => r.status === 'Baru').length, label: 'Laporan baru', accent: '#ef4444' },
   ];
 
+  const isKetua = !!(u && u.role === 'ketua');
   const quickActions = [
     { glyph: '◷', title: 'Kelola Kalender', desc: 'Tambah/hapus kegiatan', accent: '#2563eb', tint: '#eff6ff', onClick: () => { openPokja({ pokja: scopeIds[0] || 1, tab: 'kalender' }); } },
     { glyph: '▦', title: 'Kelola Galeri', desc: 'Unggah dokumentasi', accent: '#7c3aed', tint: '#f3e8ff', onClick: () => { if (isAdmin) { go('galeri'); } else { openPokja({ pokja: scopeIds[0] || 1, tab: 'galeri' }); } } },
     { glyph: '⬓', title: 'Kelola Berkas', desc: 'Unggah & unduh dokumen', accent: '#ea580c', tint: '#fff7ed', onClick: () => { openPokja({ pokja: scopeIds[0] || 1, tab: 'berkas' }); } },
-    { glyph: '✎', title: 'Tindak Lanjut Laporan', desc: 'Ubah status & export', accent: '#0891b2', tint: '#ecfeff', onClick: () => go('laporan') },
-    { glyph: '▤', title: 'Kelola Inventaris', desc: 'Data barang inventaris', accent: '#059669', tint: '#ecfdf5', onClick: () => go('inventaris') },
-    { glyph: '✉', title: 'Kelola Surat', desc: 'Surat masuk & keluar', accent: '#d97706', tint: '#fffbeb', onClick: () => go('surat') },
+    ...(isAdmin || isKetua ? [{ glyph: '✎', title: 'Tindak Lanjut Laporan', desc: 'Ubah status & export', accent: '#0891b2', tint: '#ecfeff', onClick: () => go('laporan') }] : []),
+    ...(isAdmin ? [
+      { glyph: '▤', title: 'Kelola Inventaris', desc: 'Data barang inventaris', accent: '#059669', tint: '#ecfdf5', onClick: () => go('inventaris') },
+      { glyph: '✉', title: 'Kelola Surat', desc: 'Surat masuk & keluar', accent: '#d97706', tint: '#fffbeb', onClick: () => go('surat') },
+    ] : []),
     { glyph: '📢', title: 'Pengumuman', desc: 'Informasi & pengumuman', accent: '#059669', tint: '#ecfdf5', onClick: () => go('pengumuman') },
   ];
 
