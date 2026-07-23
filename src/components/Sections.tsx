@@ -84,7 +84,8 @@ interface Props {
   showToast: (msg: string) => void;
 }
 
-const BUNUTWETAN_CENTER: [number, number] = [-7.9546, 112.7050];
+const BUNUTWETAN_CENTER: [number, number] = [-7.954554, 112.705044];
+const KANTOR_GOOGLE_MAPS_URL = "https://maps.app.goo.gl/egY7oGvJzu9WduSo9";
 
 const DynamicMapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -107,6 +108,30 @@ const DynamicPopup = dynamic(
   { ssr: false }
 );
 
+function RecenterButton({ center }: { center: [number, number] }) {
+  const map = (require("react-leaflet") as any).useMap();
+  return (
+    <button
+      onClick={() => map.setView(center, 16)}
+      style={{
+        position: "absolute",
+        bottom: 40,
+        left: 10,
+        zIndex: 1000,
+        background: "#fff",
+        border: "1px solid #ccc",
+        borderRadius: 4,
+        padding: "4px 8px",
+        cursor: "pointer",
+        fontSize: 12,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+      }}
+    >
+      &#9679; Kantor
+    </button>
+  );
+}
+
 function DesaMap() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
@@ -117,10 +142,21 @@ function DesaMap() {
       </div>
     );
   }
+
+  const redPinIcon = typeof window !== "undefined"
+    ? new (require("leaflet") as any).DivIcon({
+        className: "",
+        html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="28" height="40"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#e53935"/><circle cx="12" cy="11" r="4" fill="#fff"/></svg>`,
+        iconSize: [28, 40],
+        iconAnchor: [14, 40],
+        popupAnchor: [0, -36],
+      })
+    : undefined;
+
   return (
     <DynamicMapContainer
       center={BUNUTWETAN_CENTER}
-      zoom={14}
+      zoom={16}
       style={{ height: "100%", minHeight: 300, width: "100%" }}
       scrollWheelZoom={false}
     >
@@ -133,12 +169,16 @@ function DesaMap() {
         radius={2000}
         pathOptions={{ color: "#2563eb", fillColor: "#2563eb", fillOpacity: 0.08, weight: 2 }}
       />
-      <DynamicMarker position={BUNUTWETAN_CENTER}>
+      <DynamicMarker position={BUNUTWETAN_CENTER} icon={redPinIcon}>
         <DynamicPopup>
-          <strong>Desa Bunutwetan</strong><br />
-          Kec. Pakis, Kab. Malang, Jawa Timur
+          <a href={KANTOR_GOOGLE_MAPS_URL} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }}>
+            <strong>Kantor Desa Bunutwetan</strong><br />
+            Kec. Pakis, Kab. Malang, Jawa Timur<br />
+            <span style={{ fontSize: 11, color: "#2563eb" }}>Buka di Google Maps &#8599;</span>
+          </a>
         </DynamicPopup>
       </DynamicMarker>
+      <RecenterButton center={BUNUTWETAN_CENTER} />
     </DynamicMapContainer>
   );
 }
