@@ -976,7 +976,19 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
               <strong style={{ color: '#334155' }}>Desa Bunutwetan</strong><br />Kecamatan Pakis · Kabupaten Malang
             </div>
           </div>
-          <div style={{ fontSize: 12, color: '#cbd5e1' }}>© 2026 Pemerintah Desa Bunutwetan. All Rights Reserved.</div>
+          <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
+            <strong style={{ color: '#334155' }}>Sekretaris</strong> Bella Umamah<br />
+            <a href="mailto:bellaumamahstimata@gmail.com" style={{ color: '#64748b', textDecoration: 'underline' }}>bellaumamahstimata@gmail.com</a>
+          </div>
+          <a href="https://www.instagram.com/pkk.bunutwetan" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#475569', textDecoration: 'none' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            Instagram PKK Bunutwetan
+          </a>
+          <div style={{ fontSize: 11, color: '#cbd5e1', textAlign: 'right' }}>© 2026 Pemerintah Desa Bunutwetan. All Rights Reserved.</div>
         </div>
       </footer>
 
