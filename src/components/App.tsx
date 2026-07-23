@@ -988,7 +988,10 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
             </svg>
             Instagram PKK Bunutwetan
           </a>
-          <div style={{ fontSize: 11, color: '#cbd5e1', textAlign: 'right' }}>© 2026 Pemerintah Desa Bunutwetan. All Rights Reserved.</div>
+          <div style={{ fontSize: 11, color: '#64748b', textAlign: 'right', lineHeight: 1.5 }}>
+            © 2026 Pemerintah Desa Bunutwetan. All Rights Reserved.<br />
+            Built by <a href="https://contrapoetra.com" target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'underline' }}>Dimas Atha Putra</a> and Abdullah Kevin Fatoni
+          </div>
         </div>
       </footer>
 
