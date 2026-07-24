@@ -978,7 +978,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
           </div>
           <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>
             <strong style={{ color: '#334155' }}>Sekretaris</strong> Bella Umamah<br />
-            <a href="mailto:bellaumamahstimata@gmail.com" style={{ color: '#64748b', textDecoration: 'underline' }}>bellaumamahstimata@gmail.com</a>
+            <a href="mailto:pkk.bunutwetan@gmail.com" style={{ color: '#64748b', textDecoration: 'underline' }}>pkk.bunutwetan@gmail.com</a>
           </div>
           <a href="https://www.instagram.com/pkk.bunutwetan" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#475569', textDecoration: 'none' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
