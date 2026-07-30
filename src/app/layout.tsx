@@ -1,9 +1,32 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const baseUrl = "https://pkk.bunutwetan.id";
+
 export const metadata: Metadata = {
-  title: "PENDESA-P3S — Sistem Informasi Penguatan Desa Modul P3S Bunutwetan",
-  description: "Sistem Informasi Penguatan Desa Modul P3S Bunutwetan",
+  title: {
+    default: "PKK Desa Bunut Wetan | Pemberdayaan Kesejahteraan Keluarga",
+    template: "%s | PKK Desa Bunut Wetan",
+  },
+  description:
+    "Website resmi PKK Desa Bunut Wetan. Informasi kegiatan, program kerja, struktur organisasi, dan berita terbaru seputar PKK.",
+  keywords: [
+    "PKK Bunut Wetan",
+    "Bunut Wetan",
+    "Desa Bunut Wetan",
+    "PKK Malang",
+    "Pemberdayaan Kesejahteraan Keluarga",
+    "PENDESA-P3S",
+  ],
+  openGraph: {
+    title: "PKK Desa Bunut Wetan",
+    description:
+      "Website resmi PKK Desa Bunut Wetan. Informasi kegiatan, program kerja, struktur organisasi, dan berita terbaru seputar PKK.",
+    url: baseUrl,
+    siteName: "PKK Bunut Wetan",
+    locale: "id_ID",
+    type: "website",
+  },
   icons: [{ rel: "icon", url: "/pkk.png", type: "image/png" }],
 };
 

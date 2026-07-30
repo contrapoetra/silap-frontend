@@ -1,7 +1,18 @@
+import type { Metadata } from "next";
 import App from "@/components/App";
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { verifySessionToken } from '@/lib/session';
+
+export const metadata: Metadata = {
+  title: "Beranda",
+  description: "Halaman utama PKK Desa Bunut Wetan — informasi terbaru seputar kegiatan dan program PKK.",
+  openGraph: {
+    title: "PKK Desa Bunut Wetan",
+    description: "Halaman utama PKK Desa Bunut Wetan — informasi terbaru seputar kegiatan dan program PKK.",
+    url: "https://pkk.bunutwetan.id",
+  },
+};
 
 export default async function Home() {
   const cookieStore = await cookies();
