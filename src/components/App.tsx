@@ -498,12 +498,21 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
           break;
         }
         case 'DELETE_BLOG_POST': {
-          const { error } = await supabase.from('blog_posts').delete().eq('id', action.payload);
-          if (error) {
-            showToast('Gagal menghapus artikel: ' + error.message);
-            return;
-          }
-          dispatch({ type: 'DELETE_BLOG_POST', payload: action.payload });
+          setConfirmModal({
+            title: 'Hapus Artikel?',
+            description: 'Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat dibatalkan.',
+            confirmLabel: 'Hapus',
+            isDanger: true,
+            onConfirm: async () => {
+              const { error } = await supabase.from('blog_posts').delete().eq('id', action.payload);
+              if (error) {
+                showToast('Gagal menghapus artikel: ' + error.message);
+                return;
+              }
+              dispatch({ type: 'DELETE_BLOG_POST', payload: action.payload });
+              setConfirmModal(null);
+            }
+          });
           break;
         }
         case 'ADD_PKK_MEMBER': {
