@@ -36,11 +36,11 @@ export async function POST(req: NextRequest) {
 
     const user = users[0];
 
-    if (!verifyPassword(password.trim(), user.password)) {
+    if (!(await verifyPassword(password.trim(), user.password))) {
       return NextResponse.json({ error: 'NIK atau password salah. Coba lagi.' }, { status: 401 });
     }
 
-    const token = createSessionToken(user.id);
+    const token = await createSessionToken(user.id);
 
     const response = NextResponse.json({
       user: {

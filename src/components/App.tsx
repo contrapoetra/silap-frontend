@@ -129,7 +129,7 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
     surat: ['surat'],
   };
 
-  // Load minimal data on mount: users + profileDesc
+  // Load minimal data on mount: users + profileDesc, then restore session via /api/me
   useEffect(() => {
     let cancelled = false;
     async function initApp() {
@@ -140,9 +140,15 @@ export default function App({ initialUserId, initialUsers, initialPath }: { init
         try { const { data } = await supabase.from('profil_desa').select('deskripsi').eq('id', 1).single(); profileDescData = data?.deskripsi || ""; } catch (_) {}
         if (cancelled) return;
 
+        let restoredUserId = initialUserId ?? null;
+        try {
+          const me = await fetch('/api/me').then(r => r.json());
+          restoredUserId = me?.user?.id ?? restoredUserId;
+        } catch (_) {}
+
         dispatch({ type: 'SET_INITIAL_DATA', payload: { users: users || [], profileDesc: profileDescData } });
-        if (initialUserId && users?.some((u: any) => u.id === initialUserId)) {
-          dispatch({ type: 'DO_LOGIN', payload: initialUserId });
+        if (restoredUserId && users?.some((u: any) => u.id === restoredUserId)) {
+          dispatch({ type: 'DO_LOGIN', payload: restoredUserId });
           if (parsed.route !== 'beranda' && parsed.route !== 'dashboard') {
             dispatch({ type: 'SET_ROUTE', payload: parsed.route });
             if (parsed.blogDate && parsed.blogSlug) {

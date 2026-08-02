@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sesi tidak valid.' }, { status: 401 });
     }
 
-    const userId = verifySessionToken(token);
+    const userId = await verifySessionToken(token);
     if (!userId) {
       return NextResponse.json({ error: 'Sesi tidak valid.' }, { status: 401 });
     }
@@ -48,13 +48,13 @@ export async function POST(req: NextRequest) {
 
     const user = users[0];
 
-    if (!verifyPassword(currentPassword.trim(), user.password)) {
+    if (!(await verifyPassword(currentPassword.trim(), user.password))) {
       return NextResponse.json({ error: 'Password saat ini salah.' }, { status: 401 });
     }
 
     const { error: updateErr } = await supabase
       .from('users')
-      .update({ password: hashPassword(newPassword.trim()) })
+      .update({ password: await hashPassword(newPassword.trim()) })
       .eq('id', userId);
 
     if (updateErr) {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Gagal mengubah password.' }, { status: 500 });
     }
 
-    const newToken = createSessionToken(userId);
+    const newToken = await createSessionToken(userId);
     const response = NextResponse.json({ ok: true });
     response.cookies.set(sessionCookieName(), newToken, {
       path: '/',

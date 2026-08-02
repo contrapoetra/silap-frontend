@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       .insert({
         nik: nik.trim(),
         name: name.trim(),
-        password: hashPassword(password.trim()),
+        password: await hashPassword(password.trim()),
         role: role || 'anggota',
         pokja: pokja ?? null,
         avatar: avatar || null,
@@ -88,7 +88,7 @@ export async function PUT(req: NextRequest) {
     };
 
     if (password?.trim()) {
-      updatePayload.password = hashPassword(password.trim());
+      updatePayload.password = await hashPassword(password.trim());
     }
 
     const { error } = await supabase

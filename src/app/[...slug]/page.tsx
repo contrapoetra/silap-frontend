@@ -1,11 +1,56 @@
 import type { Metadata } from "next";
 import App from "@/components/App";
-import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
-import { verifySessionToken } from '@/lib/session';
 import { POKJA } from '@/lib/constants';
+import { blogPostPath } from '@/lib/routes';
+
+export const revalidate = 3600;
 
 const baseUrl = "https://pkk.bunutwetan.id";
+
+const STATIC_SLUGS: string[][] = [
+  ['home'],
+  ['pkk'],
+  ['pkk', 'pokja-1'],
+  ['pkk', 'pokja-2'],
+  ['pkk', 'pokja-3'],
+  ['pkk', 'pokja-4'],
+  ['galeri'],
+  ['pengumuman'],
+  ['inovasi'],
+  ['inovasi', 'editor'],
+  ['kalender'],
+  ['laporan'],
+  ['anggota'],
+  ['inventaris'],
+  ['surat'],
+  ['arsip'],
+  ['dasbor'],
+];
+
+export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
+  const params: { slug: string[] }[] = STATIC_SLUGS.map((slug) => ({ slug }));
+
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    if (supabaseUrl && supabaseKey) {
+      const sb = createClient(supabaseUrl, supabaseKey);
+      const { data: posts } = await sb.from('blog_posts').select('id, title, created_at');
+      if (posts) {
+        for (const post of posts) {
+          const path = blogPostPath({ ...post, date: post.created_at });
+          const slug = path.replace(/^\//, '').split('/');
+          if (slug.length > 1) params.push({ slug });
+        }
+      }
+    }
+  } catch {
+    // static routes are still generated without the database
+  }
+
+  return params;
+}
 
 const PAGE_META: Record<string, { title: string; description: string }> = {
   '/home': {
@@ -117,31 +162,5 @@ export default async function CatchAllPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const initialPath = '/' + slug.join('/');
 
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('silap_session');
-
-  let initialUserId: string | null = null;
-  let initialUsers: any[] = [];
-
-  if (sessionCookie?.value) {
-    const userId = verifySessionToken(sessionCookie.value);
-    if (userId) {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
-      if (supabaseUrl && supabaseKey) {
-        try {
-          const sb = createClient(supabaseUrl, supabaseKey);
-          const { data } = await sb.from('users').select('id, nik, role, name, pokja, avatar').eq('id', userId);
-          if (data && data.length > 0) {
-            initialUserId = userId;
-            initialUsers = data;
-          }
-        } catch (e) {
-          console.error('Failed to restore session server-side:', e);
-        }
-      }
-    }
-  }
-
-  return <App initialUserId={initialUserId} initialUsers={initialUsers} initialPath={initialPath} />;
+  return <App initialPath={initialPath} />;
 }

@@ -84,7 +84,9 @@ export function dateToYMD(dateStr: string): string {
   return '';
 }
 
-export function blogPostPath(post: BlogPost): string {
+type BlogPostPathInput = Pick<BlogPost, 'title' | 'id' | 'created_at' | 'date'>;
+
+export function blogPostPath(post: BlogPostPathInput): string {
   const ymd = dateToYMD(post.created_at || post.date || '');
   const slug = slugify(post.title);
   if (!ymd) return `/inovasi/${slug || 'post-' + post.id}`;
